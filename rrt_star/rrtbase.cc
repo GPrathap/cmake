@@ -80,7 +80,7 @@ namespace hagen {
         std::cout<<"RRTBase::new_and_near: x_rand: " << x_rand.transpose() << std::endl;
         std::cout<<"RRTBase::new_and_near: x_nearest: " << x_nearest.transpose() << std::endl;
         // std::cout<<"RRTBase::new_and_near: x_new " << x_new.transpose() << std::endl;
-        printEdge(0);
+        // printEdge(0);
         auto g1 = trees[0].V.obstacle_free(x_new);
         auto g2 = X.obstacle_free(x_new);
         std::cout<<"RRTBase::new_and_near: x_new g1 g2 " << g1 << "  "<< g2 << std::endl;
@@ -204,8 +204,13 @@ namespace hagen {
             // std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){
                 path.push_back(current_parent);
-                std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
-                current_parent = getEdge(current_parent, tree);
+                if(isEdge(current_parent, tree)){
+                    current_parent = getEdge(current_parent, tree);
+                    std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
+                }else{
+                    std::cout<< "RRTBase::reconstruct_path: current: something wrong with edges" << std::endl;
+                    return path;
+                }
             }
             path.push_back(x_init);
             std::reverse(path.begin(), path.end());

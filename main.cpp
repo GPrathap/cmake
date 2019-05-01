@@ -41,12 +41,12 @@ int main()
     // std::cout<< "-----1" << std::endl;
 
     // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(2, x_dimentions);
+    auto obstacles = rrtstart3d.get_random_obstacles(200, x_dimentions);
     // std::cout<< "-----1" << std::endl;
     Eigen::VectorXd x_init(3);
-    x_init << -9.5, 0.01, 0.01 ;
+    x_init << 0, 0, 0 ;
     Eigen::VectorXd x_goal(3);
-    x_goal << 8, 0, 0;
+    x_goal << 99, 99, 99;
 
     std::vector<Eigen::VectorXd> Q;
     Eigen::VectorXd dim_in(2);
@@ -62,34 +62,17 @@ int main()
     X.init(map_dim);
     X.random_objects = obstacles;
     X.insert_obstacles();
-    // // std::cout<< "-----1" << std::endl;
-    // auto rrtstar = rrtstart3d.rrt_search(X, Q, x_init
-    //                 , x_goal, max_samples, r, proc, rewrite_count);
-    // // std::cout<< "-----1" << std::endl;
-    // std::vector<Eigen::VectorXd> path;
-    // path = rrtstar.rrt_star();
+    auto rrtstar = rrtstart3d.rrt_search(X, Q, x_init
+                    , x_goal, max_samples, r, proc, rewrite_count);
+    std::vector<Eigen::VectorXd> path;
+    path = rrtstar.rrt_star();
 
-    // rrtstart3d.save_edges(rrtstar.trees);
+    rrtstart3d.save_edges(rrtstar.trees);
     rrtstart3d.save_obstacle(obstacles);
     rrtstart3d.save_poses(x_init, x_goal);
-    // rrtstart3d.save_path(path);
+    rrtstart3d.save_path(path);
 
-    APFCalculator apfCalculator;
-    apfCalculator.epsilonGoal = 0.05;
-    std::vector<cv::Mat> obstacles_previous_try = apfCalculator.get_obstacles(obstacles);
-    apfCalculator.initArena(obstacles_previous_try);
-    apfCalculator.initPositions((cv::Mat)(cv::Mat_<double>(1, 3) << x_init[0],x_init[1], x_init[2]),
-                                    (cv::Mat)(cv::Mat_<double>(1, 3) << x_goal[0], x_goal[1], x_goal[2]));
-
-    std::cout << "Stating point = " << apfCalculator.qStart  << std::endl;
-    std::cout << "Ending point = " << apfCalculator.qGoal << std::endl;
-
-    DifferentialEquationSolver differential_solver;
-    differential_solver.init(apfCalculator);
-    std::vector<tuple<double, double, double>> projected_trajectory;
-    projected_trajectory.clear();
-    bool is_estimated = differential_solver.run(projected_trajectory);
-
+    
     // AStarImproved path_planner;
     // AStarImproved::Options options;
     // path_planner.init_planner(X, options);

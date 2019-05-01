@@ -53,12 +53,17 @@ namespace hagen {
         std::vector<value_t> returned_values;
         // box_t pt(point_t(x[0], x[1], x[2]),
         // point_t(x[0] + cube_length, x[1] + cube_length, x[2] + cube_length));
-        bg_tree.query(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours), std::back_inserter(returned_values));
+        // bg_tree.query(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours), std::back_inserter(returned_values));
+    // std::cout<< "-----1" << std::endl;
         std::vector<Eigen::VectorXd> neighbour_points;
-
-        for(value_t const& v: returned_values){
+        for ( RTree::const_query_iterator it = bg_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
+                it != bg_tree.qend() ; ++it )
+        {
             Eigen::VectorXd pose(3);
-            auto cube = v.first;
+            auto cube = (*it).first;
+
+            // std::cout<< "SearchSpace::nearest:  distance: " << bg::distance(cube, point_t(x[0], x[1], x[2])) << std::endl;
+
             float min_x = bg::get<bg::min_corner, 0>(cube);
             float min_y = bg::get<bg::min_corner, 1>(cube);
             float min_z = bg::get<bg::min_corner, 2>(cube);
@@ -67,11 +72,33 @@ namespace hagen {
             float max_y = bg::get<bg::max_corner, 1>(cube);
             float max_z = bg::get<bg::max_corner, 2>(cube);
 
+            // std::cout<< "SearchSpace::nearest: "<< min_x << ","<<min_y << ", "<< min_z << ", " << max_x << ", "<< max_y << ", " << max_z << std::endl;
+
             // pose << (min_x+max_x)/2, (min_y+max_y)/2, (min_z+max_z)/2;
             pose << min_x, min_y, min_z;
             neighbour_points.push_back(pose);
+        
         }
-        return neighbour_points;
+        return neighbour_points;        
+        
+        
+
+        // for(value_t const& v: returned_values){
+        //     Eigen::VectorXd pose(3);
+        //     auto cube = v.first;
+        //     float min_x = bg::get<bg::min_corner, 0>(cube);
+        //     float min_y = bg::get<bg::min_corner, 1>(cube);
+        //     float min_z = bg::get<bg::min_corner, 2>(cube);
+
+        //     float max_x = bg::get<bg::max_corner, 0>(cube);
+        //     float max_y = bg::get<bg::max_corner, 1>(cube);
+        //     float max_z = bg::get<bg::max_corner, 2>(cube);
+
+        //     // pose << (min_x+max_x)/2, (min_y+max_y)/2, (min_z+max_z)/2;
+        //     pose << min_x, min_y, min_z;
+        //     neighbour_points.push_back(pose);
+        // }
+        // return neighbour_points;
     }
 
     bool SearchSpace::obstacle_free(Rect search_rect){
@@ -98,13 +125,20 @@ namespace hagen {
         sum += bg_tree.query(bgi::intersects(search_box)
         , boost::make_function_output_iterator(geometry_rtree_callback));
         // float s = t.elapsed();
-        std::cout <<" SearchSpace::obstacle_free: sum: " << sum << std::endl;
+        // std::cout <<" SearchSpace::obstacle_free: sum: " << sum << std::endl;
         return sum > 0 ? false : true;
     }
 
     Eigen::VectorXd SearchSpace::sample(){
         Eigen::VectorXd random_pose(3);
-        random_pose<< uni_dis_vector[0](generator_on_x), uni_dis_vector[1](generator_on_x), uni_dis_vector[2](generator_on_x);
+        std::default_random_engine generator_on_x;
+        generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        auto x_on = uni_dis_vector[0](generator_on_x);
+        generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        auto y_on = uni_dis_vector[1](generator_on_x);
+        generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        auto z_on = uni_dis_vector[2](generator_on_x);
+        random_pose<< x_on, y_on, z_on;
         return random_pose;
     }
 

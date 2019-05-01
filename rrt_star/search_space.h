@@ -14,6 +14,8 @@
 #include <cfenv>
 #include <cstring>
 #include <Eigen/Dense>
+#include <chrono> 
+
 #include <vector>
 #include <boost/function_output_iterator.hpp>
 #include <boost/geometry.hpp>
@@ -78,10 +80,10 @@ namespace hagen {
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
                 std::vector<uint64_t> res;
-                std::default_random_engine generator_on_x;
-                std::default_random_engine generator_on_y;
-                std::default_random_engine generator_on_z;
-                int cube_length = 1;
+                
+                // std::default_random_engine generator_on_y;
+                // std::default_random_engine generator_on_z;
+                int cube_length = 2;
                 
 
                 struct GeometryRTreeSearchCallback

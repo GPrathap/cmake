@@ -31,19 +31,22 @@ namespace hagen {
 
     std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles, Eigen::VectorXd x_dimentions){
         std::vector<SearchSpace::Rect> _objects;
+        srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
+            
             float x = (rand()%(int)x_dimentions[0]);
             float y = (rand()%(int)x_dimentions[1]);
             float z = (rand()%(int)x_dimentions[2]);
-            int width_x = x + rand()%20;
-            int width_y = y + rand()%20;
-            int width_z = z + rand()%20;
+            int width_x = x + rand()%10;
+            int width_y = y + rand()%10;
+            int width_z = z + rand()%10;
             if(width_x >= (int)x_dimentions[0] 
             || width_y >= (int)x_dimentions[1] || width_z >= (int)x_dimentions[2]){
                 continue;
             }
             _objects.push_back(SearchSpace::Rect(x, y, z, width_x, width_y, width_z));
         }
+        std::cout<< "RRTStar3D::get_random_obstacles: Size of the obbjects "<< _objects.size() << std::endl;
         return _objects;
     }
 
