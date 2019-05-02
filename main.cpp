@@ -15,33 +15,14 @@ using kamaz::hagen::DifferentialEquationSolver;
 
 int main()
 {
-     // create the rectangle passed into the query
-    // Eigen::VectorXd dimension_lengths(6);
-    // dimension_lengths << 0, 512, 0, 512, 0, 512;
-    // std::vector<Eigen::VectorXf> obstacles;
-    // Eigen::VectorXd start(3);
-    // Eigen::VectorXd end(3);
-    // start<< 12, 45, 67;
-    // end << 234, 234,456;
-
-    // // SearchSpace search_space;
-    // // search_space.init(dimension_lengths, obstacles);
-    // // search_space.generate_random_objects(200);
-    // // search_space.insert_obstacles();
-    // // // search_space.search_all_obstacles();
-    // // // search_space.sample_free();
-    // // bool free_path = search_space.collision_free(start, end, 1);
-    // // std::cout<< free_path << std::endl;
+    
 
     kamaz::hagen::RRTStar3D rrtstart3d;
-    // std::cout<< "-----1" << std::endl;
     Eigen::VectorXd x_dimentions(3);
     x_dimentions << 100, 100, 100;
     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
-    // std::cout<< "-----1" << std::endl;
-
     // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(200, x_dimentions);
+    auto obstacles = rrtstart3d.get_random_obstacles(5, x_dimentions);
     // std::cout<< "-----1" << std::endl;
     Eigen::VectorXd x_init(3);
     x_init << 0, 0, 0 ;
@@ -58,76 +39,28 @@ int main()
     int rewrite_count = 32;
     float proc = 0.1;
 
+    if(x_goal[0] >= w){
+      x_goal[0] = w - 1;
+    }
+    if(x_goal[1] >= h ){
+      x_goal[1] = h - 1;
+    }
+    if(x_goal[2] >= d){
+      x_goal[2] = d - 1;
+    }
+    if(x_goal[0] < 0 ||x_goal[1] < 0 || x_goal[2] < 0){
+      return 0;
+    }
+
     kamaz::hagen::SearchSpace X;
     X.init(map_dim);
-    X.random_objects = obstacles;
-    X.insert_obstacles();
-    auto rrtstar = rrtstart3d.rrt_search(X, Q, x_init
-                    , x_goal, max_samples, r, proc, rewrite_count);
-    std::vector<Eigen::VectorXd> path;
-    path = rrtstar.rrt_star();
+    X.insert_obstacles(obstacles);
 
-    rrtstart3d.save_edges(rrtstar.trees);
-    rrtstart3d.save_obstacle(obstacles);
-    rrtstart3d.save_poses(x_init, x_goal);
-    rrtstart3d.save_path(path);
-
-    
-    // AStarImproved path_planner;
-    // AStarImproved::Options options;
-    // path_planner.init_planner(X, options);
-
-    // int rows = x_dimentions[0];
-    // int cols = x_dimentions[1];
-    // int depth = x_dimentions[2];
-
-    // AStarImproved::pose start;
-    // start.x = x_init[0];
-    // start.y = x_init[1];
-    // start.z = x_init[2];
-
-    // AStarImproved::pose end;
-    // end.x =  x_goal[0];
-    // end.y =  x_goal[1];
-    // end.z =  x_goal[2];
-
-    // if(end.x >= rows){
-    //   end.x = rows - 1;
-    // }
-    // if(end.y >= cols ){
-    //   end.y = cols - 1;
-    // }
-    // if(end.z >= depth){
-    //   end.z = depth - 1;
-    // }
-    // if(end.x < 0 || end.y < 0 || end.z < 0){
-    //   return false;
-    // }
-    // int start_idx = path_planner.to1D(start.x, start.y, start.z);
-    // int goal_idx = path_planner.to1D(end.x, end.y, end.z);
-    // std::vector<int> paths(rows*cols*depth);
-    // bool success = path_planner.astar(start_idx, goal_idx, false, paths);
-    // std::vector<Eigen::VectorXd> projected_trajectory;
-    // if(success){
-    //     std::cout<< "Path is found"<< std::endl;
-    //     auto path_idx = goal_idx;
-    //     int path_node_id=0;
-    //     while(path_idx != start_idx){
-    //         auto path_position = path_planner.to3D(path_idx);
-    //         Eigen::VectorXd poseh(3);
-    //         poseh << path_position[0], path_position[1], path_position[2];
-    //         projected_trajectory.push_back(poseh);
-    //         path_idx = paths[path_idx];
-    //         path_node_id++;
-    //     }
-    //     auto start_position = path_planner.to3D(path_idx);
-    //     Eigen::VectorXd poseh(3);
-    //     poseh << start_position[0], start_position[1], start_position[2];
-    //     projected_trajectory.push_back(poseh);
-    // }else{
-    //     std::cout<< "Path is not found"<< std::endl;
-    // }
-    // path_planner.save_path(projected_trajectory);
+    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal);
+   
+    AStarImproved path_planner;
+    auto projected_trajectory = path_planner.astar_planner_and_save(X, x_init, x_goal);
 
     return 0;
 }

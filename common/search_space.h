@@ -15,7 +15,6 @@
 #include <cstring>
 #include <Eigen/Dense>
 #include <chrono> 
-
 #include <vector>
 #include <boost/function_output_iterator.hpp>
 #include <boost/geometry.hpp>
@@ -64,7 +63,7 @@ namespace hagen {
 
                 void init(Eigen::VectorXd dimension_lengths);
                 void generate_random_objects(int num_of_objects);
-                void insert_obstacles();
+                void insert_obstacles(std::vector<Rect> obstacles);
                 void search_all_obstacles();
                 bool obstacle_free(Rect search_rect);
                 bool obstacle_free(Eigen::VectorXd search_rect);

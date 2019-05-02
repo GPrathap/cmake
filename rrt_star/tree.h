@@ -13,7 +13,7 @@
 #include <cerrno>
 #include <cfenv>
 #include <cstring>
-#include "search_space.h"
+#include "../common/search_space.h"
 
 namespace kamaz {
 namespace hagen {

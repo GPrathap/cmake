@@ -3,11 +3,32 @@
 namespace kamaz {
 namespace hagen {
 
-    RRTStar RRTStar3D::rrt_search(SearchSpace search_space, std::vector<Eigen::VectorXd> lengths_of_edges
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose, int _max_samples
-                , int resolution, float pro, int _rewrite_count){
+    std::vector<Eigen::VectorXd> RRTStar3D::rrt_planner(SearchSpace search_space
+                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose){
+        
+        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro, _rewrite_count);                   
+        return rrtstar.rrt_star();
+    }
 
-        return RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro, _rewrite_count);                   
+    std::vector<Eigen::VectorXd> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
+                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose){
+        
+        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro, _rewrite_count);                   
+        auto path = rrtstar.rrt_star();
+        save_edges(rrtstar.trees);
+        save_obstacle(search_space.random_objects);
+        save_poses(start_pose, goal_pose);
+        save_path(path);
+        return path;
+    }
+
+    void RRTStar3D::rrt_init(std::vector<Eigen::VectorXd> _lengths_of_edges
+    , int max_samples, int _resolution, float _pro, int rewrite_count){
+        lengths_of_edges = _lengths_of_edges;
+        _max_samples = max_samples;
+        resolution = _resolution; 
+        pro = _pro;
+        _rewrite_count = rewrite_count;
     }
 
     Eigen::VectorXd RRTStar3D::get_search_space_dim(Eigen::VectorXd dimensions){

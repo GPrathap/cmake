@@ -16,7 +16,7 @@
 
 #include <cnpy.h>
 
-#include "../rrt_star/search_space.h"
+#include "../common/search_space.h"
 
 
 
@@ -99,8 +99,16 @@ public:
 	std::vector<int> getNeighbors(int idx, bool diagonal);
 	bool astar(const int start, const int goal, bool diag_ok, std::vector<int>& paths);
 	float float_max;
-	void init_planner(SearchSpace ss, AStarImproved::Options options);
+	bool init_planner();
 	void save_path(std::vector<Eigen::VectorXd> path);
+	std::vector<Eigen::VectorXd> astar_planner(SearchSpace X,  Eigen::VectorXd x_init, 
+									Eigen::VectorXd x_goal);
+	
+	std::vector<Eigen::VectorXd> astar_planner_and_save(SearchSpace X,  Eigen::VectorXd x_init, 
+									Eigen::VectorXd x_goal);
+
+	int start_idx;
+	int goal_idx;
 };
 
 }

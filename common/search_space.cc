@@ -30,15 +30,16 @@ namespace hagen {
         }
     }
 
-    void SearchSpace::insert_obstacles(){
-        if(random_objects.size() == 0){
+    void SearchSpace::insert_obstacles(std::vector<Rect> obstacles){
+        if(obstacles.size() == 0){
             std::cout<< "No obstacle to be inserted" << std::endl;
         }
-        for(size_t i = 0; i < random_objects.size(); i++){
-            Rect const& r = random_objects[i];
+        for(size_t i = 0; i < obstacles.size(); i++){
+            Rect const& r = obstacles[i];
             box_t b(point_t(r.min[0], r.min[1], r.min[2]), point_t(r.max[0], r.max[1], r.max[2]));
             bg_tree.insert(value_t(b, i));
         }
+        random_objects = obstacles;
     }
 
     void SearchSpace::insert(Eigen::VectorXd index){

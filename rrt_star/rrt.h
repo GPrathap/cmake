@@ -2,7 +2,6 @@
 #define RRT_H
 
 #include "rrtbase.h"
-#include "search_space.h"
 
 namespace kamaz {
 namespace hagen {

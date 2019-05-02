@@ -8,7 +8,7 @@
 #include <functional>
 #include <boost/numeric/odeint.hpp>
 #include "newTypeDef.h"
-#include "../rrt_star/search_space.h"
+#include "../common/search_space.h"
 
 using namespace std;
 using namespace cv;

@@ -3,18 +3,9 @@
 namespace kamaz {
 namespace hagen {
 
-void AStarImproved::init_planner(SearchSpace X, AStarImproved::Options options){
-	      float_max = 200000000.45;
-        search_space = X;
-        w = search_space.dim_lengths[1];
-        h = search_space.dim_lengths[3];
-		    d = search_space.dim_lengths[5];
-
-        const int sz[] = {w, h, d}; 
-        _options = options;
-		    threshold_level_a_star = _options.threshold_level_a_star;
-		    std::cout<< "rows: " << w << " cols:" << h << " depth: " << d << std::endl;
-}
+bool AStarImproved::init_planner(){
+	return false;
+	}
 
 int AStarImproved::to1D( int x, int y, int z) {
     return (z * w * h) + (y * w) + x;
@@ -202,6 +193,54 @@ std::vector<int> AStarImproved::getNeighbors(int idx, bool diagonal) {
 		}
 		return neighbors;
 }
+
+
+std::vector<Eigen::VectorXd> AStarImproved::astar_planner_and_save(SearchSpace X,  Eigen::VectorXd x_init, 
+									Eigen::VectorXd x_goal){
+						auto path = astar_planner(X, x_init, x_goal);
+						save_path(path);
+						return path;				
+}
+
+std::vector<Eigen::VectorXd> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXd x_init, 
+									Eigen::VectorXd x_goal){
+
+		float_max = 200000000.45;
+		search_space = X;
+
+		w = search_space.dim_lengths[1];
+		h = search_space.dim_lengths[3];
+		d = search_space.dim_lengths[5];
+		
+		start_idx = to1D(x_init[0], x_init[1], x_init[2]);
+		goal_idx = to1D(x_goal[0], x_goal[1], x_goal[2]);
+		std::cout<< "rows: " << w << " cols:" << h << " depth: " << d << std::endl;
+
+		std::vector<int> paths(w*h*d);
+		bool success = astar(start_idx, goal_idx, false, paths);
+		std::vector<Eigen::VectorXd> projected_trajectory;
+		if(success){
+				std::cout<< "Path is found"<< std::endl;
+				auto path_idx = goal_idx;
+				int path_node_id=0;
+				while(path_idx != start_idx){
+						auto path_position = to3D(path_idx);
+						Eigen::VectorXd poseh(3);
+						poseh << path_position[0], path_position[1], path_position[2];
+						projected_trajectory.push_back(poseh);
+						path_idx = paths[path_idx];
+						path_node_id++;
+				}
+				auto start_position = to3D(path_idx);
+				Eigen::VectorXd poseh(3);
+				poseh << start_position[0], start_position[1], start_position[2];
+				projected_trajectory.push_back(poseh);
+		}else{
+				std::cout<< "Path is not found"<< std::endl;
+		}
+		return projected_trajectory;
+}
+
 
 // weights:        flattened h x w grid of costs
 // h, w:           height and width of grid
