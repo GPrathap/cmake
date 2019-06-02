@@ -193,13 +193,12 @@ namespace hagen {
         path.push_back(x_goal);
         auto current = x_goal;
         
-        std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
-        std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
         if(is_equal_vectors(x_goal, x_init)){
             return path;
         }
         // printEdge(tree);
         if(isEdge(current, tree)){
+            std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
             auto current_parent = getEdge(current, tree);
             // std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){

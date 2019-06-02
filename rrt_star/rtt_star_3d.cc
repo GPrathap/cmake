@@ -18,7 +18,7 @@ namespace hagen {
         save_edges(rrtstar.trees);
         save_obstacle(search_space.random_objects);
         save_poses(start_pose, goal_pose);
-        save_path(path);
+        save_path(path, "/dataset/rrt_path.npy");
         return path;
     }
 
@@ -116,7 +116,7 @@ namespace hagen {
        cnpy::npy_save("/dataset/start_and_end_pose.npy",&obstacles_pose[0],{obstacles_pose.size()},"w");
     }
 
-    void RRTStar3D::save_path(std::vector<Eigen::VectorXd> path){
+    void RRTStar3D::save_path(std::vector<Eigen::VectorXd> path, std::string name_of_file){
        std::vector<float> projected_path; 
         
        std::cout<< "RRTStar3D::save_path trajectory size: " << path.size()<< std::endl;
@@ -126,7 +126,9 @@ namespace hagen {
            projected_path.push_back(way_point[1]);
            projected_path.push_back(way_point[2]);
        }
-       cnpy::npy_save("/dataset/rrt_star_path.npy",&projected_path[0],{path.size(), 3},"w");
+       cnpy::npy_save(name_of_file, &projected_path[0],{path.size(), 3},"w");
     }
+
+    
 }
 }

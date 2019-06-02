@@ -43,7 +43,7 @@ namespace hagen {
                void save_edges(std::map<int, Tree> trees);
                void save_obstacle(std::vector<SearchSpace::Rect> obstacles);
                void save_poses(Eigen::VectorXd start, Eigen::VectorXd end);
-               void save_path(std::vector<Eigen::VectorXd> path);
+               void save_path(std::vector<Eigen::VectorXd> path, std::string name_of_file);
 
             private:
                std::vector<Eigen::VectorXd> lengths_of_edges;

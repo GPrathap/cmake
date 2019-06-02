@@ -23,7 +23,7 @@ include_directories(${BOOST_INCLUDE_DIRS})
 
 
 message( STATUS "Include sub-directories into build process:" )
-foreach( DIR rrt_star a_star apf common)
+foreach( DIR rrt_star a_star apf common spline ssa local_maxima)
     message( STATUS "  - include/" ${DIR} )
     include_directories( "${DIR}" )
     link_directories("${DIR}")
@@ -34,7 +34,7 @@ include_directories(/usr/local/include/)
 link_directories(/usr/local/lib/)
 
 set(TRACKING_LIB ${TRACKING_LIB} ${Boost_LIBRARIES})
-set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf common cnpy z)
+set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf common spline cnpy z ssa local_maxima)
 set(TRACKING_LIB ${TRACKING_LIB} ${OpenCV_LIBS})
 
 
