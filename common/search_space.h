@@ -16,6 +16,9 @@
 #include <Eigen/Dense>
 #include <chrono> 
 #include <vector>
+#include <random>
+#include <cnpy.h>
+
 #include <boost/function_output_iterator.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -23,7 +26,8 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/timer.hpp>
-#include <boost/foreach.hpp>
+#include <boost/foreach.hpp>    
+
 
 #include <random>
 
@@ -61,6 +65,8 @@ namespace hagen {
                     float max[3];
                 };
 
+                std::vector<float> arange(float start, float stop, float step);
+                void save_samples(int index);
                 void init(Eigen::VectorXd dimension_lengths);
                 void generate_random_objects(int num_of_objects);
                 void insert_obstacles(std::vector<Rect> obstacles);
@@ -74,14 +80,13 @@ namespace hagen {
                 bool collision_free(Eigen::VectorXd start, Eigen::VectorXd end, int r);
                 void insert(Eigen::VectorXd index);
                 std::vector<Eigen::VectorXd> nearest(Eigen::VectorXd x, int max_neighbours);
+                void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent, int npts);
    
-
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
                 std::vector<uint64_t> res;
+                Eigen::MatrixXf  random_points_tank;
                 
-                // std::default_random_engine generator_on_y;
-                // std::default_random_engine generator_on_z;
                 int cube_length = 2;
                 
 

@@ -18,11 +18,35 @@
 #include "./spline/Curve.h"
 #include "./spline/BSpline.h"
 #include "./spline/CatmullRom.h"
+#include "./common/search_space.h"
 
 using kamaz::hagen::SearchSpace;
 using kamaz::hagen::AStarImproved;
 using kamaz::hagen::APFCalculator;
 using kamaz::hagen::DifferentialEquationSolver;
+
+int main(){
+  SearchSpace search_space;
+  Eigen::MatrixXf covmat(3,3);
+  Eigen::VectorXf center(3);
+  center << 3, 3, 10;
+  covmat(0,0) = 700;
+  covmat(1,1) = 4;
+  covmat(2,2) = 4;
+
+  double roll, pitch, yaw;
+  roll=0;
+  pitch=M_PI/4;
+  yaw=0;
+  Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitZ());
+  Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitX());
+  Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+  Eigen::Matrix3f rotation_matrix = q.matrix().cast<float>();
+  search_space.generate_samples_from_ellipsoid(covmat, rotation_matrix, center, 1000);
+  search_space.save_samples(1);
+  return 0;
+}
 
 // int main(int argc, char** argv){
     
@@ -354,90 +378,90 @@ using kamaz::hagen::DifferentialEquationSolver;
 
 
 
-int main()
-{
-    kamaz::hagen::RRTStar3D rrtstart3d;
-    Eigen::VectorXd x_dimentions(3);
-    x_dimentions << 100, 100, 100;
-    auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
-    // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(10, x_dimentions);
-    // std::cout<< "-----1" << std::endl;
-    Eigen::VectorXd x_init(3);
-    x_init << 0, 0, 0 ;
-    Eigen::VectorXd x_goal(3);
-    x_goal << 99, 99, 99;
+// int main()
+// {
+//     kamaz::hagen::RRTStar3D rrtstart3d;
+//     Eigen::VectorXd x_dimentions(3);
+//     x_dimentions << 100, 100, 100;
+//     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
+//     // auto obstacles = rrtstart3d.get_obstacles();
+//     auto obstacles = rrtstart3d.get_random_obstacles(10, x_dimentions);
+//     // std::cout<< "-----1" << std::endl;
+//     Eigen::VectorXd x_init(3);
+//     x_init << 0, 0, 0 ;
+//     Eigen::VectorXd x_goal(3);
+//     x_goal << 99, 99, 99;
 
-    std::vector<Eigen::VectorXd> Q;
-    Eigen::VectorXd dim_in(2);
-    dim_in << 8, 4;
-    Q.push_back(dim_in);
-    // std::cout<< "-----1" << std::endl;
-    int r = 1;
-    int max_samples = 10000;
-    int rewrite_count = 32;
-    float proc = 0.1;
+//     std::vector<Eigen::VectorXd> Q;
+//     Eigen::VectorXd dim_in(2);
+//     dim_in << 8, 4;
+//     Q.push_back(dim_in);
+//     // std::cout<< "-----1" << std::endl;
+//     int r = 1;
+//     int max_samples = 10000;
+//     int rewrite_count = 32;
+//     float proc = 0.1;
 
-    kamaz::hagen::SearchSpace X;
-    X.init(map_dim);
-    X.insert_obstacles(obstacles);
+//     kamaz::hagen::SearchSpace X;
+//     X.init(map_dim);
+//     X.insert_obstacles(obstacles);
 
-    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal);
+//     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+//     auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal);
    
 
-    Curve* bspline_curve = new BSpline();
-    Curve* catmulll_curve = new CatmullRom();
+//     Curve* bspline_curve = new BSpline();
+//     Curve* catmulll_curve = new CatmullRom();
 
-	  bspline_curve->set_steps(100);
-    catmulll_curve->set_steps(100);
+// 	  bspline_curve->set_steps(100);
+//     catmulll_curve->set_steps(100);
 
-    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-    catmulll_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+//     bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+//     catmulll_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
 
-    for(auto const way_point : path){
-      std::cout<<"main: "<< way_point.transpose() << std::endl;
-      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-      catmulll_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-    }
+//     for(auto const way_point : path){
+//       std::cout<<"main: "<< way_point.transpose() << std::endl;
+//       bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+//       catmulll_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+//     }
 
-    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-    catmulll_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+//     bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+//     catmulll_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
 
-    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+//     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+// 	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
 
-    std::vector<Eigen::VectorXd> new_path_bspline;
-    std::vector<Eigen::VectorXd> new_path_catmull;
-    // if(path.size()>0){
-    //   new_path_bspline.push_back(path[0]);
-    //   new_path_catmull.push_back(path[0]);
-    // }
-    for (int i = 0; i < bspline_curve->node_count(); ++i) {
-		  Eigen::VectorXd pose(3);
-      auto node = bspline_curve->node(i);
-      pose<< node.x, node.y, node.z; 
-      new_path_bspline.push_back(pose);
-	  }
-    for (int i = 0; i < catmulll_curve->node_count(); ++i) {
-		  Eigen::VectorXd pose(3);
-      auto node = catmulll_curve->node(i);
-      pose<< node.x, node.y, node.z; 
-      new_path_catmull.push_back(pose);
-	  }
-    // if(path.size()>0){
-    //   new_path_bspline.push_back(path.back());
-    //   new_path_catmull.push_back(path.back());
-    // }
+//     std::vector<Eigen::VectorXd> new_path_bspline;
+//     std::vector<Eigen::VectorXd> new_path_catmull;
+//     // if(path.size()>0){
+//     //   new_path_bspline.push_back(path[0]);
+//     //   new_path_catmull.push_back(path[0]);
+//     // }
+//     for (int i = 0; i < bspline_curve->node_count(); ++i) {
+// 		  Eigen::VectorXd pose(3);
+//       auto node = bspline_curve->node(i);
+//       pose<< node.x, node.y, node.z; 
+//       new_path_bspline.push_back(pose);
+// 	  }
+//     for (int i = 0; i < catmulll_curve->node_count(); ++i) {
+// 		  Eigen::VectorXd pose(3);
+//       auto node = catmulll_curve->node(i);
+//       pose<< node.x, node.y, node.z; 
+//       new_path_catmull.push_back(pose);
+// 	  }
+//     // if(path.size()>0){
+//     //   new_path_bspline.push_back(path.back());
+//     //   new_path_catmull.push_back(path.back());
+//     // }
 
-    rrtstart3d.save_path(new_path_bspline, "/dataset/rrt_path_modified.npy");
-    rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
-	  delete bspline_curve;
-    // AStarImproved path_planner;
-    // auto projected_trajectory = path_planner.astar_planner_and_save(X, x_init, x_goal);
+//     rrtstart3d.save_path(new_path_bspline, "/dataset/rrt_path_modified.npy");
+//     rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
+// 	  delete bspline_curve;
+//     // AStarImproved path_planner;
+//     // auto projected_trajectory = path_planner.astar_planner_and_save(X, x_init, x_goal);
 
-    return 0;
-}
+//     return 0;
+// }
 // // // Generic functor
 // // template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
 // // struct Functor
