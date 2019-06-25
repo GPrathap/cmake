@@ -15,6 +15,7 @@ namespace hagen {
         uni_dis_vector.push_back(distribution_y);
         uni_dis_vector.push_back(distribution_z);
         // random_objects = obstacles;
+        random_call = new Random_call(std::chrono::system_clock::now().time_since_epoch().count(), 1000);
     }
 
     void SearchSpace::generate_random_objects(int num_of_objects){
@@ -36,6 +37,43 @@ namespace hagen {
             values.push_back(value);
         return values;
     }
+
+
+    Eigen::Matrix3f SearchSpace::get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b){
+        a = a/a.norm();
+        float b_norm = b.norm();
+        b = b/b_norm;
+        Eigen::Vector3f v = a.cross(b);
+        float s = v.norm();
+        float c = a.dot(b);
+        Eigen::Matrix3f vx;
+        vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
+        Eigen::Matrix3f r = Eigen::Matrix3f::Identity(3,3);
+        if(s != 0 ){
+            r = r + vx + vx*vx*((1-c)/std::pow(s, 2));
+        }
+        return r;
+    }
+
+    // https://math.stackexchange.com/questions/1905533/find-perpendicular-distance-from-point-to-line-in-3d
+    float SearchSpace::get_distance(Eigen::Vector3f pont_a, Eigen::Vector3f pont_b, Eigen::Vector3f pont_c){
+        Eigen::Vector3f d = (pont_c - pont_a);
+        if(d.norm() != 0){
+            d = (pont_c - pont_a)/(pont_c - pont_a).norm();
+        }
+        Eigen::Vector3f v = (pont_b - pont_a);
+        float t = v.dot(d);
+        Eigen::Vector3f p = pont_a + t*d;
+        auto dis = (p-pont_b).norm();
+        float alter_dis = v.cross((pont_c - pont_a)).norm()/(pont_c - pont_a).norm();
+
+        std::cout<< "============distance===============" << std::endl;
+        std::cout<< dis << std::endl;                
+        std::cout<< alter_dis << std::endl;
+
+        return dis;
+    } 
+
 
 
     void SearchSpace::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, 
@@ -84,7 +122,7 @@ namespace hagen {
             Eigen::VectorXf bn = rotation_mat*fff.transpose();
             random_points_tank.row(i) = bn.array() + cent.array();
         }
-        std::cout << "points: " << random_points_tank << std::endl;
+        // std::cout << "points: " << random_points_tank << std::endl;
     }
 
     void SearchSpace::save_samples(int index){
@@ -95,7 +133,7 @@ namespace hagen {
                 sample_pose.push_back(random_points_tank(i,j));
             }
         }
-        std::string file_name = "/dataset/" + std::to_string(index)+ "_random_samples.npy";
+        std::string file_name = "/dataset/rrt/" + std::to_string(index)+ "_random_samples.npy";
         cnpy::npy_save(file_name, &sample_pose[0],{1, random_points_tank.rows(), random_points_tank.cols()},"w");
     }
 

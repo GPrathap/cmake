@@ -65,7 +65,24 @@ namespace hagen {
                     float max[3];
                 };
 
+                struct Random_call
+                {
+                    Random_call(unsigned seed, int number_of_rand_points)
+                    : _mt19937_64(seed)
+                    , _uniform_int(0, number_of_rand_points)
+                    {}
+
+                    operator int() {
+                        return _uniform_int(_mt19937_64);
+                    }
+
+                    std::mt19937 _mt19937_64;
+                    std::uniform_int_distribution<int> _uniform_int;
+                };
+
+                Random_call* random_call;
                 std::vector<float> arange(float start, float stop, float step);
+                float get_distance(Eigen::Vector3f pont_a, Eigen::Vector3f pont_b, Eigen::Vector3f pont_c);
                 void save_samples(int index);
                 void init(Eigen::VectorXd dimension_lengths);
                 void generate_random_objects(int num_of_objects);
@@ -81,7 +98,7 @@ namespace hagen {
                 void insert(Eigen::VectorXd index);
                 std::vector<Eigen::VectorXd> nearest(Eigen::VectorXd x, int max_neighbours);
                 void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent, int npts);
-   
+                Eigen::Matrix3f get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b);
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
                 std::vector<uint64_t> res;

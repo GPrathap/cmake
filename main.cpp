@@ -1,52 +1,152 @@
 #include "ssa/ssa.h"
 
-#include "./local_maxima/local_maxima_filter.h"
-#include "./local_maxima/bilateral_filter.h"
+// #include "./local_maxima/local_maxima_filter.h"
+// #include "./local_maxima/bilateral_filter.h"
 
-#include <iostream>
-#include <string>
+// #include <iostream>
+// #include <string>
 
-#include <iostream>
-#include <string>
-#include <thread>
-#include <mutex>
+// #include <iostream>
+// #include <string>
+// #include <thread>
+// #include <mutex>
 
+// #include "./rrt_star/rrt_star_3d.h"
+// #include "./a_star/astar_improved.h"
+// #include "./apf/differential_equation_solver.h"
+// #include "./spline/Curve.h"
+// #include "./spline/BSpline.h"
+// #include "./spline/CatmullRom.h"
+// #include "./common/search_space.h"
 
-#include "./rrt_star/rrt_star_3d.h"
-#include "./a_star/astar_improved.h"
-#include "./apf/differential_equation_solver.h"
-#include "./spline/Curve.h"
-#include "./spline/BSpline.h"
-#include "./spline/CatmullRom.h"
-#include "./common/search_space.h"
+#include "quadtree/quadtree.h"
+#include <random>
+#include "trajectory_planning/trajectory_planning.h"
 
-using kamaz::hagen::SearchSpace;
-using kamaz::hagen::AStarImproved;
-using kamaz::hagen::APFCalculator;
-using kamaz::hagen::DifferentialEquationSolver;
+// using kamaz::hagen::SearchSpace;
+// using kamaz::hagen::AStarImproved;
+// using kamaz::hagen::APFCalculator;
+// using kamaz::hagen::DifferentialEquationSolver;
+// using kamaz::hagen::QuadTree;
+using kamaz::hagen::TrajectoryPlanning;
+
 
 int main(){
-  SearchSpace search_space;
-  Eigen::MatrixXf covmat(3,3);
-  Eigen::VectorXf center(3);
-  center << 3, 3, 10;
-  covmat(0,0) = 700;
-  covmat(1,1) = 4;
-  covmat(2,2) = 4;
+  std::vector<Eigen::VectorXf> path;
+  Eigen::VectorXf f(3);
+  f<<0, 5, 5;
+  path.push_back(f);
+  f<<2.7, 4.9, 3.75;
+  path.push_back(f);
+  f<<2.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<5.7, 4.9, 1.75;
+  path.push_back(f);
+  f<<5.7, 4.9, 4.75;
+  path.push_back(f);
+  f<<8.7, 4.9, 4.25;
+  path.push_back(f);
+  f<<8.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<11.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<11.7, 4.9, 4.75;
+  path.push_back(f);
+  f<<14.7, 4.9, 4.25;
+  path.push_back(f);
+  f<<14.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<17.7, 4.9, 1.75;
+  path.push_back(f);
+  f<<17.7, 4.9, 4.75;
+  path.push_back(f);
+  f<<20.0, 5,5;
+  path.push_back(f);
+  // std::cout<< "size of the path: "<< path.size() << std::endl;
 
-  double roll, pitch, yaw;
-  roll=0;
-  pitch=M_PI/4;
-  yaw=0;
-  Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitZ());
-  Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitX());
-  Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-  Eigen::Matrix3f rotation_matrix = q.matrix().cast<float>();
-  search_space.generate_samples_from_ellipsoid(covmat, rotation_matrix, center, 1000);
-  search_space.save_samples(1);
+  TrajectoryPlanning trajectory_planning;
+  int size_of_the_path = path.size();
+  trajectory_planning.generate_ts(path);
+  std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;
+  trajectory_planning.traj_opt7();
+  std::vector<Eigen::VectorXf> desired_state;
+  trajectory_planning.get_desired_state(0, 0, desired_state);
+
+  // std::cout<< "===========================" << std::endl;
+  // std::cout<< trajectory_planning.X.block(0, 0, 60, 3) << std::endl;
+  // std::cout<< trajectory_planning.time_segs << std::endl;
+  // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(3, 6*6);
+  // int x_max = 6;
+  // Eigen::MatrixXf g = A.block<1, x_max*x_max>(2,0);
+  // for(int k=0; k<x_max; k++){
+  //   g(0, k*x_max+k) = 1;
+  // }
+  // Eigen::Map<Eigen::MatrixXf> M2(g.data(), x_max, x_max);
+
+  // std::cout<< M2 << std::endl; 
+  // Eigen::MatrixXf gg = g.resize( 8*14, 8*14);
+
   return 0;
 }
+// int main(){
+
+  // auto point = QuadTree::Point(2, 4, 0.1, 3.4);
+  // int width = 10;
+  // int height = 20;
+  // auto rect = QuadTree::Rect(0,0, width, height);
+  // std::cout<< rect.contains(point)<< std::endl;
+  // auto bounds = rect.split();
+  // for(auto const rect: bounds){
+  //   std::cout<< rect.x << " " << rect.y << " " << rect.w << " " << rect.h << std::endl;
+  // }
+
+  // std::random_device rd;     
+  // std::mt19937 rng(rd());   
+  // std::uniform_int_distribution<int> rand_x(0,width);
+  // std::uniform_int_distribution<int> rand_y(0,height);
+  // std::vector<QuadTree::Point> data;
+  // for(int i=0; i<100; i++){
+  //   auto x = rand_x(rng);
+  //   auto y = rand_y(rng);
+  //   auto point = QuadTree::Point(x, y, 0.1, 3.4);
+  //   std::cout<< x << " " << y << std::endl;
+  //   data.push_back(point);
+  // }
+  // std::cout<< "=====================" << std::endl;
+  // QuadTree quadtree(data, width, height, 5);
+  // quadtree.in_order_traversal(quadtree.root);
+
+  // SearchSpace search_space;
+  // Eigen::MatrixXf covmat(3,3);
+  // Eigen::VectorXf center(3);
+  // center << 0,0,0;
+  // covmat(0,0) = 8;
+  // covmat(1,1) = 4;
+  // covmat(2,2) = 4;
+
+  // Eigen::Vector3f a(1,0,0);
+  // Eigen::Vector3f b(0,1,1);
+  // Eigen::VectorXd fg(6);
+  // search_space.init(fg);
+  // // Random_call random_call(std::chrono::system_clock::now().time_since_epoch().count(), 100);
+  // // int num = random_call;
+  // // std::cout<<  num << std::endl;
+  // int f = *(search_space.random_call);
+  // std::cout<<  f << std::endl;
+  // // Eigen::Matrix3f rotation_matrix = search_space.get_roration_matrix(a, b);
+  // // search_space.generate_samples_from_ellipsoid(covmat, rotation_matrix, center, 1000);
+  // // search_space.save_samples(1);
+
+  // Eigen::Vector3f pont_a(3);
+  // pont_a << 3,0,0;
+  // Eigen::Vector3f pont_b(3);
+  // pont_b << 2,5,5;
+  // Eigen::Vector3f pont_c(3);  
+  // pont_c << 2,0,0;
+  // float dis = search_space.get_distance(pont_a, pont_b, pont_c);
+  // // std::cout<< dis << std::endl;
+//   return 0;
+// }
 
 // int main(int argc, char** argv){
     

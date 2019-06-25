@@ -4,7 +4,7 @@ project (trajectory_estimator)
 SET(CMAKE_C_FLAGS_DEBUG "-D_DEBUG")
 add_definitions(-std=c++11)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -fPIC -fopenmp -DBOOST_LOG_DYN_LINK")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -ggdb")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Eigen3 REQUIRED)
@@ -23,7 +23,7 @@ include_directories(${BOOST_INCLUDE_DIRS})
 
 
 message( STATUS "Include sub-directories into build process:" )
-foreach( DIR rrt_star a_star apf common spline ssa local_maxima)
+foreach( DIR rrt_star a_star apf common spline ssa local_maxima quadtree trajectory_planning)
     message( STATUS "  - include/" ${DIR} )
     include_directories( "${DIR}" )
     link_directories("${DIR}")
@@ -34,7 +34,7 @@ include_directories(/usr/local/include/)
 link_directories(/usr/local/lib/)
 
 set(TRACKING_LIB ${TRACKING_LIB} ${Boost_LIBRARIES})
-set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf common spline cnpy z ssa local_maxima)
+set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf common spline cnpy z ssa local_maxima quadtree trajectory_planning)
 set(TRACKING_LIB ${TRACKING_LIB} ${OpenCV_LIBS})
 
 
