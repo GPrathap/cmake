@@ -1,5 +1,5 @@
-#ifndef SRC_UNIO_FIND_H_
-#define SRC_UNIO_FIND_H_
+#ifndef GROUND_REMOVAL_UNION_FIND_H_
+#define GROUND_REMOVAL_UNION_FIND_H_
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -8,32 +8,39 @@
 #include <map>
 #include <cassert>
 #include <tuple>
-
+#include <queue>
 
 
 namespace kamaz {
     namespace hagen{
 
+    struct Pixel{
+        // int x;
+        // int y;
+        int index;
+        float value;
+    };
+
 class UnionFindDS{
  public:
     UnionFindDS() = default;
-    ~UnionFindDS();
+    ~UnionFindDS() = default;
     
-    void add(std::tuple<int, int, float> object, int weight);
-    bool is_contains(std::tuple<int, int, float> object);
-    std::tuple<int, int, float> get_items(std::tuple<int, int, float> object);
-    void union_f(std::vector<std::tuple<int, int, float>> objects);
-    bool is_equals_tuple(std::tuple<int, int, float> t1, std::tuple<int, int, float> t2);
-    void print_tuple(std::tuple<int, int, float> object);
+    void add(Pixel object, int weight, int index);
+    bool is_contains(int);
+    Pixel get_items(Pixel object);
+    void union_f(std::vector<Pixel> objects);
+    bool is_equals_tuple(Pixel t1, Pixel t2);
+    void print_tuple(Pixel object);
     void print_map_parent();
     void print_map();
-    void print_vector( std::vector<std::tuple<int, int, float>> path);
-    
-   private: 
-    std::map<std::tuple<int, int, float>, int> weights;
-    std::map<std::tuple<int, int, float>, std::tuple<int, int, float>> parent;
-    
+    void print_vector( std::vector<Pixel> path);
+    void set_max_row(int max);
 
+   private: 
+    std::map<int, int> weights;
+    std::map<int, Pixel> parent;
+    int length_of_row;
 };
     }
 }
