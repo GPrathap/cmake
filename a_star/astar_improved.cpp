@@ -27,7 +27,7 @@ bool AStarImproved::isValid(int x, int y, int z) {
 	if (x < 0 || y < 0 || z < 0 || x >= w || y >= h || z >= d) {
 		return false;
 	}else{
-		Eigen::VectorXd search_rect(3);
+		Eigen::VectorXf search_rect(3);
 		search_rect << x, y, z;
 		if(search_space.obstacle_free(search_rect)){
 			return true;
@@ -195,15 +195,15 @@ std::vector<int> AStarImproved::getNeighbors(int idx, bool diagonal) {
 }
 
 
-std::vector<Eigen::VectorXd> AStarImproved::astar_planner_and_save(SearchSpace X,  Eigen::VectorXd x_init, 
-									Eigen::VectorXd x_goal){
+std::vector<Eigen::VectorXf> AStarImproved::astar_planner_and_save(SearchSpace X,  Eigen::VectorXf x_init, 
+									Eigen::VectorXf x_goal){
 						auto path = astar_planner(X, x_init, x_goal);
 						save_path(path);
 						return path;				
 }
 
-std::vector<Eigen::VectorXd> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXd x_init, 
-									Eigen::VectorXd x_goal){
+std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
+									Eigen::VectorXf x_goal){
 
 		float_max = 200000000.45;
 		search_space = X;
@@ -218,21 +218,21 @@ std::vector<Eigen::VectorXd> AStarImproved::astar_planner(SearchSpace X,  Eigen:
 
 		std::vector<int> paths(w*h*d);
 		bool success = astar(start_idx, goal_idx, false, paths);
-		std::vector<Eigen::VectorXd> projected_trajectory;
+		std::vector<Eigen::VectorXf> projected_trajectory;
 		if(success){
 				std::cout<< "Path is found"<< std::endl;
 				auto path_idx = goal_idx;
 				int path_node_id=0;
 				while(path_idx != start_idx){
 						auto path_position = to3D(path_idx);
-						Eigen::VectorXd poseh(3);
+						Eigen::VectorXf poseh(3);
 						poseh << path_position[0], path_position[1], path_position[2];
 						projected_trajectory.push_back(poseh);
 						path_idx = paths[path_idx];
 						path_node_id++;
 				}
 				auto start_position = to3D(path_idx);
-				Eigen::VectorXd poseh(3);
+				Eigen::VectorXf poseh(3);
 				poseh << start_position[0], start_position[1], start_position[2];
 				projected_trajectory.push_back(poseh);
 		}else{
@@ -299,7 +299,7 @@ bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::ve
   return solution_found;
 }
 
-	   void AStarImproved::save_path(std::vector<Eigen::VectorXd> path){
+	   void AStarImproved::save_path(std::vector<Eigen::VectorXf> path){
        std::vector<float> projected_path; 
        std::cout<< "Astar::save_path trajectory size: " << path.size()<< std::endl;
        for(auto const& way_point : path){

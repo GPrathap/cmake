@@ -127,7 +127,7 @@ using kamaz::hagen::LocalMaximaFilter;
 
   // Eigen::Vector3f a(1,0,0);
   // Eigen::Vector3f b(0,1,1);
-  // Eigen::VectorXd fg(6);
+  // Eigen::VectorXf fg(6);
   // search_space.init(fg);
   // // Random_call random_call(std::chrono::system_clock::now().time_since_epoch().count(), 100);
   // // int num = random_call;
@@ -520,19 +520,19 @@ using namespace std;
 int main()
 {
     kamaz::hagen::RRTStar3D rrtstart3d;
-    Eigen::VectorXd x_dimentions(3);
+    Eigen::VectorXf x_dimentions(3);
     x_dimentions << 100, 100, 100;
     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
     // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(10, x_dimentions);
+    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions);
     // std::cout<< "-----1" << std::endl;
-    Eigen::VectorXd x_init(3);
+    Eigen::VectorXf x_init(3);
     x_init << 0, 0, 0 ;
-    Eigen::VectorXd x_goal(3);
-    x_goal << 99, 99, 99;
+    Eigen::VectorXf x_goal(3);
+    x_goal << 23, 99, 99;
 
-    std::vector<Eigen::VectorXd> Q;
-    Eigen::VectorXd dim_in(2);
+    std::vector<Eigen::VectorXf> Q;
+    Eigen::VectorXf dim_in(2);
     dim_in << 8, 4;
     Q.push_back(dim_in);
     // std::cout<< "-----1" << std::endl;
@@ -542,11 +542,11 @@ int main()
     float proc = 0.1;
 
     kamaz::hagen::SearchSpace X;
-    X.init(map_dim);
+    X.init_search_space(map_dim, 1000);
     X.insert_obstacles(obstacles);
-
+    X.use_whole_search_sapce = true;
     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal);
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 0);
    
 
     Curve* bspline_curve = new BSpline();
@@ -570,20 +570,20 @@ int main()
     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
 	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
 
-    std::vector<Eigen::VectorXd> new_path_bspline;
-    // std::vector<Eigen::VectorXd> new_path_catmull;
+    std::vector<Eigen::VectorXf> new_path_bspline;
+    // std::vector<Eigen::VectorXf> new_path_catmull;
     // if(path.size()>0){
     //   new_path_bspline.push_back(path[0]);
     //   new_path_catmull.push_back(path[0]);
     // }
     for (int i = 0; i < bspline_curve->node_count(); ++i) {
-		  Eigen::VectorXd pose(3);
+		  Eigen::VectorXf pose(3);
       auto node = bspline_curve->node(i);
       pose<< node.x, node.y, node.z; 
       new_path_bspline.push_back(pose);
 	  }
 //     for (int i = 0; i < catmulll_curve->node_count(); ++i) {
-// 		  Eigen::VectorXd pose(3);
+// 		  Eigen::VectorXf pose(3);
 //       auto node = catmulll_curve->node(i);
 //       pose<< node.x, node.y, node.z; 
 //       new_path_catmull.push_back(pose);
@@ -627,7 +627,7 @@ int main()
 // // struct my_functor : Functor<float>
 // // {
 // //     my_functor(void): Functor<float>(2,2) {}
-// //     int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+// //     int operator()(const Eigen::VectorXf &x, Eigen::VectorXf &fvec) const
 // //     {
 // //         // Implement y = 10*(x0+3)^2 + (x1-5)^2
 // //         fvec(0) = 10.0*pow(x(0)+3.0,2) +  pow(x(1)-5.0,2);
@@ -638,7 +638,7 @@ int main()
 // // };
 
 // // int main(int argc, char *argv[]) {
-// //     Eigen::VectorXd x(2);
+// //     Eigen::VectorXf x(2);
 // //     x(0) = 2.0;
 // //     x(1) = 3.0;
 // //     std::cout << "x: " << x << std::endl;

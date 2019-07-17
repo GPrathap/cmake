@@ -100,12 +100,12 @@ public:
 	bool astar(const int start, const int goal, bool diag_ok, std::vector<int>& paths);
 	float float_max;
 	bool init_planner();
-	void save_path(std::vector<Eigen::VectorXd> path);
-	std::vector<Eigen::VectorXd> astar_planner(SearchSpace X,  Eigen::VectorXd x_init, 
-									Eigen::VectorXd x_goal);
+	void save_path(std::vector<Eigen::VectorXf> path);
+	std::vector<Eigen::VectorXf> astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
+									Eigen::VectorXf x_goal);
 	
-	std::vector<Eigen::VectorXd> astar_planner_and_save(SearchSpace X,  Eigen::VectorXd x_init, 
-									Eigen::VectorXd x_goal);
+	std::vector<Eigen::VectorXf> astar_planner_and_save(SearchSpace X,  Eigen::VectorXf x_init, 
+									Eigen::VectorXf x_goal);
 
 	int start_idx;
 	int goal_idx;

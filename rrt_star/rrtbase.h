@@ -14,7 +14,7 @@
 #include <cfenv>
 #include <cstring>
 #include "../common/search_space.h"
-#include "../../utils/common_utils.h"
+#include "../common/common_utils.h"
 #include "tree.h"
 
 namespace kamaz {
