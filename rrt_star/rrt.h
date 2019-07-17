@@ -1,5 +1,5 @@
-#ifndef RRT_H
-#define RRT_H
+#ifndef PATH_PLANNER_RRT_H_
+#define PATH_PLANNER_RRT_H_
 
 #include "rrtbase.h"
 
@@ -7,11 +7,11 @@ namespace kamaz {
 namespace hagen {
         class RRT : public RRTBase {
             public:
-                RRT(SearchSpace search_space, std::vector<Eigen::VectorXd> lengths_of_edges
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose, int _max_samples
+                RRT(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int _max_samples
                 , int resolution, float pro);
                 ~RRT() = default;
-                std::vector<Eigen::VectorXd> rrt_search();
+                std::vector<Eigen::VectorXf> rrt_search();
         };
     }
 }

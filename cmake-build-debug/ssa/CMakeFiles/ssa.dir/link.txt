@@ -1,0 +1,2 @@
+/usr/bin/ar qc libssa.a  CMakeFiles/ssa.dir/ssa.cc.o
+/usr/bin/ranlib libssa.a

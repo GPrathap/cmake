@@ -3,19 +3,20 @@
 namespace kamaz {
 namespace hagen {
     
-    RRT::RRT(SearchSpace search_space, std::vector<Eigen::VectorXd> lengths_of_edges
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose, int _max_samples
+    RRT::RRT(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int _max_samples
                 , int resolution, float pro)
-        :RRTBase(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro){
+        :RRTBase(search_space, lengths_of_edges, start_pose, goal_pose
+            , first_object_found_pose, _max_samples, resolution, pro){
             
         }
     
-    std::vector<Eigen::VectorXd> RRT::rrt_search(){
+    std::vector<Eigen::VectorXf> RRT::rrt_search(){
         add_vertex(0, x_init);
-        Eigen::VectorXd none_pose(3);
+        Eigen::VectorXf none_pose(3);
         none_pose << -1, -1, -1;
         add_edge(0, x_init, none_pose); //TODO need to handle this proper way setting null pointer
-        std::vector<Eigen::VectorXd> path;
+        std::vector<Eigen::VectorXf> path;
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){

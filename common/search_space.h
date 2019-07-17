@@ -1,5 +1,5 @@
-#ifndef SEARCH_SPACE_H
-#define SEARCH_SPACE_H
+#ifndef PATH_PLANNER_SEARCH_SPACE_H
+#define PATH_PLANNER_SEARCH_SPACE_H
 
 #include <stack>
 #include <vector>
@@ -16,9 +16,7 @@
 #include <Eigen/Dense>
 #include <chrono> 
 #include <vector>
-#include <random>
 #include <cnpy.h>
-
 #include <boost/function_output_iterator.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -26,9 +24,8 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/timer.hpp>
-#include <boost/foreach.hpp>    
-
-
+#include <boost/foreach.hpp>
+#include "common_utils.h"
 #include <random>
 
 namespace kamaz {
@@ -40,7 +37,6 @@ namespace hagen {
             typedef bg::model::box<point_t> box_t;
             typedef std::pair<box_t, uint64_t> value_t;
             typedef boost::geometry::box_view<box_t> box_view;
-            // typedef bgi::rtree< value_t, bgi::linear<32, 8> > RTree;
             typedef bgi::rtree<value_t, bgi::quadratic<8, 4>> RTree;
 
             public:
@@ -80,32 +76,31 @@ namespace hagen {
                     std::uniform_int_distribution<int> _uniform_int;
                 };
 
-                Random_call* random_call;
-                std::vector<float> arange(float start, float stop, float step);
-                float get_distance(Eigen::Vector3f pont_a, Eigen::Vector3f pont_b, Eigen::Vector3f pont_c);
-                void save_samples(int index);
-                void init(Eigen::VectorXd dimension_lengths);
+                void init_search_space(Eigen::VectorXf dimension_lengths, int number_of_rand_points);
                 void generate_random_objects(int num_of_objects);
                 void insert_obstacles(std::vector<Rect> obstacles);
                 void search_all_obstacles();
                 bool obstacle_free(Rect search_rect);
-                bool obstacle_free(Eigen::VectorXd search_rect);
-                Eigen::VectorXd sample_free();
-                Eigen::VectorXd sample();
-                // bool comp(float a, float b);
+                bool obstacle_free(Eigen::VectorXf search_rect);
+                Eigen::VectorXf sample_free();
+                Eigen::VectorXf sample();
                 std::vector<float> linspace(float start_in, float end_in, float step_size);
-                bool collision_free(Eigen::VectorXd start, Eigen::VectorXd end, int r);
-                void insert(Eigen::VectorXd index);
-                std::vector<Eigen::VectorXd> nearest(Eigen::VectorXd x, int max_neighbours);
-                void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent, int npts);
-                Eigen::Matrix3f get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b);
+                bool collision_free(Eigen::VectorXf start, Eigen::VectorXf end, int r);
+                void insert(Eigen::VectorXf index);
+                std::vector<Eigen::VectorXf> nearest(Eigen::VectorXf x, int max_neighbours);
+
+                void generate_search_sapce(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
+                        , Eigen::VectorXf cent, int npts);
+                std::vector<float> arange(float start, float stop, float step);
+                void save_samples(int index);
                 int dementions = 3;
-                Eigen::VectorXd dim_lengths;
+                Eigen::VectorXf dim_lengths;
                 std::vector<uint64_t> res;
                 Eigen::MatrixXf  random_points_tank;
-                
                 int cube_length = 2;
-                
+                int number_of_rand_points;
+                Random_call* random_call;
+                bool use_whole_search_sapce = false;
 
                 struct GeometryRTreeSearchCallback
                 {
@@ -122,11 +117,9 @@ namespace hagen {
                 };
 
                 GeometryRTreeSearchCallback geometry_rtree_callback;
-
                 RTree bg_tree;
-
-                // randomize rectangles
                 std::vector<Rect> random_objects;
+                CommonUtils common_utils;
         };
     }
 }

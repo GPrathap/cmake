@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtrajectory_planning.a  CMakeFiles/trajectory_planning.dir/trajectory_planning.cc.o
+/usr/bin/ranlib libtrajectory_planning.a

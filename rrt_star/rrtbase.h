@@ -1,5 +1,5 @@
-#ifndef RRT_THREE_UTILS_H
-#define RRT_THREE_UTILS_H
+#ifndef PATH_PLANNER_RRT_THREE_UTILS_H_
+#define PATH_PLANNER_RRT_THREE_UTILS_H_
 
 #include <stack>
 #include <vector>
@@ -14,50 +14,54 @@
 #include <cfenv>
 #include <cstring>
 #include "../common/search_space.h"
+#include "../../utils/common_utils.h"
 #include "tree.h"
 
 namespace kamaz {
 namespace hagen {
         class RRTBase {
             public:
-                RRTBase(SearchSpace search_space, std::vector<Eigen::VectorXd> lengths_of_edges
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose, int _max_samples
+                RRTBase(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int _max_samples
                 , int resolution, float pro);
                 ~RRTBase() = default; 
 
             SearchSpace X;
+            CommonUtils common_utils;
             int sample_taken;
             int max_samples;
-            std::vector<Eigen::VectorXd> Q;
+            std::vector<Eigen::VectorXf> Q;
             int r;
             float prc;
-            Eigen::VectorXd x_init;
-            Eigen::VectorXd x_goal;
+            Eigen::VectorXf x_init;
+            Eigen::VectorXf x_goal;
+            Eigen::VectorXf first_detected_object_found_pose;
             std::map<int, Tree> trees;
             float min_acceptable = 0.01;
             void add_tree();
-            void add_vertex(int tree, Eigen::VectorXd v);
-            void add_edge(int tree, Eigen::VectorXd child, Eigen::VectorXd parent);
-            std::vector<Eigen::VectorXd> nearby(int tree, Eigen::VectorXd x, int max_neighbors);
-            Eigen::VectorXd get_nearest(int tree, Eigen::VectorXd x);
-            Eigen::VectorXd steer(Eigen::VectorXd start, Eigen::VectorXd goal, float distance);
-            std::vector<Eigen::VectorXd> new_and_near(int tree, Eigen::VectorXd q);
-            bool connect_to_point(int tree, Eigen::VectorXd x_a, Eigen::VectorXd x_b);
+            void add_vertex(int tree, Eigen::VectorXf v);
+            void add_edge(int tree, Eigen::VectorXf child, Eigen::VectorXf parent);
+            std::vector<Eigen::VectorXf> nearby(int tree, Eigen::VectorXf x, int max_neighbors);
+            Eigen::VectorXf get_nearest(int tree, Eigen::VectorXf x);
+            Eigen::VectorXf steer(Eigen::VectorXf start, Eigen::VectorXf goal, float distance);
+            std::vector<Eigen::VectorXf> new_and_near(int tree, Eigen::VectorXf q);
+            bool connect_to_point(int tree, Eigen::VectorXf x_a, Eigen::VectorXf x_b);
             bool can_connect_to_goal(int tree);
-            bool isEdge(Eigen::VectorXd point, int tree);
-            Eigen::VectorXd getEdge(Eigen::VectorXd point, int tree);
-            std::vector<Eigen::VectorXd> reconstruct_path(int tree, Eigen::VectorXd x_init, Eigen::VectorXd x_goal);
-            bool check_none_vector(Eigen::VectorXd  vector);
-            void setEdge(Eigen::VectorXd key, Eigen::VectorXd value, int tree);
+            bool isEdge(Eigen::VectorXf point, int tree);
+            Eigen::VectorXf getEdge(Eigen::VectorXf point, int tree);
+            std::vector<Eigen::VectorXf> reconstruct_path(int tree, Eigen::VectorXf x_init, Eigen::VectorXf x_goal);
+            bool check_none_vector(Eigen::VectorXf  vector);
+            void setEdge(Eigen::VectorXf key, Eigen::VectorXf value, int tree);
             void connect_to_the_goal(int tree);
-            std::vector<Eigen::VectorXd> get_path();
-            bool check_solution(std::vector<Eigen::VectorXd>& path);
+            std::vector<Eigen::VectorXf> get_path();
+            bool check_solution(std::vector<Eigen::VectorXf>& path);
             int sizeOfEdge(int tree);
             void printEdge(int tree);
-            bool is_equal_vectors(Eigen::VectorXd a, Eigen::VectorXd b);  
-            float cost_to_go(Eigen::VectorXd a, Eigen::VectorXd b);
-            float path_cost(Eigen::VectorXd a, Eigen::VectorXd b, std::map<std::tuple<float, float, float>, Eigen::VectorXd> edges);
-            float segment_cost(Eigen::VectorXd a, Eigen::VectorXd b);  
+            bool is_equal_vectors(Eigen::VectorXf a, Eigen::VectorXf b);
+            float cost_to_go(Eigen::VectorXf a, Eigen::VectorXf b);
+            float path_cost(Eigen::VectorXf a, Eigen::VectorXf b, std::map<std::tuple<float, float, float>, Eigen::VectorXf> edges);
+            float segment_cost(Eigen::VectorXf a, Eigen::VectorXf b);
+
         };
     }
 }

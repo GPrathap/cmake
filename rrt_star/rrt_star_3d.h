@@ -1,5 +1,5 @@
-#ifndef RRT_TREE_STAR3D_H
-#define RRT_TREE_STAR3D_H
+#ifndef PATH_PLANNER_RRT_TREE_STAR3D_H_
+#define PATH_PLANNER_RRT_TREE_STAR3D_H_
 
 #include <stack>
 #include <vector>
@@ -20,7 +20,9 @@
 #include<map>
 #include<string>
 
+
 #include "rrtstar.h"
+#include "../common/trajectory_smoother.h"
 
 namespace kamaz {
 namespace hagen {
@@ -29,24 +31,24 @@ namespace hagen {
                RRTStar3D() = default;
                ~RRTStar3D() = default;
 
-               std::vector<Eigen::VectorXd> rrt_planner(SearchSpace search_space
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose); 
+               std::vector<Eigen::VectorXf> rrt_planner(SearchSpace search_space
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose);
                
-               std::vector<Eigen::VectorXd> rrt_planner_and_save(SearchSpace search_space
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose);
-               void rrt_init(std::vector<Eigen::VectorXd> _lengths_of_edges
+               std::vector<Eigen::VectorXf> rrt_planner_and_save(SearchSpace search_space
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int index);
+               void rrt_init(std::vector<Eigen::VectorXf> _lengths_of_edges
                     , int max_samples, int _resolution, float _pro
                     , int rewrite_count);
-               Eigen::VectorXd get_search_space_dim(Eigen::VectorXd dim);
+               Eigen::VectorXf get_search_space_dim(Eigen::VectorXf dim);
                std::vector<SearchSpace::Rect> get_obstacles();
-               std::vector<SearchSpace::Rect> get_random_obstacles(int number_of_obstacles, Eigen::VectorXd x_dimentions);
-               void save_edges(std::map<int, Tree> trees);
-               void save_obstacle(std::vector<SearchSpace::Rect> obstacles);
-               void save_poses(Eigen::VectorXd start, Eigen::VectorXd end);
-               void save_path(std::vector<Eigen::VectorXd> path, std::string name_of_file);
+               std::vector<SearchSpace::Rect> get_random_obstacles(int number_of_obstacles, Eigen::VectorXf x_dimentions);
+               void save_edges(std::map<int, Tree> trees, std::string file_name);
+               void save_obstacle(std::vector<SearchSpace::Rect> obstacles, std::string file_name);
+               void save_poses(Eigen::VectorXf start, Eigen::VectorXf end, std::string file_name);
+               void save_path(std::vector<Eigen::VectorXf> path, std::string file_name);
 
             private:
-               std::vector<Eigen::VectorXd> lengths_of_edges;
+               std::vector<Eigen::VectorXf> lengths_of_edges;
                int _max_samples;
                int resolution; 
                float pro;

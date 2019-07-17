@@ -1,5 +1,5 @@
-#ifndef RRT_THREE_UTILS_H
-#define RRT_THREE_UTILS_H
+#ifndef PATH_PLANNER_RRT_THREE_UTILS_H_
+#define PATH_PLANNER_RRT_THREE_UTILS_H_
 
 #include <stack>
 #include <vector>

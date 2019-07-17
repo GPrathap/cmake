@@ -1,0 +1,2 @@
+/usr/bin/ar qc libspline.a  CMakeFiles/spline.dir/BSpline.cpp.o CMakeFiles/spline.dir/Bezier.cpp.o CMakeFiles/spline.dir/CatmullRom.cpp.o CMakeFiles/spline.dir/Curve.cpp.o CMakeFiles/spline.dir/Vector.cpp.o
+/usr/bin/ranlib libspline.a

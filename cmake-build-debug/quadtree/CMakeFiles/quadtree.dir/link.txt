@@ -1,0 +1,2 @@
+/usr/bin/ar qc libquadtree.a  CMakeFiles/quadtree.dir/quadtree.cc.o
+/usr/bin/ranlib libquadtree.a

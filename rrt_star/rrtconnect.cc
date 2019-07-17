@@ -3,10 +3,11 @@
 namespace kamaz {
 namespace hagen {
 
-    RRTConnect::RRTConnect(SearchSpace search_space, std::vector<Eigen::VectorXd> lengths_of_edges
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose, int _max_samples
+    RRTConnect::RRTConnect(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
+                , Eigen::VectorXf ostacle_pose, int _max_samples
                 , int resolution, float pro)
-        :RRTBase(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro){
+        :RRTBase(search_space, lengths_of_edges, start_pose, goal_pose, ostacle_pose, _max_samples, resolution, pro){
             swapped = false;
     }
 
@@ -23,7 +24,7 @@ namespace hagen {
         }
     }
 
-    RRTStatus RRTConnect::extend(int tree, Eigen::VectorXd x_rand, Eigen::VectorXd& x_final){
+    RRTStatus RRTConnect::extend(int tree, Eigen::VectorXf x_rand, Eigen::VectorXf& x_final){
         auto x_nearest = get_nearest(tree, x_rand);
         auto x_new = steer(x_nearest, x_rand, Q[0][0]);
         x_final = x_new;
@@ -36,9 +37,9 @@ namespace hagen {
         return RRTStatus::TRAPPED;
     } 
 
-    RRTStatus RRTConnect::connect(int tree, Eigen::VectorXd x, Eigen::VectorXd x_connect){
+    RRTStatus RRTConnect::connect(int tree, Eigen::VectorXf x, Eigen::VectorXf x_connect){
         auto S = RRTStatus::ADVANCED;
-        Eigen::VectorXd x_new(3);
+        Eigen::VectorXf x_new(3);
         while(S == RRTStatus::ADVANCED){
             S = extend(tree, x, x_new);
         }
@@ -46,9 +47,9 @@ namespace hagen {
         return S;
     }
 
-    std::vector<Eigen::VectorXd> RRTConnect::rrt_connect(){
+    std::vector<Eigen::VectorXf> RRTConnect::rrt_connect(){
         add_vertex(0, x_init);
-        Eigen::VectorXd none_pose(3);
+        Eigen::VectorXf none_pose(3);
         none_pose << -1, -1, -1;
         add_edge(0, x_init, none_pose);
         add_tree();
@@ -56,10 +57,10 @@ namespace hagen {
         add_edge(1, x_goal, none_pose);
         while(sample_taken < max_samples){
             auto x_rand = X.sample_free();
-            Eigen::VectorXd x_new(3);
+            Eigen::VectorXf x_new(3);
             auto status = extend(0, x_rand, x_new);
             if(status != RRTStatus::TRAPPED){
-                Eigen::VectorXd x_new_(3);
+                Eigen::VectorXf x_new_(3);
                 auto connect_status = connect(1, x_new, x_new_);
                 if(connect_status == RRTStatus::REACHED){
                     unswap();

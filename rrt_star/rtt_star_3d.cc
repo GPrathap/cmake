@@ -3,26 +3,29 @@
 namespace kamaz {
 namespace hagen {
 
-    std::vector<Eigen::VectorXd> RRTStar3D::rrt_planner(SearchSpace search_space
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose){
+    std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner(SearchSpace search_space
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
+                , Eigen::VectorXf first_object_found_pose){
         
-        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro, _rewrite_count);                   
+        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose,
+        first_object_found_pose, _max_samples, resolution, pro, _rewrite_count);
         return rrtstar.rrt_star();
     }
 
-    std::vector<Eigen::VectorXd> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
-                , Eigen::VectorXd start_pose, Eigen::VectorXd goal_pose){
+    std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int index){
         
-        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, _max_samples, resolution, pro, _rewrite_count);                   
+        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, first_object_found_pose, _max_samples, resolution, pro, _rewrite_count);
         auto path = rrtstar.rrt_star();
-        save_edges(rrtstar.trees);
-        save_obstacle(search_space.random_objects);
-        save_poses(start_pose, goal_pose);
-        save_path(path, "/dataset/rrt_path.npy");
+        std::string stotage_location = "/dataset/rrt/"+ std::to_string(index) + "_";
+        save_edges(rrtstar.trees, stotage_location + "edges.npy");
+        save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
+        save_poses(start_pose, goal_pose, stotage_location + "start_and_end_pose.npy");
+        save_path(path, stotage_location + "rrt_star_path.npy");
         return path;
     }
 
-    void RRTStar3D::rrt_init(std::vector<Eigen::VectorXd> _lengths_of_edges
+    void RRTStar3D::rrt_init(std::vector<Eigen::VectorXf> _lengths_of_edges
     , int max_samples, int _resolution, float _pro, int rewrite_count){
         lengths_of_edges = _lengths_of_edges;
         _max_samples = max_samples;
@@ -31,8 +34,8 @@ namespace hagen {
         _rewrite_count = rewrite_count;
     }
 
-    Eigen::VectorXd RRTStar3D::get_search_space_dim(Eigen::VectorXd dimensions){
-        Eigen::VectorXd dim_(6);
+    Eigen::VectorXf RRTStar3D::get_search_space_dim(Eigen::VectorXf dimensions){
+        Eigen::VectorXf dim_(6);
         dim_<< 0, dimensions[0], 0, dimensions[1], 0, dimensions[2];
         return dim_;
     }
@@ -50,7 +53,7 @@ namespace hagen {
         return _objects;
     }
 
-    std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles, Eigen::VectorXd x_dimentions){
+    std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles, Eigen::VectorXf x_dimentions){
         std::vector<SearchSpace::Rect> _objects;
         srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
@@ -71,7 +74,7 @@ namespace hagen {
         return _objects;
     }
 
-    void RRTStar3D::save_edges(std::map<int, Tree> trees){
+    void RRTStar3D::save_edges(std::map<int, Tree> trees, std::string file_name){
        std::vector<float> edges; 
        int count = 0;
        for(auto const&item : trees[0].E){
@@ -87,10 +90,10 @@ namespace hagen {
             count += 1;
         }
 
-        cnpy::npy_save("/dataset/edges.npy",&edges[0],{1, count, 6},"w");
+        cnpy::npy_save(file_name, &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)6},"w");
     }
 
-    void RRTStar3D::save_obstacle(std::vector<SearchSpace::Rect> obstacles){
+    void RRTStar3D::save_obstacle(std::vector<SearchSpace::Rect> obstacles, std::string file_name){
         std::vector<float> obstacles_pose; 
         int count = 0;
         for(auto const& rect : obstacles){
@@ -102,10 +105,10 @@ namespace hagen {
                 obstacles_pose.push_back(rect.max[2]);
                 count += 1;
         }
-        cnpy::npy_save("/dataset/obstacles.npy",&obstacles_pose[0],{1, count, 6},"w");
+        cnpy::npy_save(file_name, &obstacles_pose[0],{(unsigned int)1, (unsigned int)count, (unsigned int)6},"w");
     }
 
-    void RRTStar3D::save_poses(Eigen::VectorXd start, Eigen::VectorXd end){
+    void RRTStar3D::save_poses(Eigen::VectorXf start, Eigen::VectorXf end, std::string file_name){
        std::vector<float> obstacles_pose(6); 
        obstacles_pose[0] = start[0];
        obstacles_pose[1] = start[1];
@@ -113,22 +116,18 @@ namespace hagen {
        obstacles_pose[3] = end[0];
        obstacles_pose[4] = end[1];
        obstacles_pose[5] = end[2];
-       cnpy::npy_save("/dataset/start_and_end_pose.npy",&obstacles_pose[0],{obstacles_pose.size()},"w");
+       cnpy::npy_save(file_name, &obstacles_pose[0], {obstacles_pose.size()}, "w");
     }
 
-    void RRTStar3D::save_path(std::vector<Eigen::VectorXd> path, std::string name_of_file){
-       std::vector<float> projected_path; 
-        
+    void RRTStar3D::save_path(std::vector<Eigen::VectorXf> path, std::string file_name){
+       std::vector<float> projected_path;
        std::cout<< "RRTStar3D::save_path trajectory size: " << path.size()<< std::endl;
-
        for(auto const& way_point : path){
            projected_path.push_back(way_point[0]);
            projected_path.push_back(way_point[1]);
            projected_path.push_back(way_point[2]);
        }
-       cnpy::npy_save(name_of_file, &projected_path[0],{path.size(), 3},"w");
+       cnpy::npy_save(file_name, &projected_path[0], {path.size(), 3}, "w");
     }
-
-    
 }
 }

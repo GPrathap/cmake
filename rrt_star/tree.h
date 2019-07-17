@@ -1,5 +1,5 @@
-#ifndef RRT_TREE_TREE_H
-#define RRT_TREE_TREE_H
+#ifndef PATH_PLANNER_RRT_TREE_TREE_H_
+#define PATH_PLANNER_RRT_TREE_TREE_H_
 
 #include <stack>
 #include <vector>
@@ -23,7 +23,7 @@ namespace hagen {
                 ~Tree() = default;
                 SearchSpace V;
                 int v_count = 0;
-                std::map<std::tuple<float, float, float>, Eigen::VectorXd> E;
+                std::map<std::tuple<float, float, float>, Eigen::VectorXf> E;
                 void init(SearchSpace search_space);
         };
     }

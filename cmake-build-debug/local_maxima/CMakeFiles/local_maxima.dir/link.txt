@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblocal_maxima.a  CMakeFiles/local_maxima.dir/local_maxima_filter.cpp.o CMakeFiles/local_maxima.dir/union_find.cpp.o
+/usr/bin/ranlib liblocal_maxima.a
