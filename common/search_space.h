@@ -86,7 +86,7 @@ namespace hagen {
                 Eigen::VectorXf sample();
                 std::vector<float> linspace(float start_in, float end_in, float step_size);
                 bool collision_free(Eigen::VectorXf start, Eigen::VectorXf end, int r);
-                void insert(Eigen::VectorXf index);
+                void insert_obstacle(Eigen::VectorXf index);
                 std::vector<Eigen::VectorXf> nearest(Eigen::VectorXf x, int max_neighbours);
 
                 void generate_search_sapce(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
@@ -118,6 +118,7 @@ namespace hagen {
 
                 GeometryRTreeSearchCallback geometry_rtree_callback;
                 RTree bg_tree;
+                RTree current_trajectory;
                 std::vector<Rect> random_objects;
                 CommonUtils common_utils;
         };
