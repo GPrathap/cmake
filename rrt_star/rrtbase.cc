@@ -26,7 +26,7 @@ namespace hagen {
     }
 
     void RRTBase::add_vertex(int tree, Eigen::VectorXf v){
-        trees[tree].V.insert(v);
+        trees[tree].V.insert_obstacle(v);
         trees[tree].v_count += 1;
         sample_taken += 1;
     }
@@ -39,9 +39,8 @@ namespace hagen {
     void RRTBase::printEdge(int tree){
         std::cout<<"RRTBase::printEdge===="<< std::endl;
         for(auto const&item : trees[tree].E){
-              std::cout<< std::get<0>(item.first) << "," << std::get<1>(item.first) 
+            std::cout<< std::get<0>(item.first) << "," << std::get<1>(item.first)
                                 << "," << std::get<2>(item.first) << std::endl;
-
             std::cout<< item.second.transpose() << std::endl;
             std::cout<< "=============" << std::endl;
         }
@@ -91,34 +90,6 @@ namespace hagen {
         //         return next_pose;
         //     }
         // }
-
-        // float k_rep = 0.7;
-        // float k_att = 1.0;
-
-        // Eigen::VectorXf obs_to_current = x.head(3)-neighbours[0].head(3);
-        // float obs_to_current_size = obs_to_current.norm();
-        // Eigen::VectorXf current_pose_to_goal = first_detected_object_found_pose.head(3) - x.head(3);
-        // float current_pose_to_goal_size = current_pose_to_goal.norm();
-        // Eigen::VectorXf result(3);
-        // if(obs_to_current_size != 0 && current_pose_to_goal_size != 0){
-        //     Eigen::VectorXf rep_1 = (obs_to_current*k_rep*((1.0f/obs_to_current_size)- (1.0/3))).array()
-        //                 /(std::pow(obs_to_current_size, 2)*std::pow(current_pose_to_goal_size, 2));
-        //     Eigen::VectorXf rep_2 = current_pose_to_goal*k_rep
-        //                 *std::pow((1.0f/obs_to_current_size)- (1.0/3), 2)*current_pose_to_goal_size;
-        //     Eigen::VectorXf rep = rep_1 + rep_2;
-        //     Eigen::VectorXf att = current_pose_to_goal*k_att;
-        //     Eigen::VectorXf result = rep + att;
-
-        //     if((first_detected_object_found_pose.head(3)-neighbours[0].head(3)).norm() > (result-first_detected_object_found_pose.head(3)).norm()){
-        //         std::cout<< "RRTBase::get_nearest: zero: " << neighbours[0].transpose() << std::endl;
-        //         std::cout<< "current pose" << first_detected_object_found_pose.transpose() << std::endl;
-        //         std::cout<< "======>>>>apf" << result.transpose() << std::endl;
-        //         return result;
-        //     }
-        // }
-        // std::cout<< "RRTBase::get_nearest: zero: " << neighbours[0].transpose() << std::endl;
-        // std::cout<< "current pose" << first_detected_object_found_pose.transpose() << std::endl;
-        // std::cout<< "apf" << result.transpose() << std::endl;
 
         return neighbours[0];
     }
@@ -208,6 +179,8 @@ namespace hagen {
 
     void RRTBase::connect_to_the_goal(int tree){
         auto x_nearest = get_nearest(tree, x_goal);
+        // std::cout<< "RRTBase::connect_to_the_goal" << std::endl;
+        // std::cout<< x_nearest.transpose() << std::endl;
         setEdge(x_goal, x_nearest, tree);
     }
 
@@ -247,23 +220,23 @@ namespace hagen {
         auto current = x_goal;
         
         // std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
-        std::cout<< "RRTBase::reconstruct_path: current "<< current.transpose() << std::endl;
+        // std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
         if(is_equal_vectors(x_goal, x_init)){
             return path;
         }
-        printEdge(tree);
+        // printEdge(tree);
         if(isEdge(current, tree)){
             auto current_parent = getEdge(current, tree);
-            std::cout<< "RRTBase::reconstruct_path: current 1"<< current_parent.transpose() << std::endl;
+            // std::cout<< "RRTBase::reconstruct_path: current 1"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){
                 path.push_back(current_parent);
-                std::cout<< "RRTBase::reconstruct_path: current edge just.."<< current_parent.transpose() << std::endl;
+                // std::cout<< "RRTBase::reconstruct_path: current 2"<< current_parent.transpose() << std::endl;
 
                 if(isEdge(current_parent, tree)){
                     current_parent = getEdge(current_parent, tree);
-                    std::cout<< "RRTBase::reconstruct_path: current edge"<< current_parent.transpose() << std::endl;
+                    // std::cout<< "RRTBase::reconstruct_path: current is edge 3"<< current_parent.transpose() << std::endl;
                 }else{
-                    std::cout<< "RRTBase::reconstruct_path: current: something wrong with edges" << std::endl;
+                    // std::cout<< "RRTBase::reconstruct_path: current: something wrong with edges"<< current_parent.transpose() << std::endl;
                     // return path;
                     break;
                 }

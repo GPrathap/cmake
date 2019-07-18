@@ -72,8 +72,6 @@ namespace hagen {
         std::vector<Eigen::VectorXf> path;
         while(true){
             for(auto const q : Q){
-                std::cout<< "RRTStar::"<< q[1] << std::endl;
-
                 for(int i=0; i<q[1]; i++){
                    auto new_and_next = new_and_near(0, q);
                    if(new_and_next.size()==0){
