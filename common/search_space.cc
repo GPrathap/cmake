@@ -44,7 +44,7 @@ namespace hagen {
         random_objects = obstacles;
     }
 
-    void SearchSpace::insert(Eigen::VectorXf index){
+    void SearchSpace::insert_obstacle(Eigen::VectorXf index){
         //TODO not sure this method
         box_t b(point_t(index[0], index[1], index[2])
         , point_t(index[0]+cube_length, index[1]+cube_length
