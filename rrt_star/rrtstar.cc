@@ -15,7 +15,7 @@ namespace hagen {
         std::vector<std::tuple<float, Eigen::VectorXf>> L_near;
         for(auto const x_near : X_near){
             auto new_s = segment_cost(x_near, x_new);
-            auto cost = path_cost(x_init, x_near, trees[tree].E) + new_s;
+            auto cost = path_cost(x_init, x_near, tree) + new_s;
             auto pose = x_near;
             std::tuple<float, Eigen::VectorXf> a(cost, pose);
             L_near.push_back(a);
@@ -38,9 +38,12 @@ namespace hagen {
     void RRTStar::rewrite(int tree, Eigen::VectorXf x_new, std::vector<std::tuple<float, Eigen::VectorXf>> L_near){
         for (auto const l_near : L_near){
             auto x_near = std::get<1>(l_near);
-            auto curr_cost = path_cost(x_init, x_near, trees[tree].E);
-            auto tent_cost = path_cost(x_init, x_new, trees[tree].E) + segment_cost(x_new, x_near);
+            auto curr_cost = path_cost(x_init, x_near, tree);
+            auto tent_cost = path_cost(x_init, x_new, tree) + segment_cost(x_new, x_near);
             if((tent_cost < curr_cost) && (X.collision_free(x_near, x_new, r))){
+                std::cout<< "========RRTStar::rewrite======"<< std::endl;
+                std::cout<< x_near << std::endl;
+                std::cout<< x_new << std::endl;
                 setEdge(x_near, x_new, tree);
             }
         }
@@ -69,6 +72,8 @@ namespace hagen {
         std::vector<Eigen::VectorXf> path;
         while(true){
             for(auto const q : Q){
+                std::cout<< "RRTStar::"<< q[1] << std::endl;
+
                 for(int i=0; i<q[1]; i++){
                    auto new_and_next = new_and_near(0, q);
                    if(new_and_next.size()==0){

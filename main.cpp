@@ -520,6 +520,7 @@ using namespace std;
 int main()
 {
     kamaz::hagen::RRTStar3D rrtstart3d;
+    kamaz::hagen::CommonUtils common_utils;
     Eigen::VectorXf x_dimentions(3);
     x_dimentions << 100, 100, 100;
     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
@@ -545,9 +546,26 @@ int main()
     X.init_search_space(map_dim, 1000);
     X.insert_obstacles(obstacles);
     X.use_whole_search_sapce = true;
+
+    int save_data_index = 0;
     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 0);
    
+    Eigen::VectorXf center = (x_goal - x_init);
+    Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
+    covmat(0,0) = 100;
+    covmat(1,1) = 100;
+    covmat(2,2) = 100;
+    
+    center = (x_goal + x_init)/2;
+    Eigen::Vector3f a(1,0,0);
+    Eigen::Vector3f b = x_goal-x_init;
+    Eigen::Matrix3f rotation_matrix;
+    common_utils.get_roration_matrix(a, b, rotation_matrix);
+    Eigen::Quaternion<double> q;
+    q = rotation_matrix.cast <double>();
+
+    X.use_whole_search_sapce = true;
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, save_data_index);
 
     Curve* bspline_curve = new BSpline();
     // Curve* catmulll_curve = new CatmullRom();
@@ -592,8 +610,8 @@ int main()
 //     //   new_path_bspline.push_back(path.back());
 //     //   new_path_catmull.push_back(path.back());
 //     // }
-
-    rrtstart3d.save_path(new_path_bspline, "/dataset/rrt_path_modified.npy");
+    std::string path_ingg = "/dataset/rrt/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    rrtstart3d.save_path(new_path_bspline, path_ingg);
     // rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
 	  delete bspline_curve;
     // AStarImproved path_planner;

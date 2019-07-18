@@ -32,14 +32,18 @@ namespace hagen {
     }
 
     void RRTBase::add_edge(int tree, Eigen::VectorXf child, Eigen::VectorXf parent){
-        std::tuple<float, float, float> child_(child[0], child[1], child[2]);
+        std::array<float, 3> child_ = {child[0], child[1], child[2]};
         trees[tree].E[child_] = parent;
     }
 
     void RRTBase::printEdge(int tree){
         std::cout<<"RRTBase::printEdge===="<< std::endl;
         for(auto const&item : trees[tree].E){
+              std::cout<< std::get<0>(item.first) << "," << std::get<1>(item.first) 
+                                << "," << std::get<2>(item.first) << std::endl;
+
             std::cout<< item.second.transpose() << std::endl;
+            std::cout<< "=============" << std::endl;
         }
         std::cout<<"RRTBase::printEdge===="<< std::endl;
     }
@@ -219,17 +223,17 @@ namespace hagen {
     }
 
     bool RRTBase::isEdge(Eigen::VectorXf point, int tree){
-        std::tuple<float, float, float> _key(point[0], point[1], point[2]);
+        std::array<float, 3> _key = {point[0], point[1], point[2]};
         return (trees[tree].E.count(_key)) > 0 ? true : false;
     }
 
     Eigen::VectorXf RRTBase::getEdge(Eigen::VectorXf point, int tree){
-        std::tuple<float, float, float> _key(point[0], point[1], point[2]);
+        std::array<float, 3> _key = {point[0], point[1], point[2]};
         return trees[tree].E[_key];
     }
 
     void RRTBase::setEdge(Eigen::VectorXf key, Eigen::VectorXf value, int tree){
-        std::tuple<float, float, float> _key(key[0], key[1], key[2]);
+        std::array<float, 3> _key = {key[0], key[1], key[2]};
         trees[tree].E[_key] = value;
     }
 
@@ -243,19 +247,21 @@ namespace hagen {
         auto current = x_goal;
         
         // std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
-        // std::cout<< "RRTBase::reconstruct_path: current"<< current.transpose() << std::endl;
+        std::cout<< "RRTBase::reconstruct_path: current "<< current.transpose() << std::endl;
         if(is_equal_vectors(x_goal, x_init)){
             return path;
         }
-        // printEdge(tree);
+        printEdge(tree);
         if(isEdge(current, tree)){
             auto current_parent = getEdge(current, tree);
-            // std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
+            std::cout<< "RRTBase::reconstruct_path: current 1"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){
                 path.push_back(current_parent);
+                std::cout<< "RRTBase::reconstruct_path: current edge just.."<< current_parent.transpose() << std::endl;
+
                 if(isEdge(current_parent, tree)){
                     current_parent = getEdge(current_parent, tree);
-                    // std::cout<< "RRTBase::reconstruct_path: current"<< current_parent.transpose() << std::endl;
+                    std::cout<< "RRTBase::reconstruct_path: current edge"<< current_parent.transpose() << std::endl;
                 }else{
                     std::cout<< "RRTBase::reconstruct_path: current: something wrong with edges" << std::endl;
                     // return path;
@@ -296,14 +302,15 @@ namespace hagen {
         return (a-b).norm();
     }
 
-    float RRTBase::path_cost(Eigen::VectorXf a, Eigen::VectorXf b, std::map<std::tuple<float, float, float>, Eigen::VectorXf> edges){
+    float RRTBase::path_cost(Eigen::VectorXf a, Eigen::VectorXf b, int tree){
         float cost = 0;
         // std::cout<< "RRTBase::path_cost" << std::endl;
         // std::cout<< "RRTBase::path_cost: a" << a.transpose() << std::endl;
         // std::cout<< "RRTBase::path_cost: b" << b.transpose() << std::endl;
+        auto edges = trees[tree].E; 
         while(!is_equal_vectors(a, b)){
             // std::cout<< "RRTBase::path_cost:a "<< a.transpose() << "  b: "<< b.transpose() << std::endl;
-            std::tuple<float, float, float> _key(b[0], b[1], b[2]);
+            std::array<float, 3> _key = {b[0], b[1], b[2]};
             if(edges.count(_key)<1){
                 // std::cout<< "RRTBase::path_cost:empty edge " << std::endl;
                 break;
