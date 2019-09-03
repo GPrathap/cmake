@@ -23,8 +23,8 @@ namespace hagen{
   void CommonUtils::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, 
             Eigen::VectorXf cent, Eigen::MatrixXf& container){
 
-        int ndims = covmat.rows();
-        int npts = container.cols();
+        int ndims = container.cols();
+        int npts = container.rows();
         Eigen::EigenSolver<Eigen::MatrixXf> eigensolver;
         eigensolver.compute(covmat);
         Eigen::VectorXf eigen_values = eigensolver.eigenvalues().real();

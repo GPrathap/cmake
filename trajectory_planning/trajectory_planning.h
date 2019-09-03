@@ -20,7 +20,15 @@
 #include <Eigen/Eigenvalues> 
 #include <complex>
 #include <fstream>
-
+#include <random>
+#include <cmath>
+#include <chrono>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace kamaz {
 namespace hagen {
@@ -31,8 +39,15 @@ namespace hagen {
 
                 bool generate_ts(std::vector<Eigen::VectorXf> path);
                 void traj_opt7();
-                void get_desired_state(int qn, float time, std::vector<Eigen::VectorXf> states);
+                void save_status(std::vector<std::vector<Eigen::VectorXf>>
+                        , std::string file_name);
+
+                void get_desired_state(float time
+                        , std::vector<Eigen::VectorXf>& states);
                 std::pair<float, int > closest(float value);
+
+                void generate_target_trajectory(std::vector<Eigen::VectorXf>&  target_trajectory
+  , std::string trajectory_to_be_flown_file_name);
 
                 std::vector<float> time_segs;
 

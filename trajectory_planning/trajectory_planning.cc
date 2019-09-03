@@ -36,8 +36,21 @@ namespace hagen {
         return true;
     }
 
+    void TrajectoryPlanning::save_status(std::vector<std::vector<Eigen::VectorXf>> status,std::string file_name){
+       std::vector<float> quad_status; 
+       for(auto sector: status){
+            // std::cout<< status.size() << std::endl;
+            for(auto val : sector){
+                quad_status.push_back(val[0]);
+                quad_status.push_back(val[1]);
+                quad_status.push_back(val[2]);
+            }
+       }
+       cnpy::npy_save(file_name, &quad_status[0], {quad_status.size()}, "w");
+    }
 
-    void TrajectoryPlanning::get_desired_state(int qn, float time, std::vector<Eigen::VectorXf> states){
+
+    void TrajectoryPlanning::get_desired_state(float time, std::vector<Eigen::VectorXf>& states){
         
         if(time >= total_time){
             Eigen::MatrixXf point  = way_points.block(way_points.rows()-1, 0, 1, 3);
@@ -51,6 +64,8 @@ namespace hagen {
         }
 
         int k = closest(time).second;
+
+        std::cout<< "======||" << k << std::endl;
 
         Eigen::MatrixXf pose_coeff(1, 8);
         pose_coeff << std::pow(time, 7.0f)
@@ -93,7 +108,7 @@ namespace hagen {
         states.push_back(pos);
         states.push_back(vel);
         states.push_back(acc);
-        // std::cout << " k " << k << std::endl;
+        // std::cout << " states  " << states.size() << std::endl;
 
         // std::cout << "pose_coeff: "<< pose_coeff << std::endl;
         // std::cout << "velocity_coeff: "<< velocity_coeff << std::endl;
@@ -108,7 +123,7 @@ namespace hagen {
         std::pair<float, int > result;
         int index = 0;
         for(auto point: time_segs){
-            std::cout << point << std::endl;
+            // std::cout << "point: "<< point  << " value: "<< value << std::endl;
             if(point > value){
                 break;
             }
@@ -123,6 +138,30 @@ namespace hagen {
 		result.second = index > 1 ? index -1 : 0;
         return result;
     }
+
+    void TrajectoryPlanning::generate_target_trajectory(std::vector<Eigen::VectorXf>&  target_trajectory
+  , std::string trajectory_to_be_flown_file_name){
+    Eigen::VectorXf path_position(4);
+    std::fstream infile;
+	  infile.open(trajectory_to_be_flown_file_name, std::ios::in);
+    std::string line, word, temp;
+    std::string delimiter = ",";
+    while (std::getline(infile, line)) {
+      size_t pos = 0;
+      std::string token;
+      int index = 0;
+      while ((pos = line.find(delimiter)) != std::string::npos) {
+          token = line.substr(0, pos);
+          path_position(index) = std::atof(token.c_str());
+          index++;
+          line.erase(0, pos + delimiter.length());
+      }
+      path_position(index) = std::atof(line.c_str());
+      path_position(3) = 1.0;
+		  target_trajectory.push_back(path_position);
+    }
+    return;
+  }
 
     void TrajectoryPlanning::traj_opt7(){
         int m = way_points.rows();
@@ -159,6 +198,9 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = coeff;
                 Y(idx, i) = way_points(k+1, i);
                 idx = idx + 1;
+
+                
+                
             }
 
             colum_count = 0;
@@ -177,6 +219,8 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+
+                
             }
             colum_count = 0;
             for(int k = 0; k < m-1; k++){
@@ -194,6 +238,7 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+               
             }
             colum_count = 0;
             for(int k = 0; k < m-1; k++){
@@ -211,6 +256,7 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+                 
             }
             colum_count = 0;
             for(int k = 0; k < m-1; k++){
@@ -228,6 +274,7 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+                
             }
             colum_count = 0;
             for(int k = 0; k < m-1; k++){
@@ -245,6 +292,7 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+               
             }
             colum_count = 0;
             for(int k = 0; k < m-1; k++){
@@ -262,7 +310,10 @@ namespace hagen {
                 A.block(i, x_max*row_index + 8*colum_count, 1, 8) = -1.0*coeff;
                 Y(idx, i) = 0.0;
                 idx = idx + 1;
+                 
             }
+
+            
             int k = 0;
             colum_count = 0;
             coeff << std::pow(time_segs[k], 7.0f)
@@ -372,11 +423,25 @@ namespace hagen {
             Eigen::MatrixXf y_flat_mat = Y.block(0, i, x_max, 1);
             Eigen::Map<Eigen::MatrixXf> x_flat_mat_map(x_flat_mat.data(), x_max, x_max);
             Eigen::MatrixXf x_flat_mat_map_new = x_flat_mat_map.transpose();
-            Eigen::MatrixXf x_flat_mat_map_inv = x_flat_mat_map_new.inverse();
-            X.block(0, i, x_max, 1) = x_flat_mat_map_inv*y_flat_mat;
+
+            Eigen::MatrixXd x_flat_mat_map_inv = x_flat_mat_map_new.cast <double>();
+            Eigen::MatrixXd x_flat_mat_map_invi = x_flat_mat_map_inv.inverse();
+            
+            Eigen::MatrixXd y_flat_matd = y_flat_mat.cast<double>();
+            Eigen::MatrixXd vvv = x_flat_mat_map_invi*y_flat_matd;
+            X.block(0, i, x_max, 1) = vvv.cast<float>();
+            
+            Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
+            
+            // std::cout << "===============================================================================================================================================" << std::endl;
+
+            // std::cout << "x_flat_mat" << x_flat_mat_map_invi.format(CleanFmt)  << std::endl;
+            // std::cout << "coeff==>" << y_flat_mat << std::endl;
 
         } 
     }
+
+    
 
 
 
