@@ -33,8 +33,8 @@ using kamaz::hagen::LocalMaximaFilter;
 
 
 int main(){
-  std::vector<Eigen::VectorXf> path;
-  Eigen::VectorXf f(3);
+  std::vector<Eigen::VectorXd> path;
+  Eigen::VectorXd f(3);
   f<<0, 5, 5;
   path.push_back(f);
   f<<2.7, 4.9, 3.75;
@@ -47,22 +47,22 @@ int main(){
   path.push_back(f);
   f<<8.7, 4.9, 4.25;
   path.push_back(f);
-//   f<<8.7, 4.9, 1.25;
-//   path.push_back(f);
-//   f<<11.7, 4.9, 1.25;
-//   path.push_back(f);
-//   f<<11.7, 4.9, 4.75;
-//   path.push_back(f);
-//   f<<14.7, 4.9, 4.25;
-//   path.push_back(f);
-//   f<<14.7, 4.9, 1.25;
-//   path.push_back(f);
-//   f<<17.7, 4.9, 1.75;
-//   path.push_back(f);
-//   f<<17.7, 4.9, 4.75;
-//   path.push_back(f);
-//   f<<20.0, 5,5;
-//   path.push_back(f);
+  f<<8.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<11.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<11.7, 4.9, 4.75;
+  path.push_back(f);
+  f<<14.7, 4.9, 4.25;
+  path.push_back(f);
+  f<<14.7, 4.9, 1.25;
+  path.push_back(f);
+  f<<17.7, 4.9, 1.75;
+  path.push_back(f);
+  f<<17.7, 4.9, 4.75;
+  path.push_back(f);
+  f<<20.0, 5,5;
+  path.push_back(f);
   std::cout<< "size of the path: "<< path.size() << std::endl;
 
   TrajectoryPlanning trajectory_planning;
@@ -85,19 +85,19 @@ int main(){
   int max_iter = (int) (trajectory_planning.total_time / cstep); 
   std::cout<< "===============max_iter============"<< max_iter << std::endl;
   
-//   std::vector<std::vector<Eigen::VectorXf>> paths_points;
-//   for (int iter =1; iter < max_iter; iter++){
-//     std::vector<Eigen::VectorXf> desired_state;
-//     trajectory_planning.get_desired_state(time+cstep, desired_state);
-//     paths_points.push_back(desired_state);
-//     std::cout<< "==>: "<<  desired_state[0] << std::endl;
-//     time = time + cstep;
-//   }
-//   std::cout<< paths_points.size() << std::endl;
-//   trajectory_planning.save_status(paths_points, "/dataset/result/9/trajectory_planning_pose.csv");
+  std::vector<std::vector<Eigen::VectorXd>> paths_points;
+  for (int iter =1; iter < max_iter; iter++){
+    std::vector<Eigen::VectorXd> desired_state;
+    trajectory_planning.get_desired_state(time+cstep, desired_state);
+    paths_points.push_back(desired_state);
+    std::cout<< "==>: "<<  desired_state[0] << std::endl;
+    time = time + cstep;
+  }
+  std::cout<< paths_points.size() << std::endl;
+  trajectory_planning.save_status(paths_points, "/dataset/result/9/trajectory_planning_pose.csv");
 
-  std::cout<< trajectory_planning.X << std::endl;
-// //   std::cout<< trajectory_planning.time_segs << std::endl;
+  //   std::cout<< trajectory_planning.X << std::endl;
+  // //   std::cout<< trajectory_planning.time_segs << std::endl;
   // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(3, 6*6);
   // int x_max = 6;
   // Eigen::MatrixXf g = A.block<1, x_max*x_max>(2,0);
@@ -141,7 +141,7 @@ int main(){
 
   // SearchSpace search_space;
   // Eigen::MatrixXf covmat(3,3);
-  // Eigen::VectorXf center(3);
+  // Eigen::VectorXd center(3);
   // center << 0,0,0;
   // covmat(0,0) = 8;
   // covmat(1,1) = 4;
@@ -149,7 +149,7 @@ int main(){
 
   // Eigen::Vector3f a(1,0,0);
   // Eigen::Vector3f b(0,1,1);
-  // Eigen::VectorXf fg(6);
+  // Eigen::VectorXd fg(6);
   // search_space.init(fg);
   // // Random_call random_call(std::chrono::system_clock::now().time_since_epoch().count(), 100);
   // // int num = random_call;
@@ -427,9 +427,9 @@ int main(){
 
 // int main(){
 
-//   Eigen::VectorXf a(8);
+//   Eigen::VectorXd a(8);
 //   a << 1, 2, 3, 4, 5, 6, 7, 8;
-//   Eigen::VectorXf b(8);
+//   Eigen::VectorXd b(8);
 //   b << 12,13,14,15,16,17,18,19;
 
 //   // Eigen::MatrixXf m(4,3);
@@ -543,19 +543,19 @@ int main(){
 // {
 //     kamaz::hagen::RRTStar3D rrtstart3d;
 //     kamaz::hagen::CommonUtils common_utils;
-//     Eigen::VectorXf x_dimentions(3);
+//     Eigen::VectorXd x_dimentions(3);
 //     x_dimentions << 100, 100, 100;
 //     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
 //     // auto obstacles = rrtstart3d.get_obstacles();
 //     auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions);
 //     // std::cout<< "-----1" << std::endl;
-//     Eigen::VectorXf x_init(3);
+//     Eigen::VectorXd x_init(3);
 //     x_init << 0, 0, 0 ;
-//     Eigen::VectorXf x_goal(3);
+//     Eigen::VectorXd x_goal(3);
 //     x_goal << 23, 99, 99;
 
-//     std::vector<Eigen::VectorXf> Q;
-//     Eigen::VectorXf dim_in(2);
+//     std::vector<Eigen::VectorXd> Q;
+//     Eigen::VectorXd dim_in(2);
 //     dim_in << 8, 4;
 //     Q.push_back(dim_in);
 //     // std::cout<< "-----1" << std::endl;
@@ -572,7 +572,7 @@ int main(){
     // int save_data_index = 0;
     // rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
    
-    // Eigen::VectorXf center = (x_goal - x_init);
+    // Eigen::VectorXd center = (x_goal - x_init);
     // Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
     // covmat(0,0) = 100;
     // covmat(1,1) = 100;
@@ -621,20 +621,20 @@ int main(){
 //     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
 // 	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
 
-//     std::vector<Eigen::VectorXf> new_path_bspline;
-    // std::vector<Eigen::VectorXf> new_path_catmull;
+//     std::vector<Eigen::VectorXd> new_path_bspline;
+    // std::vector<Eigen::VectorXd> new_path_catmull;
     // if(path.size()>0){
     //   new_path_bspline.push_back(path[0]);
     //   new_path_catmull.push_back(path[0]);
     // }
     // for (int i = 0; i < bspline_curve->node_count(); ++i) {
-	// 	  Eigen::VectorXf pose(3);
+	// 	  Eigen::VectorXd pose(3);
     //   auto node = bspline_curve->node(i);
     //   pose<< node.x, node.y, node.z; 
     //   new_path_bspline.push_back(pose);
 	//   }
 //     for (int i = 0; i < catmulll_curve->node_count(); ++i) {
-// 		  Eigen::VectorXf pose(3);
+// 		  Eigen::VectorXd pose(3);
 //       auto node = catmulll_curve->node(i);
 //       pose<< node.x, node.y, node.z; 
 //       new_path_catmull.push_back(pose);
@@ -678,7 +678,7 @@ int main(){
 // // struct my_functor : Functor<float>
 // // {
 // //     my_functor(void): Functor<float>(2,2) {}
-// //     int operator()(const Eigen::VectorXf &x, Eigen::VectorXf &fvec) const
+// //     int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
 // //     {
 // //         // Implement y = 10*(x0+3)^2 + (x1-5)^2
 // //         fvec(0) = 10.0*pow(x(0)+3.0,2) +  pow(x(1)-5.0,2);
@@ -689,7 +689,7 @@ int main(){
 // // };
 
 // // int main(int argc, char *argv[]) {
-// //     Eigen::VectorXf x(2);
+// //     Eigen::VectorXd x(2);
 // //     x(0) = 2.0;
 // //     x(1) = 3.0;
 // //     std::cout << "x: " << x << std::endl;

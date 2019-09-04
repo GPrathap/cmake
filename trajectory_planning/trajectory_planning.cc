@@ -3,27 +3,27 @@
 namespace kamaz {
 namespace hagen {
 
-    TrajectoryPlanning::TrajectoryPlanning(float speed){
+    TrajectoryPlanning::TrajectoryPlanning(double speed){
         max_speed = speed;
     }
 
-    bool TrajectoryPlanning::generate_ts(std::vector<Eigen::VectorXf> path){
+    bool TrajectoryPlanning::generate_ts(std::vector<Eigen::VectorXd> path){
         int size_of_the_path = path.size();
         if(path.size()<1){
             return false;
         } 
         int vector_dim = path[0].size();
-        way_points = Eigen::MatrixXf::Zero(size_of_the_path, vector_dim); 
+        way_points = Eigen::MatrixXd::Zero(size_of_the_path, vector_dim); 
         int row_index = 0;
         for(auto way_point : path){
             way_points.row(row_index) = way_point;
             row_index++;
         }
-        Eigen::MatrixXf dis = (way_points.block(1, 0, size_of_the_path-1, vector_dim).array() 
+        Eigen::MatrixXd dis = (way_points.block(1, 0, size_of_the_path-1, vector_dim).array() 
                 - way_points.block(0, 0, size_of_the_path-1, vector_dim).array()).pow(2).rowwise().sum().sqrt();
-        float path_len = dis.sum();
+        double path_len = dis.sum();
         total_time = path_len/max_speed;
-        Eigen::MatrixXf path_seg_length = dis.array().sqrt();
+        Eigen::MatrixXd path_seg_length = dis.array().sqrt();
         for(int i=1; i<size_of_the_path-1; i++){
           path_seg_length(i, 0)= path_seg_length(i-1, 0) + path_seg_length(i, 0);
         }
@@ -36,8 +36,8 @@ namespace hagen {
         return true;
     }
 
-    void TrajectoryPlanning::save_status(std::vector<std::vector<Eigen::VectorXf>> status,std::string file_name){
-       std::vector<float> quad_status; 
+    void TrajectoryPlanning::save_status(std::vector<std::vector<Eigen::VectorXd>> status,std::string file_name){
+       std::vector<double> quad_status; 
        for(auto sector: status){
             // std::cout<< status.size() << std::endl;
             for(auto val : sector){
@@ -50,14 +50,14 @@ namespace hagen {
     }
 
 
-    void TrajectoryPlanning::get_desired_state(float time, std::vector<Eigen::VectorXf>& states){
+    void TrajectoryPlanning::get_desired_state(double time, std::vector<Eigen::VectorXd>& states){
         
         if(time >= total_time){
-            Eigen::MatrixXf point  = way_points.block(way_points.rows()-1, 0, 1, 3);
-            Eigen::VectorXf pos = Eigen::Map<Eigen::RowVectorXf>(point.data(), 3);
+            Eigen::MatrixXd point  = way_points.block(way_points.rows()-1, 0, 1, 3);
+            Eigen::VectorXd pos = Eigen::Map<Eigen::RowVectorXd>(point.data(), 3);
             states.push_back(pos);
-            Eigen::VectorXf vec = Eigen::VectorXf::Zero(3);
-            Eigen::VectorXf acc = Eigen::VectorXf::Zero(3);
+            Eigen::VectorXd vec = Eigen::VectorXd::Zero(3);
+            Eigen::VectorXd acc = Eigen::VectorXd::Zero(3);
             states.push_back(vec);
             states.push_back(acc);
             return;
@@ -67,43 +67,43 @@ namespace hagen {
 
         std::cout<< "======||" << k << std::endl;
 
-        Eigen::MatrixXf pose_coeff(1, 8);
-        pose_coeff << std::pow(time, 7.0f)
-            ,std::pow(time, 6.0f)
-            ,std::pow(time, 5.0f)
-            ,std::pow(time, 4.0f)
-            ,std::pow(time, 3.0f)
-            ,std::pow(time, 2.0f)
+        Eigen::MatrixXd pose_coeff(1, 8);
+        pose_coeff << std::pow(time, 7.0)
+            ,std::pow(time, 6.0)
+            ,std::pow(time, 5.0)
+            ,std::pow(time, 4.0)
+            ,std::pow(time, 3.0)
+            ,std::pow(time, 2.0)
             ,time
             ,1.0;
         
-        Eigen::MatrixXf velocity_coeff(1, 8);
-        velocity_coeff << 7.0*std::pow(time, 6.0f)
-                , 6.0*std::pow(time, 5.0f)
-                , 5.0* std::pow(time, 4.0f)
-                , 4.0* std::pow(time, 3.0f)
-                , 3.0* std::pow(time, 2.0f)
-                , 2.0* std::pow(time, 1.0f)
+        Eigen::MatrixXd velocity_coeff(1, 8);
+        velocity_coeff << 7.0*std::pow(time, 6.0)
+                , 6.0*std::pow(time, 5.0)
+                , 5.0* std::pow(time, 4.0)
+                , 4.0* std::pow(time, 3.0)
+                , 3.0* std::pow(time, 2.0)
+                , 2.0* std::pow(time, 1.0)
                 ,1.0
                 ,0.0;
         
-        Eigen::MatrixXf acceleration_coeff(1, 8);
-        acceleration_coeff << 42.0*std::pow(time, 5.0f)
-                    , 30.0*std::pow(time, 4.0f)
-                    , 20.0* std::pow(time, 3.0f)
-                    , 12.0* std::pow(time, 2.0f)
-                    , 6.0* std::pow(time, 1.0f)
+        Eigen::MatrixXd acceleration_coeff(1, 8);
+        acceleration_coeff << 42.0*std::pow(time, 5.0)
+                    , 30.0*std::pow(time, 4.0)
+                    , 20.0* std::pow(time, 3.0)
+                    , 12.0* std::pow(time, 2.0)
+                    , 6.0* std::pow(time, 1.0)
                     , 2.0
                     , 0.0
                     , 0.0;
 
-        Eigen::MatrixXf position = pose_coeff*X.block(8*k, 0, 8, 3);
-        Eigen::MatrixXf velocity = velocity_coeff*X.block(8*k, 0, 8, 3);
-        Eigen::MatrixXf acceleration = acceleration_coeff*X.block(8*k, 0, 8, 3);
+        Eigen::MatrixXd position = pose_coeff*X.block(8*k, 0, 8, 3);
+        Eigen::MatrixXd velocity = velocity_coeff*X.block(8*k, 0, 8, 3);
+        Eigen::MatrixXd acceleration = acceleration_coeff*X.block(8*k, 0, 8, 3);
 
-        Eigen::VectorXf pos = Eigen::Map<Eigen::RowVectorXf>(position.data(), 3);
-        Eigen::VectorXf vel = Eigen::Map<Eigen::RowVectorXf>(velocity.data(), 3);
-        Eigen::VectorXf acc = Eigen::Map<Eigen::RowVectorXf>(acceleration.data(), 3);
+        Eigen::VectorXd pos = Eigen::Map<Eigen::RowVectorXd>(position.data(), 3);
+        Eigen::VectorXd vel = Eigen::Map<Eigen::RowVectorXd>(velocity.data(), 3);
+        Eigen::VectorXd acc = Eigen::Map<Eigen::RowVectorXd>(acceleration.data(), 3);
 
         states.push_back(pos);
         states.push_back(vel);
@@ -119,8 +119,8 @@ namespace hagen {
         // std::cout << "acceleration: "<< acc.transpose() << std::endl;
     }
 
-    std::pair<float, int > TrajectoryPlanning::closest(float value) {
-        std::pair<float, int > result;
+    std::pair<double, int > TrajectoryPlanning::closest(double value) {
+        std::pair<double, int > result;
         int index = 0;
         for(auto point: time_segs){
             // std::cout << "point: "<< point  << " value: "<< value << std::endl;
@@ -139,44 +139,44 @@ namespace hagen {
         return result;
     }
 
-    void TrajectoryPlanning::generate_target_trajectory(std::vector<Eigen::VectorXf>&  target_trajectory
+    void TrajectoryPlanning::generate_target_trajectory(std::vector<Eigen::VectorXd>&  target_trajectory
   , std::string trajectory_to_be_flown_file_name){
-    Eigen::VectorXf path_position(4);
-    std::fstream infile;
-	  infile.open(trajectory_to_be_flown_file_name, std::ios::in);
-    std::string line, word, temp;
-    std::string delimiter = ",";
-    while (std::getline(infile, line)) {
-      size_t pos = 0;
-      std::string token;
-      int index = 0;
-      while ((pos = line.find(delimiter)) != std::string::npos) {
-          token = line.substr(0, pos);
-          path_position(index) = std::atof(token.c_str());
-          index++;
-          line.erase(0, pos + delimiter.length());
-      }
-      path_position(index) = std::atof(line.c_str());
-      path_position(3) = 1.0;
-		  target_trajectory.push_back(path_position);
+        Eigen::VectorXd path_position(4);
+        std::fstream infile;
+        infile.open(trajectory_to_be_flown_file_name, std::ios::in);
+        std::string line, word, temp;
+        std::string delimiter = ",";
+        while (std::getline(infile, line)) {
+            size_t pos = 0;
+            std::string token;
+            int index = 0;
+            while ((pos = line.find(delimiter)) != std::string::npos) {
+                token = line.substr(0, pos);
+                path_position(index) = std::atof(token.c_str());
+                index++;
+                line.erase(0, pos + delimiter.length());
+            }
+            path_position(index) = std::atof(line.c_str());
+            path_position(3) = 1.0;
+            target_trajectory.push_back(path_position);
+        }
+        return;
     }
-    return;
-  }
 
     void TrajectoryPlanning::traj_opt7(){
         int m = way_points.rows();
         int n = way_points.cols();
         m = m - 1;
         int x_max = 8*m;
-        X = Eigen::MatrixXf::Zero(x_max, n);
-        A = Eigen::MatrixXf::Zero(n, x_max*x_max);
-        Y = Eigen::MatrixXf::Zero(x_max, n);
+        X = Eigen::MatrixXd::Zero(x_max, n);
+        A = Eigen::MatrixXd::Zero(n, x_max*x_max);
+        Y = Eigen::MatrixXd::Zero(x_max, n);
         for(int i=0; i<n; i++){
             for(int b=0; b<x_max; b++){
                 A(i, b*x_max+b) = 1*2.2204e-16;
             }
             int idx = 0;
-            Eigen::MatrixXf coeff(1, 8);
+            Eigen::MatrixXd coeff(1, 8);
             int colum_count = 0;
             int row_index = -1;
             for(int k = 0; k < m-1; k++){
@@ -419,19 +419,19 @@ namespace hagen {
             Y(idx, i) = 0.0;
             idx = idx + 1;
             
-            Eigen::MatrixXf x_flat_mat = A.block(i, 0, 1, x_max*x_max);
-            Eigen::MatrixXf y_flat_mat = Y.block(0, i, x_max, 1);
-            Eigen::Map<Eigen::MatrixXf> x_flat_mat_map(x_flat_mat.data(), x_max, x_max);
-            Eigen::MatrixXf x_flat_mat_map_new = x_flat_mat_map.transpose();
+            Eigen::MatrixXd x_flat_mat = A.block(i, 0, 1, x_max*x_max);
+            Eigen::MatrixXd y_flat_mat = Y.block(0, i, x_max, 1);
+            Eigen::Map<Eigen::MatrixXd> x_flat_mat_map(x_flat_mat.data(), x_max, x_max);
+            Eigen::MatrixXd x_flat_mat_map_new = x_flat_mat_map.transpose();
 
             Eigen::MatrixXd x_flat_mat_map_inv = x_flat_mat_map_new.cast <double>();
             Eigen::MatrixXd x_flat_mat_map_invi = x_flat_mat_map_inv.inverse();
             
             Eigen::MatrixXd y_flat_matd = y_flat_mat.cast<double>();
             Eigen::MatrixXd vvv = x_flat_mat_map_invi*y_flat_matd;
-            X.block(0, i, x_max, 1) = vvv.cast<float>();
+            X.block(0, i, x_max, 1) = vvv.cast<double>();
             
-            Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
+            // Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
             
             // std::cout << "===============================================================================================================================================" << std::endl;
 
