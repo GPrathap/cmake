@@ -190,7 +190,7 @@ namespace hagen {
         for(auto i(0); i<size_of; i++){
             feature_vector_np.push_back(vec[i]);
         }
-        std::string location = "/dataset/result/" + name + ".npy";
+        std::string location = "/dataset/images/result/11/" + name + ".npy";
         cnpy::npy_save(location ,&feature_vector_np[0],{1, size_of, 1},"w");
     }
 
@@ -203,7 +203,7 @@ namespace hagen {
                 matrix_np.push_back(matrix(i,j));
             }
         }
-        std::string location = "/dataset/result/" + name + ".npy";
+        std::string location = "/dataset/images/result/11/" + name + ".npy";
         cnpy::npy_save(location ,&matrix_np[0],{1, rows, cols},"w");
     }
     

@@ -18,7 +18,7 @@
 #include "./spline/BSpline.h"
 // #include "./spline/CatmullRom.h"
 #include "./common/search_space.h"
-
+#include "../ssa/ssa.h"
 #include "quadtree/quadtree.h"
 #include <random>
 #include "trajectory_planning/trajectory_planning.h"
@@ -30,87 +30,88 @@ using kamaz::hagen::SearchSpace;
 using kamaz::hagen::QuadTree;
 using kamaz::hagen::TrajectoryPlanning;
 using kamaz::hagen::LocalMaximaFilter;
+using kamaz::hagen::SingularSpectrumAnalysis;
 
 
-int main(){
-  std::vector<Eigen::VectorXd> path;
-  Eigen::VectorXd f(3);
-  f<<0, 5, 5;
-  path.push_back(f);
-  f<<2.7, 4.9, 3.75;
-  path.push_back(f);
-  f<<2.7, 4.9, 1.25;
-  path.push_back(f);
-  f<<5.7, 4.9, 1.75;
-  path.push_back(f);
-  f<<5.7, 4.9, 4.75;
-  path.push_back(f);
-  f<<8.7, 4.9, 4.25;
-  path.push_back(f);
-  f<<8.7, 4.9, 1.25;
-  path.push_back(f);
-  f<<11.7, 4.9, 1.25;
-  path.push_back(f);
-  f<<11.7, 4.9, 4.75;
-  path.push_back(f);
-  f<<14.7, 4.9, 4.25;
-  path.push_back(f);
-  f<<14.7, 4.9, 1.25;
-  path.push_back(f);
-  f<<17.7, 4.9, 1.75;
-  path.push_back(f);
-  f<<17.7, 4.9, 4.75;
-  path.push_back(f);
-  f<<20.0, 5,5;
-  path.push_back(f);
-  std::cout<< "size of the path: "<< path.size() << std::endl;
+// int main(){
+//   std::vector<Eigen::VectorXd> path;
+//   Eigen::VectorXd f(3);
+//   f<<0, 5, 5;
+//   path.push_back(f);
+//   f<<2.7, 4.9, 3.75;
+//   path.push_back(f);
+//   f<<2.7, 4.9, 1.25;
+//   path.push_back(f);
+//   f<<5.7, 4.9, 1.75;
+//   path.push_back(f);
+//   f<<5.7, 4.9, 4.75;
+//   path.push_back(f);
+//   f<<8.7, 4.9, 4.25;
+//   path.push_back(f);
+//   f<<8.7, 4.9, 1.25;
+//   path.push_back(f);
+//   f<<11.7, 4.9, 1.25;
+//   path.push_back(f);
+//   f<<11.7, 4.9, 4.75;
+//   path.push_back(f);
+//   f<<14.7, 4.9, 4.25;
+//   path.push_back(f);
+//   f<<14.7, 4.9, 1.25;
+//   path.push_back(f);
+//   f<<17.7, 4.9, 1.75;
+//   path.push_back(f);
+//   f<<17.7, 4.9, 4.75;
+//   path.push_back(f);
+//   f<<20.0, 5,5;
+//   path.push_back(f);
+//   std::cout<< "size of the path: "<< path.size() << std::endl;
 
-  TrajectoryPlanning trajectory_planning;
+//   TrajectoryPlanning trajectory_planning;
 
-//   trajectory_planning.generate_target_trajectory(path, "/dataset/result/9/path1.csv");
-  int size_of_the_path = path.size();
-  trajectory_planning.generate_ts(path);
+// //   trajectory_planning.generate_target_trajectory(path, "/dataset/result/9/path1.csv");
+//   int size_of_the_path = path.size();
+//   trajectory_planning.generate_ts(path);
 
-  for (auto time_stamp : trajectory_planning.time_segs){
-    std::cout<< "---" << time_stamp << std::endl;
-  }
+//   for (auto time_stamp : trajectory_planning.time_segs){
+//     std::cout<< "---" << time_stamp << std::endl;
+//   }
 
-  std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;
-  trajectory_planning.traj_opt7();
+//   std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;
+//   trajectory_planning.traj_opt7();
 
-  float cstep = 0.05;
-  float time = 0.0;
-  float tstep = 0.01;
+//   float cstep = 0.05;
+//   float time = 0.0;
+//   float tstep = 0.01;
 
-  int max_iter = (int) (trajectory_planning.total_time / cstep); 
-  std::cout<< "===============max_iter============"<< max_iter << std::endl;
+//   int max_iter = (int) (trajectory_planning.total_time / cstep); 
+//   std::cout<< "===============max_iter============"<< max_iter << std::endl;
   
-  std::vector<std::vector<Eigen::VectorXd>> paths_points;
-  for (int iter =1; iter < max_iter; iter++){
-    std::vector<Eigen::VectorXd> desired_state;
-    trajectory_planning.get_desired_state(time+cstep, desired_state);
-    paths_points.push_back(desired_state);
-    std::cout<< "==>: "<<  desired_state[0] << std::endl;
-    time = time + cstep;
-  }
-  std::cout<< paths_points.size() << std::endl;
-  trajectory_planning.save_status(paths_points, "/dataset/result/9/trajectory_planning_pose.csv");
+//   std::vector<std::vector<Eigen::VectorXd>> paths_points;
+//   for (int iter =1; iter < max_iter; iter++){
+//     std::vector<Eigen::VectorXd> desired_state;
+//     trajectory_planning.get_desired_state(time+cstep, desired_state);
+//     paths_points.push_back(desired_state);
+//     std::cout<< "==>: "<<  desired_state[0] << std::endl;
+//     time = time + cstep;
+//   }
+//   std::cout<< paths_points.size() << std::endl;
+//   trajectory_planning.save_status(paths_points, "/dataset/result/9/trajectory_planning_pose.csv");
 
-  //   std::cout<< trajectory_planning.X << std::endl;
-  // //   std::cout<< trajectory_planning.time_segs << std::endl;
-  // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(3, 6*6);
-  // int x_max = 6;
-  // Eigen::MatrixXf g = A.block<1, x_max*x_max>(2,0);
-  // for(int k=0; k<x_max; k++){
-  //   g(0, k*x_max+k) = 1;
-  // }
-  // Eigen::Map<Eigen::MatrixXf> M2(g.data(), x_max, x_max);
+//   //   std::cout<< trajectory_planning.X << std::endl;
+//   // //   std::cout<< trajectory_planning.time_segs << std::endl;
+//   // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(3, 6*6);
+//   // int x_max = 6;
+//   // Eigen::MatrixXf g = A.block<1, x_max*x_max>(2,0);
+//   // for(int k=0; k<x_max; k++){
+//   //   g(0, k*x_max+k) = 1;
+//   // }
+//   // Eigen::Map<Eigen::MatrixXf> M2(g.data(), x_max, x_max);
 
-  // std::cout<< M2 << std::endl; 
-  // Eigen::MatrixXf gg = g.resize( 8*14, 8*14);
+//   // std::cout<< M2 << std::endl; 
+//   // Eigen::MatrixXf gg = g.resize( 8*14, 8*14);
 
-  return 0;
-}
+//   return 0;
+// }
 // int main(){
 
   // auto point = QuadTree::Point(2, 4, 0.1, 3.4);
@@ -422,54 +423,118 @@ int main(){
 
 
 
-
+// #include <opencv2/opencv.hpp>
+// #include <iostream>
+ 
+// using namespace std;
+// using namespace cv;
 
 
 // int main(){
 
-//   Eigen::VectorXd a(8);
-//   a << 1, 2, 3, 4, 5, 6, 7, 8;
-//   Eigen::VectorXd b(8);
-//   b << 12,13,14,15,16,17,18,19;
+//   Eigen::VectorXf a(4);
+//   Eigen::VectorXf b(4);
+//   a << 1,4,1,0;
+//   b << 1,2,1,0;
+//   Eigen::VectorXf projection_vector = b.head(3) - a.head(3);
+//   Eigen::VectorXf projection_vector_z = projection_vector;
+//   projection_vector_z[2] = 0.0;
 
-//   // Eigen::MatrixXf m(4,3);
-//   // m <<  1, 2, 3,
-//   //       4, 5, 6, 
-//   //       7, 8,9,
-//   //       10,11,12;
+//   float angle = projection_vector.dot(projection_vector_z)/(projection_vector.norm()*projection_vector_z.norm());
+//   angle = std::acos(angle);
+//   Eigen::VectorXf normalized_vector = projection_vector.normalized();
+//   auto angle_z = std::atan2(normalized_vector[1], normalized_vector[0]);
+//   std::cout<< "======================" << angle_z*(180/3.14) << std::endl;    
+//   std::cout<< "======================" << angle*(180/3.14) << std::endl;     
+
+
+  // // Eigen::VectorXd a(8);
+  // a << 1, 2, 3, 4, 5, 6, 7, 8;
+  // Eigen::VectorXd b(8);
+  // b << 12,13,14,15,16,17,18,19;
+
+  // Eigen::MatrixXf m(4,3);
+  // m <<  1, 2, 3,
+  //       4, 5, 6, 
+  //       7, 8,9,
+  //       10,11,12;
   
   
-//   //   std::cout << m.block(0,0,m.rows(),2).rowwise().sum() << std::endl;
+  //   std::cout << m.block(0,0,m.rows(),2).rowwise().sum() << std::endl;
   
 
-//   // kamaz::hagen::SingularSpectrumAnalysis ssa(a, 2);
-//   // auto f = ssa.execute(2, true);
-//   // std::cout<< f.transpose() << std::endl;
+  // kamaz::hagen::SingularSpectrumAnalysis ssa(a, 2);
+  // auto f = ssa.execute(2, true);
+  // std::cout<< f.transpose() << std::endl;
 
-//   cv::Mat image;
-//   image = cv::imread("/dataset/images/result/8/15207_angle_image.jpg", CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
+  // cv::Mat image;
+  // image = cv::imread("/dataset/images/result/10/3008_angle_img.jpg", CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
   
+  // Eigen::Matrix<float,Eigen::Dynamic, Eigen::Dynamic> bb;
+  // cv::cv2eigen(image, bb); 
+  // for(auto i(0); i< bb.cols(); i++){
+  //   SingularSpectrumAnalysis ssa(8, 8, false);
+  //   ssa.init(bb.col(i));
+  //   auto f = ssa.execute();
+  //   ssa.save_data(i);
+  //   // std::cout<< f.transpose() << std::endl;
+  //   ssa.save_vec(f, "smoothed_signal_"+ std::to_string(i));
+  // }
 
+  // Eigen::MatrixXf SingularSpectrumAnalysis::get_smoothed_image(cv::Mat& image){
+  // Eigen::MatrixXf smoothed_image(image.rows, image.cols);
+  // Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> eigen_image;
+  // cv::cv2eigen(image, eigen_image); 
+  // for(auto i(0); i< eigen_image.rows(); i++){
+  //     kamaz::hagen::SingularSpectrumAnalysis ssa(16, 3, true);
+  //     ssa.init(eigen_image.row(i));
+  //     smoothed_image.row(i) = ssa.execute();
+  // }
+// }
+
+
+ 
+//   // Create a VideoCapture object and open the input file
+//   // If the input is the web camera, pass 0 instead of the video file name
+//   VideoCapture cap("/dataset/images/trdd8.mp4"); 
+    
+//   // Check if camera opened successfully
+//   if(!cap.isOpened()){
+//     cout << "Error opening video stream or file" << endl;
+//     return -1;
+//   }
+//   int counter = 0;
+//   int couu =0;
+//   while(1){
+ 
+//     Mat frame;
+//     // Capture frame-by-frame
+//     cap >> frame;
   
-//   // Eigen::Matrix<float,Eigen::Dynamic, Eigen::Dynamic> bb;
-//   // cv::cv2eigen(image, bb); 
-//   // for(auto i(0); i< bb.rows(); i++){
-//   //   kamaz::hagen::SingularSpectrumAnalysis ssa(bb.row(i), 16);
-//   //   auto f = ssa.execute(3, true);
-//   //   ssa.save_data(i);
-//   //   std::cout<< f.transpose() << std::endl;
-//   //   ssa.save_vec(f, "smoothed_signal_"+ std::to_string(i));
-//   // }
-
-//   // Eigen::MatrixXf SingularSpectrumAnalysis::get_smoothed_image(cv::Mat& image){
-//         Eigen::MatrixXf smoothed_image(image.rows, image.cols);
-//         Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> eigen_image;
-//         cv::cv2eigen(image, eigen_image); 
-//         for(auto i(0); i< eigen_image.rows(); i++){
-//             kamaz::hagen::SingularSpectrumAnalysis ssa(16, 3, true);
-//             ssa.init(eigen_image.row(i));
-//             smoothed_image.row(i) = ssa.execute();
-//         }
+//     // If the frame is empty, break immediately
+//     if (frame.empty())
+//       break;
+ 
+//     // Display the resulting frame
+//     // if(counter%3 == 0){
+//       std::string image_path = "/dataset/images/result/11/" + std::to_string(couu) + "_lidar_projected.jpg";
+//       cv::imwrite(image_path, frame);
+//       couu++;
+//     // }
+//     counter++;
+//     // Press  ESC on keyboard to exit
+//     char c=(char)waitKey(25);
+//     if(c==27)
+//       break;
+//   }
+  
+//   // When everything done, release the video capture object
+//   cap.release();
+ 
+//   // Closes all the frames
+//   destroyAllWindows();
+     
+//   return 0;
 // }
 
 
@@ -539,119 +604,117 @@ int main(){
 
 
 
-// int main()
-// {
-//     kamaz::hagen::RRTStar3D rrtstart3d;
-//     kamaz::hagen::CommonUtils common_utils;
-//     Eigen::VectorXd x_dimentions(3);
-//     x_dimentions << 100, 100, 100;
-//     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
-//     // auto obstacles = rrtstart3d.get_obstacles();
-//     auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions);
-//     // std::cout<< "-----1" << std::endl;
-//     Eigen::VectorXd x_init(3);
-//     x_init << 0, 0, 0 ;
-//     Eigen::VectorXd x_goal(3);
-//     x_goal << 23, 99, 99;
+int main()
+{
+    kamaz::hagen::RRTStar3D rrtstart3d;
+    kamaz::hagen::CommonUtils common_utils;
+    Eigen::VectorXf x_dimentions(3);
+    x_dimentions << 100, 100, 100;
+    auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
+    // auto obstacles = rrtstart3d.get_obstacles();
+    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions);
+    // std::cout<< "-----1" << std::endl;
+    Eigen::VectorXf x_init(3);
+    x_init << 0, 0, 0 ;
+    Eigen::VectorXf x_goal(3);
+    x_goal << 23, 99, 99;
 
-//     std::vector<Eigen::VectorXd> Q;
-//     Eigen::VectorXd dim_in(2);
-//     dim_in << 8, 4;
-//     Q.push_back(dim_in);
-//     // std::cout<< "-----1" << std::endl;
-//     int r = 1;
-    // int max_samples = 10000;
-    // int rewrite_count = 32;
-    // float proc = 0.1;
+    std::vector<Eigen::VectorXf> Q;
+    Eigen::VectorXf dim_in(2);
+    dim_in << 8, 4;
+    Q.push_back(dim_in);
+    // std::cout<< "-----1" << std::endl;
+    int r = 1;
+    int max_samples = 10000;
+    int rewrite_count = 32;
+    float proc = 0.1;
 
-    // kamaz::hagen::SearchSpace X;
-    // X.init_search_space(map_dim, 1000);
-    // X.insert_obstacles(obstacles);
-    // X.use_whole_search_sapce = true;
+    kamaz::hagen::SearchSpace X;
+    X.init_search_space(map_dim, 1000);
+    X.insert_obstacles(obstacles);
+    X.use_whole_search_sapce = true;
 
-    // int save_data_index = 0;
-    // rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    int save_data_index = 0;
+    
+    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
    
-    // Eigen::VectorXd center = (x_goal - x_init);
-    // Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
-    // covmat(0,0) = 100;
-    // covmat(1,1) = 100;
-    // covmat(2,2) = 100;
+    Eigen::VectorXf center = (x_goal - x_init);
+    Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
+    covmat(0,0) = 100;
+    covmat(1,1) = 100;
+    covmat(2,2) = 100;
     
     // center = (x_goal + x_init)/2;
     // Eigen::Vector3f a(1,0,0);
     // Eigen::Vector3f b = x_goal-x_init;
-    
+    // Eigen::Matrix3f rotation_matrix;
     // common_utils.get_roration_matrix(a, b, rotation_matrix);
     // Eigen::Quaternion<double> q;
     // q = rotation_matrix.cast <double>();
 
-    // Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
-    // int ndims = covmat.rows();       
-    // Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(20, ndims);
-    // common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
-    //         , random_points);
+    Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
+    int ndims = covmat.rows();       
+    Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(20, ndims);
+    common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
+            , random_points);
 
-    // std::cout<< random_points << std::endl;
+    std::cout<< random_points << std::endl;
 
+    X.use_whole_search_sapce = true;
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, save_data_index);
 
+    Curve* bspline_curve = new BSpline();
+    // Curve* catmulll_curve = new CatmullRom();
 
+	  bspline_curve->set_steps(100);
+    // catmulll_curve->set_steps(100);
 
-    // X.use_whole_search_sapce = true;
-    // auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, save_data_index);
+    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+//     catmulll_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
 
-    // Curve* bspline_curve = new BSpline();
-    // // Curve* catmulll_curve = new CatmullRom();
+    for(auto const way_point : path){
+      std::cout<<"main: "<< way_point.transpose() << std::endl;
+      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+      // catmulll_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+    }
 
-	//   bspline_curve->set_steps(100);
-//     catmulll_curve->set_steps(100);
+    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+//     catmulll_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
 
-//     bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-// //     catmulll_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
 
-//     for(auto const way_point : path){
-//       std::cout<<"main: "<< way_point.transpose() << std::endl;
-//       bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-//       // catmulll_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-//     }
-
-//     bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-// //     catmulll_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-
-//     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-// 	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-
-//     std::vector<Eigen::VectorXd> new_path_bspline;
+    std::vector<Eigen::VectorXf> new_path_bspline;
     // std::vector<Eigen::VectorXd> new_path_catmull;
-    // if(path.size()>0){
-    //   new_path_bspline.push_back(path[0]);
+    if(path.size()>0){
+      new_path_bspline.push_back(path[0]);
     //   new_path_catmull.push_back(path[0]);
-    // }
-    // for (int i = 0; i < bspline_curve->node_count(); ++i) {
+    }
+    for (int i = 0; i < bspline_curve->node_count(); ++i) {
+		  Eigen::VectorXf pose(3);
+      auto node = bspline_curve->node(i);
+      pose<< node.x, node.y, node.z; 
+      new_path_bspline.push_back(pose);
+	}
+    // for (int i = 0; i < catmulll_curve->node_count(); ++i) {
 	// 	  Eigen::VectorXd pose(3);
-    //   auto node = bspline_curve->node(i);
+    //   auto node = catmulll_curve->node(i);
     //   pose<< node.x, node.y, node.z; 
-    //   new_path_bspline.push_back(pose);
-	//   }
-//     for (int i = 0; i < catmulll_curve->node_count(); ++i) {
-// 		  Eigen::VectorXd pose(3);
-//       auto node = catmulll_curve->node(i);
-//       pose<< node.x, node.y, node.z; 
-//       new_path_catmull.push_back(pose);
-// 	  }
-//     // if(path.size()>0){
-//     //   new_path_bspline.push_back(path.back());
-//     //   new_path_catmull.push_back(path.back());
-//     // }
-    // std::string path_ingg = "/dataset/rrt/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-    // rrtstart3d.save_path(new_path_bspline, path_ingg);
-    // // rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
+    //   new_path_catmull.push_back(pose);
+	// }
+    // if(path.size()>0){
+    //   new_path_bspline.push_back(path.back());
+    //   new_path_catmull.push_back(path.back());
+    // }
+    std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    rrtstart3d.save_path(new_path_bspline, path_ingg);
+    // rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
 	//   delete bspline_curve;
     // AStarImproved path_planner;
     // auto projected_trajectory = path_planner.astar_planner_and_save(X, x_init, x_goal);
 
-//     return 0;
-// }
+    return 0;
+}
 // // // Generic functor
 // // template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
 // // struct Functor

@@ -17,7 +17,7 @@ namespace hagen {
         
         auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, first_object_found_pose, _max_samples, resolution, pro, _rewrite_count);
         auto path = rrtstar.rrt_star();
-        std::string stotage_location = "/dataset/rrt/"+ std::to_string(index) + "_";
+        std::string stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(start_pose, goal_pose, stotage_location + "start_and_end_pose.npy");
