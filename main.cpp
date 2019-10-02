@@ -612,39 +612,57 @@ int main()
     x_dimentions << 100, 100, 100;
     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
     // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions);
+    auto obstacles = rrtstart3d.get_random_obstacles(70, x_dimentions);
     // std::cout<< "-----1" << std::endl;
     Eigen::VectorXf x_init(3);
     x_init << 0, 0, 0 ;
     Eigen::VectorXf x_goal(3);
-    x_goal << 23, 99, 99;
+    x_goal << 89, 99, 99;
 
+    std::atomic_bool planner_status;
+    planner_status = ATOMIC_VAR_INIT(true);
     std::vector<Eigen::VectorXf> Q;
     Eigen::VectorXf dim_in(2);
     dim_in << 8, 4;
     Q.push_back(dim_in);
     // std::cout<< "-----1" << std::endl;
     int r = 1;
-    int max_samples = 10000;
+    int max_samples = 1000;
     int rewrite_count = 32;
     float proc = 0.1;
-
+    float obstacle_width = 0.5;
     kamaz::hagen::SearchSpace X;
-    X.init_search_space(map_dim, 1000);
-    X.insert_obstacles(obstacles);
-    X.use_whole_search_sapce = true;
-
+    X.init_search_space(map_dim, max_samples, obstacle_width, 0.0, 200, 0.1);
+    // X.insert_obstacles(obstacles);
+    X.update_obstacles_map(obstacles);
     int save_data_index = 0;
-    
     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+
+    std::vector<SearchSpace::Rect> current_desired_trajectory;
    
+    current_desired_trajectory.push_back(SearchSpace::Rect(0
+                               ,0, 0
+                               , obstacle_width
+                               , obstacle_width
+                               , obstacle_width));
+    current_desired_trajectory.push_back(SearchSpace::Rect(25
+                               ,25, 25
+                               , 25+obstacle_width
+                               , 25+obstacle_width
+                               , 25+obstacle_width));
+    current_desired_trajectory.push_back(SearchSpace::Rect(89
+                               ,99, 99
+                               , 89+obstacle_width
+                               , 99+obstacle_width
+                               , 99+obstacle_width));
+
     Eigen::VectorXf center = (x_goal - x_init);
     Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
-    covmat(0,0) = 100;
-    covmat(1,1) = 100;
-    covmat(2,2) = 100;
+    covmat(0,0) = 40;
+    covmat(1,1) = 40;
+    covmat(2,2) = 40;
     
-    // center = (x_goal + x_init)/2;
+    center = (x_goal + x_init)/2;
     // Eigen::Vector3f a(1,0,0);
     // Eigen::Vector3f b = x_goal-x_init;
     // Eigen::Matrix3f rotation_matrix;
@@ -654,64 +672,69 @@ int main()
 
     Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
     int ndims = covmat.rows();       
-    Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(20, ndims);
+    Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(max_samples, ndims);
     common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
             , random_points);
 
     std::cout<< random_points << std::endl;
 
     X.use_whole_search_sapce = true;
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, save_data_index);
+    X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
 
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
+    std::ref(planner_status), save_data_index);
     Curve* bspline_curve = new BSpline();
-    // Curve* catmulll_curve = new CatmullRom();
-
-	  bspline_curve->set_steps(100);
-    // catmulll_curve->set_steps(100);
-
+	bspline_curve->set_steps(100);
     bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-//     catmulll_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-
     for(auto const way_point : path){
       std::cout<<"main: "<< way_point.transpose() << std::endl;
       bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-      // catmulll_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
     }
-
     bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-//     catmulll_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-
     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-
+	std::cout << "total length: " << bspline_curve->total_length() << std::endl;
     std::vector<Eigen::VectorXf> new_path_bspline;
-    // std::vector<Eigen::VectorXd> new_path_catmull;
     if(path.size()>0){
       new_path_bspline.push_back(path[0]);
-    //   new_path_catmull.push_back(path[0]);
     }
     for (int i = 0; i < bspline_curve->node_count(); ++i) {
-		  Eigen::VectorXf pose(3);
-      auto node = bspline_curve->node(i);
-      pose<< node.x, node.y, node.z; 
-      new_path_bspline.push_back(pose);
+	    Eigen::VectorXf pose(3);
+        auto node = bspline_curve->node(i);
+        pose<< node.x, node.y, node.z; 
+        new_path_bspline.push_back(pose);
 	}
-    // for (int i = 0; i < catmulll_curve->node_count(); ++i) {
-	// 	  Eigen::VectorXd pose(3);
-    //   auto node = catmulll_curve->node(i);
-    //   pose<< node.x, node.y, node.z; 
-    //   new_path_catmull.push_back(pose);
-	// }
-    // if(path.size()>0){
-    //   new_path_bspline.push_back(path.back());
-    //   new_path_catmull.push_back(path.back());
-    // }
     std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
     rrtstart3d.save_path(new_path_bspline, path_ingg);
-    // rrtstart3d.save_path(new_path_catmull, "/dataset/rrt_path_modified_catmull.npy");
-	//   delete bspline_curve;
-    // AStarImproved path_planner;
-    // auto projected_trajectory = path_planner.astar_planner_and_save(X, x_init, x_goal);
+
+    
+    save_data_index++;
+    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    X.use_whole_search_sapce = false;
+    X.insert_trajectory(current_desired_trajectory);
+    path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 2.0, 3.0, common_utils, 
+    std::ref(planner_status), save_data_index);
+    bspline_curve = new BSpline();
+	bspline_curve->set_steps(100);
+    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+    for(auto const way_point : path){
+      std::cout<<"main: "<< way_point.transpose() << std::endl;
+      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+    }
+    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+	std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+    new_path_bspline.clear();
+    if(path.size()>0){
+      new_path_bspline.push_back(path[0]);
+    }
+    for (int i = 0; i < bspline_curve->node_count(); ++i) {
+	    Eigen::VectorXf pose(3);
+        auto node = bspline_curve->node(i);
+        pose<< node.x, node.y, node.z; 
+        new_path_bspline.push_back(pose);
+	}
+    path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    rrtstart3d.save_path(new_path_bspline, path_ingg);
 
     return 0;
 }

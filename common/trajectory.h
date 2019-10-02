@@ -10,9 +10,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-//#include <gpu_voxels/GpuVoxels.h>
-//#include "../../include/colours.h"
-//#include "../../include/pcl_types.h"
+#include "../include/colours.h"
 #include <Eigen/Dense>
 #include <queue>
 

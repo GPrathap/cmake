@@ -2,16 +2,17 @@
 
 namespace kamaz {
 namespace hagen {
-    RRTStar::RRTStar(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
-                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int _max_samples
-                , int resolution, float pro, int _rewrite_count) : RRT(search_space, lengths_of_edges, start_pose, goal_pose, first_object_found_pose, _max_samples, resolution, pro){
-                    
+
+    RRTStar::RRTStar(RRTPlannerOptions options, int _rewrite_count,
+                 CommonUtils& common_utils, std::atomic_bool &is_allowed_to_run) 
+                : RRT(options, common_utils, is_allowed_to_run){
             rewrite_count = _rewrite_count;
             c_best = std::numeric_limits<float>::infinity();
     }
     
-    std::vector<std::tuple<float, Eigen::VectorXf>> RRTStar::get_nearby_vertices(int tree, Eigen::VectorXf x_init, Eigen::VectorXf x_new){
-        auto X_near = nearby(tree, x_new, current_rewrite_count(tree));
+    std::vector<std::tuple<float, Eigen::VectorXf>> RRTStar::get_nearby_vertices(int tree, Eigen::VectorXf x_init
+                                            , Eigen::VectorXf x_new){
+        auto X_near = nearby_obstacles(tree, x_new, current_rewrite_count(tree));
         std::vector<std::tuple<float, Eigen::VectorXf>> L_near;
         for(auto const x_near : X_near){
             auto new_s = segment_cost(x_near, x_new);
@@ -41,9 +42,9 @@ namespace hagen {
             auto curr_cost = path_cost(x_init, x_near, tree);
             auto tent_cost = path_cost(x_init, x_new, tree) + segment_cost(x_new, x_near);
             if((tent_cost < curr_cost) && (X.collision_free(x_near, x_new, r))){
-                std::cout<< "========RRTStar::rewrite======"<< std::endl;
-                std::cout<< x_near << std::endl;
-                std::cout<< x_new << std::endl;
+                // std::cout<< "========RRTStar::rewrite======"<< std::endl;
+                // std::cout<< x_near << std::endl;
+                // std::cout<< x_new << std::endl;
                 setEdge(x_near, x_new, tree);
             }
         }
@@ -73,6 +74,10 @@ namespace hagen {
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){
+                   if(!till_auto_mode){
+                        BOOST_LOG_TRIVIAL(warning) << FYEL("Since drone is moved into manuval mode, stop finding trajectory");
+                        return path;   
+                   }
                    auto new_and_next = new_and_near(0, q);
                    if(new_and_next.size()==0){
                        continue;

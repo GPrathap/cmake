@@ -5,19 +5,39 @@ namespace hagen {
 
     std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner(SearchSpace search_space
                 , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
-                , Eigen::VectorXf first_object_found_pose){
+                , Eigen::VectorXf start_position, float obstacle_fail_safe_distance
+                , float min_angle_allows_obs, CommonUtils& common_utils
+                , std::atomic_bool &is_allowed_to_run){
         
-        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose,
-        first_object_found_pose, _max_samples, resolution, pro, _rewrite_count);
+        rrt_planner_options.search_space = search_space;
+        rrt_planner_options.x_init = start_pose;
+        rrt_planner_options.x_goal = goal_pose;
+        rrt_planner_options.start_position = start_position;
+        rrt_planner_options.obstacle_fail_safe_distance = obstacle_fail_safe_distance;
+        rrt_planner_options.min_angle_allows_obs = min_angle_allows_obs;
+        auto rrtstar = RRTStar(rrt_planner_options, _rewrite_count
+                                            , common_utils, is_allowed_to_run);
         return rrtstar.rrt_star();
     }
 
     std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
-                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int index){
+                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
+                , Eigen::VectorXf start_position, float obstacle_fail_safe_distance
+                , float min_angle_allows_obs, CommonUtils& common_utils
+                , std::atomic_bool &is_allowed_to_run, int index){
         
-        auto rrtstar =  RRTStar(search_space, lengths_of_edges, start_pose, goal_pose, first_object_found_pose, _max_samples, resolution, pro, _rewrite_count);
+        rrt_planner_options.search_space = search_space;
+        rrt_planner_options.x_init = start_pose;
+        rrt_planner_options.x_goal = goal_pose;
+        rrt_planner_options.start_position = start_position;
+        rrt_planner_options.min_angle_allows_obs = min_angle_allows_obs;
+        rrt_planner_options.obstacle_fail_safe_distance = obstacle_fail_safe_distance;
+
+        auto rrtstar =  RRTStar(rrt_planner_options, _rewrite_count, common_utils
+                        , is_allowed_to_run);
+
         auto path = rrtstar.rrt_star();
-        std::string stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
+        stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(start_pose, goal_pose, stotage_location + "start_and_end_pose.npy");
@@ -25,12 +45,24 @@ namespace hagen {
         return path;
     }
 
+    void RRTStar3D::save_trajectory(std::vector<Eigen::VectorXf> trajectory_of_drone){
+       std::string file_name = stotage_location + "smoothed_rrt_path.npy";
+       std::vector<double> quad_status; 
+       for(auto sector: trajectory_of_drone){
+            // std::cout<< status.size() << std::endl;
+            quad_status.push_back(sector[0]);
+            quad_status.push_back(sector[1]);
+            quad_status.push_back(sector[2]);
+       }
+       cnpy::npy_save(file_name, &quad_status[0], {quad_status.size()}, "w");
+    }
+
     void RRTStar3D::rrt_init(std::vector<Eigen::VectorXf> _lengths_of_edges
-    , int max_samples, int _resolution, float _pro, int rewrite_count){
-        lengths_of_edges = _lengths_of_edges;
-        _max_samples = max_samples;
-        resolution = _resolution; 
-        pro = _pro;
+            , int max_samples, int _resolution, float _pro, int rewrite_count){
+        rrt_planner_options.lengths_of_edges = _lengths_of_edges;
+        rrt_planner_options.max_samples = max_samples;
+        rrt_planner_options.resolution = _resolution; 
+        rrt_planner_options.pro = _pro;
         _rewrite_count = rewrite_count;
     }
 
@@ -70,7 +102,7 @@ namespace hagen {
             }
             _objects.push_back(SearchSpace::Rect(x, y, z, width_x, width_y, width_z));
         }
-        std::cout<< "RRTStar3D::get_random_obstacles: Size of the obbjects "<< _objects.size() << std::endl;
+        // std::cout<< "RRTStar3D::get_random_obstacles: Size of the obbjects "<< _objects.size() << std::endl;
         return _objects;
     }
 
@@ -121,7 +153,7 @@ namespace hagen {
 
     void RRTStar3D::save_path(std::vector<Eigen::VectorXf> path, std::string file_name){
        std::vector<float> projected_path;
-       std::cout<< "RRTStar3D::save_path trajectory size: " << path.size()<< std::endl;
+        BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
        for(auto const& way_point : path){
            projected_path.push_back(way_point[0]);
            projected_path.push_back(way_point[1]);

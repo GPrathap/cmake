@@ -3,13 +3,9 @@
 namespace kamaz {
 namespace hagen {
     
-    RRT::RRT(SearchSpace search_space, std::vector<Eigen::VectorXf> lengths_of_edges
-                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose, Eigen::VectorXf first_object_found_pose, int _max_samples
-                , int resolution, float pro)
-        :RRTBase(search_space, lengths_of_edges, start_pose, goal_pose
-            , first_object_found_pose, _max_samples, resolution, pro){
-            
-        }
+    RRT::RRT(RRTPlannerOptions options, 
+                    CommonUtils& common_utils, std::atomic_bool &is_allowed_to_run)
+        :RRTBase(options, common_utils, is_allowed_to_run){ }
     
     std::vector<Eigen::VectorXf> RRT::rrt_search(){
         add_vertex(0, x_init);

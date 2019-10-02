@@ -25,7 +25,7 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/timer.hpp>
 #include <boost/foreach.hpp>
-#include "common_utils.h"
+#include "../utils/common_utils.h"
 #include <random>
 
 namespace kamaz {
@@ -76,9 +76,12 @@ namespace hagen {
                     std::uniform_int_distribution<int> _uniform_int;
                 };
 
-                void init_search_space(Eigen::VectorXf dimension_lengths, int number_of_rand_points);
+                void init_search_space(Eigen::VectorXf dimension_lengths
+                        , int number_of_rand_points, float cube_size, float avoidance_width
+                        , int number_of_tries_at_time, float voxel_side_length);
                 void generate_random_objects(int num_of_objects);
                 void insert_obstacles(std::vector<Rect> obstacles);
+                void insert_trajectory(std::vector<Rect> trajectory);
                 void search_all_obstacles();
                 bool obstacle_free(Rect search_rect);
                 bool obstacle_free(Eigen::VectorXf search_rect);
@@ -87,20 +90,38 @@ namespace hagen {
                 std::vector<float> linspace(float start_in, float end_in, float step_size);
                 bool collision_free(Eigen::VectorXf start, Eigen::VectorXf end, int r);
                 void insert_obstacle(Eigen::VectorXf index);
-                std::vector<Eigen::VectorXf> nearest(Eigen::VectorXf x, int max_neighbours);
+                std::vector<Eigen::VectorXf> nearest_obstacles(Eigen::VectorXf x
+                                    , int max_neighbours);
+                std::vector<Eigen::VectorXf> 
+                        nearest_point_on_trajectory(Eigen::VectorXf x
+                        , int max_neighbours);
+                
+                void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
+                , Eigen::VectorXf cent);
+
 
                 void generate_search_sapce(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
                         , Eigen::VectorXf cent, int npts);
                 std::vector<float> arange(float start, float stop, float step);
                 void save_samples(int index);
+                void save_search_space(int index);
+                void update_obstacles_map(std::vector<Rect> way_points);
+                std::vector<Eigen::VectorXf> nearest_obstacles_to_current_pose(Eigen::VectorXf x
+                                , int max_neighbours);
+                float get_free_space(Eigen::VectorXf pose, std::vector<Eigen::VectorXf>& obs_poses
+                                                    , int num_of_obs);
+                float get_free_space(Eigen::VectorXf pose);
+                
                 int dementions = 3;
                 Eigen::VectorXf dim_lengths;
                 std::vector<uint64_t> res;
-                Eigen::MatrixXf  random_points_tank;
-                int cube_length = 2;
+                std::shared_ptr<Eigen::MatrixXf> random_points_tank;
+                float cube_length = 2;
+                float avoidance_width = 1.5;
                 int number_of_rand_points;
                 Random_call* random_call;
                 bool use_whole_search_sapce = false;
+                float voxel_side_length = 0.1f;
 
                 struct GeometryRTreeSearchCallback
                 {
@@ -119,8 +140,13 @@ namespace hagen {
                 GeometryRTreeSearchCallback geometry_rtree_callback;
                 RTree bg_tree;
                 RTree current_trajectory;
+                RTree obs_tree;
                 std::vector<Rect> random_objects;
                 CommonUtils common_utils;
+                int number_of_max_attempts;
+                int number_of_points_in_random_tank;
+                bool is_random_tank_is_ready = false;
+                int obstacle_counter = 0;
         };
     }
 }

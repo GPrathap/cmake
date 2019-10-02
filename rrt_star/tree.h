@@ -40,13 +40,13 @@ namespace hagen {
                         // hash_combine(h, v[2]);
                         for(typename C::const_iterator it = c.begin(); it != c.end(); ++it){
                             // hash_combine<value_type>(seed, *it);
-                            // std::hash<value_type> hasher;
-                            // seed ^= hasher(*it) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                            std::hash<value_type> hasher;
+                            seed ^= hasher(*it) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
                         }
                         return seed;
                     }
                 };
-                
+
                 std::unordered_map<std::array<float, 3>
                                     , Eigen::VectorXf, Hasher<std::array<float, 3>>> E;
                 void init(SearchSpace search_space);
