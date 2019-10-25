@@ -598,49 +598,49 @@ int main(){
     depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
 
 
-    pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
-    pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_2.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
-    pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_3.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_2.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_3.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_1 (new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_1.pcd", *diksha_cloud_1) == -1) //* load the file
-    {
-      PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_1.pcd \n");
-      return (-1);
-    }
+  //   pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_1 (new pcl::PointCloud<pcl::PointXYZ>);
+  //   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_1.pcd", *diksha_cloud_1) == -1) //* load the file
+  //   {
+  //     PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_1.pcd \n");
+  //     return (-1);
+  //   }
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_2 (new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_2.pcd", *diksha_cloud_2) == -1) //* load the file
-    {
-      PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_2.pcd \n");
-      return (-1);
-    }
+  //   pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_2 (new pcl::PointCloud<pcl::PointXYZ>);
+  //   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_2.pcd", *diksha_cloud_2) == -1) //* load the file
+  //   {
+  //     PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_2.pcd \n");
+  //     return (-1);
+  //   }
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_3 (new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_3.pcd", *diksha_cloud_3) == -1) //* load the file
-    {
-      PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_3.pcd \n");
-      return (-1);
-    }
+  //   pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_3 (new pcl::PointCloud<pcl::PointXYZ>);
+  //   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_3.pcd", *diksha_cloud_3) == -1) //* load the file
+  //   {
+  //     PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_3.pcd \n");
+  //     return (-1);
+  //   }
 
     
-   kamaz::hagen::Cloud::Ptr cloud_ptr_current;
-   cloud_ptr_current.reset(new kamaz::hagen::Cloud());
-   cloud_ptr_current->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-   cloud_ptr_current->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-   cloud_ptr_current->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
+  //  kamaz::hagen::Cloud::Ptr cloud_ptr_current;
+  //  cloud_ptr_current.reset(new kamaz::hagen::Cloud());
+  //  cloud_ptr_current->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //  cloud_ptr_current->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //  cloud_ptr_current->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
 
-    *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_1);
-    *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_1);
-    *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_1);
+  //   *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_1);
+  //   *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_1);
+  //   *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_1);
 
-    *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_2);
-    *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_2);
-    *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_2);
+  //   *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_2);
+  //   *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_2);
+  //   *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_2);
 
-    *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_3);
-    *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_3);
-    *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_3);
+  //   *(cloud_ptr_current->point_cloud_ground_plane) += *(diksha_cloud_3);
+  //   *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_3);
+  //   *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_3);
     
 }
 
