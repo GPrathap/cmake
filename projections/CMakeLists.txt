@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(trajectory_estimator)
-
-
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} SUB_SOURCES)
-SET( utils ${SUB_SOURCES})
-ADD_LIBRARY ( utils  ${utils} )
+SET( projections ${SUB_SOURCES})
+
+ADD_LIBRARY ( projections  ${projections} )

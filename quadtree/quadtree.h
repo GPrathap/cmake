@@ -1,5 +1,5 @@
-#ifndef QUAD_TREE
-#define QUAD_TREE
+#ifndef GROUND_REMOVAL_QUAD_TREE_H_
+#define GROUND_REMOVAL_QUAD_TREE_H_
 
 #include <stack>
 #include <vector>
@@ -22,27 +22,41 @@
 #include <unsupported/Eigen/NumericalDiff>
 #include <Eigen/Eigenvalues> 
 #include <complex>
+#include <opencv2/opencv.hpp>
 
 namespace kamaz {
 namespace hagen {
+
+        struct Point
+        {
+            Point(float x, float y, float angle, float depth)
+            : x(x), y(y), angle(angle), depth(depth)
+            {}
+
+            Point(float x, float y)
+            : x(x), y(y)
+            {}
+
+            Point(){}
+
+            float x;
+            float y;
+            float angle;
+            float depth;
+
+            float operator-(Point a){
+                return (a.x-x) + (a.y-y);
+            }
+
+            Point operator+(Point a){
+                Point b(a.x+x, a.y+y);
+                return b;
+            }    
+        };
+
         class QuadTree {
             public:
                
-                struct Point
-                {
-                    Point(float x, float y, float angle, float depth)
-                    : x(x), y(y), angle(angle), depth(depth)
-                    {}
-                    float x;
-                    float y;
-                    float angle;
-                    float depth;
-
-                    float operator-(Point a){
-                        return (a.x-x) + (a.y-y);
-                    }
-                    
-                };
 
                 struct Rect
                 {
@@ -153,10 +167,12 @@ namespace hagen {
 
                 };
 
-                QuadTree(std::vector<Point> data, float width, float height, float angle_threshold);
+                QuadTree(std::vector<Point> data, float width, float height
+                    , float angle_threshold, const cv::Mat& angle_image
+                    , const cv::Mat& depth_image);
                 ~QuadTree() = default; 
                 void _split();
-                void in_order_traversal(Node root);
+                void in_order_traversal(Node root, cv::Mat& labelded_image);
                 
                 Rect rect;
                 int size;
@@ -164,6 +180,13 @@ namespace hagen {
                 float width;
                 float height;
                 float angle_threshold;
+                cv::Mat angle_image;
+                cv::Mat depth_image;
+                // const int y_direc[8] = {-1, -1, -1, 1, 1, 1, 0, 0};
+                // const int x_direc[8] = {-1, 0, 1, -1, 0, 1, -1, 1}; 
+
+                const int y_direc[4] = {-1, 1, -1, 1};
+                const int x_direc[4] = {-1, -1, 1, 1}; 
 
             private:
             

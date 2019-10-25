@@ -68,5 +68,95 @@ namespace hagen{
         }
         // std::cout << "points: " << container << std::endl;
     }
+
+//     /**
+//  * @brief smooth_nonuniform
+//  * Implements the method described in  https://dsp.stackexchange.com/questions/1676/savitzky-golay-smoothing-filter-for-not-equally-spaced-data
+//  * free to use at the user's risk
+//  * @param n the half size of the smoothing sample, e.g. n=2 for smoothing over 5 points
+//  * @param the degree of the local polynomial fit, e.g. deg=2 for a parabolic fit
+//  */
+// bool CommonUtils::smooth_nonuniform(int deg, int n, std::vector<double>const &x, std::vector<double> const &y, std::vector<double>&ysm)
+// {
+//     if(x.size()!=y.size()) return false; // don't even try
+//     if(x.size()<=2*n)      return false; // not enough data to start the smoothing process
+// //    if(2*n+1<=deg+1)       return false; // need at least deg+1 points to make the polynomial
+
+//     int m = 2*n+1; // the size of the filter window
+//     int o = deg+1; // the smoothing order
+
+//     std::vector<double> A(m*o);        
+//      memset(A.data(),   0, m*o*sizeof(double));
+//     std::vector<double> tA(m*o);        
+//     memset(tA.data(),  0, m*o*sizeof(double));
+//     std::vector<double> tAA(o*o);       
+//     memset(tAA.data(), 0, o*o*sizeof(double));
+
+//     std::vector<double> t(m);          
+//      memset(t.data(),   0, m*  sizeof(double));
+//     std::vector<double> c(o);           
+//     memset(c.data(),   0, o*  sizeof(double));
+
+//     // do not smooth start and end data
+//     int sz = y.size();
+//     ysm.resize(sz);           memset(ysm.data(), 0,sz*sizeof(double));
+//     for(uint i=0; i<n; i++)
+//     {
+//         ysm[i]=y[i];
+//         ysm[sz-i-1] = y[sz-i-1];
+//     }
+
+//     // start smoothing
+//     for(uint i=n; i<x.size()-n; i++)
+//     {
+//         // make A and tA
+//         for(int j=0; j<m; j++)
+//         {
+//             t[j] = x[i+j-n] - x[i];
+//         }
+//         for(int j=0; j<m; j++)
+//         {
+//             double r = 1.0;
+//             for(int k=0; k<o; k++)
+//             {
+//                 A[j*o+k] = r;
+//                 tA[k*m+j] = r;
+//                 r *= t[j];
+//             }
+//         }
+
+//         // make tA.A
+//         matMult(tA.data(), A.data(), tAA.data(), o, m, o);
+
+//         // make (tA.A)-¹ in place
+//         if (o==3)
+//         {
+//             if(!invert33(tAA.data())) return false;
+//         }
+//         else if(o==4)
+//         {
+//             if(!invert44(tAA.data())) return false;
+//         }
+//         else
+//         {
+//             if(!inverseMatrixLapack(o, tAA.data())) return false;
+//         }
+
+//         // make (tA.A)-¹.tA
+//         matMult(tAA.data(), tA.data(), A.data(), o, o, m); // re-uses memory allocated for matrix A
+
+//         // compute the polynomial's value at the center of the sample
+//         ysm[i] = 0.0;
+//         for(int j=0; j<m; j++)
+//         {
+//             ysm[i] += A[j]*y[i+j-n];
+//         }
+//     }
+
+//     std::cout << "      x       y       y_smoothed" << std::endl;
+//     for(uint i=0; i<x.size(); i++) std::cout << "   " << x[i] << "   " << y[i]  << "   "<< ysm[i] << std::endl;
+
+//     return true'
+//    }
 }
 }

@@ -4,6 +4,7 @@ namespace kamaz {
 namespace hagen{
 
 
+  //https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d/476311#476311
   void CommonUtils::get_roration_matrix(Eigen::Vector3f a
       , Eigen::Vector3f b, Eigen::Matrix3f& r){
         a = a/a.norm();
@@ -27,6 +28,8 @@ namespace hagen{
         path_position = path_position + start_point;
   }
 
+  // https://geus.wordpress.com/2011/09/15/how-to-represent-a-3d-normal-function-with-ros-rviz/
+  // https://ma.ttpitk.in/blog/?p=368&cpage=1
   void CommonUtils::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, 
             Eigen::VectorXf cent, Eigen::MatrixXf& container){
 
@@ -74,8 +77,163 @@ namespace hagen{
             Eigen::VectorXf bn = rotation_mat*fff.transpose();
             container.row(i) = bn.array() + cent.head(3).array();
         }
-        // std::cout << "points: " << container << std::endl;
+        std::cout << "points: " << container << std::endl;
     }
+
+    // dji_sdk::Gimbal CommonUtils::get_gimbal_msg(int mode, float roll, float pitch
+    //         , float yaw){
+    //     dji_sdk::Gimbal gimbal_angle;
+    //     gimbal_angle.header.stamp = ros::Time::now();
+    //     gimbal_angle.header.frame_id = world_frame_id;
+    //     gimbal_angle.mode     = mode;
+    //     gimbal_angle.roll     = roll;
+    //     gimbal_angle.pitch    = pitch;
+    //     gimbal_angle.yaw      = yaw;
+    //     return gimbal_angle;
+       
+    // // }
+    // // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path,
+    //     Eigen::MatrixXf covmat, int id_, std::string name_space){ 
+    //     visualization_msgs::Marker marker;
+    //     marker.header.frame_id = world_frame_id;
+    //     marker.header.stamp = ros::Time();
+    //     marker.ns = name_space;
+    //     marker.id = id_;
+    //     marker.type = visualization_msgs::Marker::SPHERE;
+    //     marker.action = visualization_msgs::Marker::ADD;
+    //     marker.pose.position.x = _point_on_path[0];
+    //     marker.pose.position.y = _point_on_path[1];
+    //     marker.pose.position.z = _point_on_path[2];
+    //     marker.pose.orientation.x = 0.1;
+    //     marker.pose.orientation.y = 0.1;
+    //     marker.pose.orientation.z = 0.1;
+    //     marker.pose.orientation.w = 0.2;
+    //     marker.scale.x = covmat(0,0)*voxel_side_length;
+    //     marker.scale.y = covmat(1,1)*voxel_side_length;
+    //     marker.scale.z = covmat(2,2)*voxel_side_length;
+    //     marker.color.a = 0.2;
+    //     marker.color.r = 0.0;
+    //     marker.color.g = 0.0;
+    //     marker.color.b = 0.8;
+    //     marker.lifetime = ros::Duration(); 
+    //     return marker;
+    // }
+
+    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path, ColorRGBA color_of_qupter, int id_, std::string name_space){ 
+    //     visualization_msgs::Marker marker;
+    //     marker.header.frame_id = world_frame_id;
+    //     marker.type = visualization_msgs::Marker::CUBE;
+    //     marker.action = visualization_msgs::Marker::ADD;
+    //     marker.scale.x = 0.5;
+    //     marker.scale.y = 0.5;
+    //     marker.scale.z = 0.5;
+    //     marker.pose.position.x = _point_on_path[0];
+    //     marker.pose.position.y = _point_on_path[1];
+    //     marker.pose.position.z = _point_on_path[2];
+    //     marker.color.r = color_of_qupter.r;
+    //     marker.color.g = color_of_qupter.g;
+    //     marker.color.b = color_of_qupter.b;
+    //     marker.color.a = 1.0;
+    //     marker.ns = name_space;
+    //     marker.id = id_;
+    //     marker.lifetime = ros::Duration();
+    //     return marker;
+    // }
+
+    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path,
+    //     Eigen::MatrixXf covmat, Eigen::Quaternion<double> q, int id_, std::string name_space){ 
+    //     visualization_msgs::Marker marker;
+    //     marker.header.frame_id = world_frame_id;
+    //     marker.header.stamp = ros::Time();
+    //     marker.ns = name_space;
+    //     marker.id = id_;
+    //     marker.type = visualization_msgs::Marker::SPHERE;
+    //     marker.action = visualization_msgs::Marker::ADD;
+    //     marker.pose.position.x = _point_on_path[0];
+    //     marker.pose.position.y = _point_on_path[1];
+    //     marker.pose.position.z = _point_on_path[2];
+    //     marker.pose.orientation.x = q.x();
+    //     marker.pose.orientation.y = q.y();
+    //     marker.pose.orientation.z = q.z();
+    //     marker.pose.orientation.w = q.w();
+    //     marker.scale.x = covmat(0,0)*voxel_side_length;
+    //     marker.scale.y = covmat(1,1)*voxel_side_length;
+    //     marker.scale.z = covmat(2,2)*voxel_side_length;
+    //     marker.color.a = 0.2;
+    //     marker.color.r = 0.0;
+    //     marker.color.g = 1.0;
+    //     marker.color.b = 0.0;
+    //     marker.lifetime = ros::Duration(); 
+    //     return marker;
+    // }
+
+    // geometry_msgs::PoseStamped CommonUtils::constructPoseStamped(Eigen::VectorXf path_position){
+    //     geometry_msgs::PoseStamped pose;
+    //     pose.header.stamp = ros::Time::now();
+    //     pose.header.frame_id = world_frame_id;
+    //     pose.pose.position.x = path_position[0];
+    //     pose.pose.position.y = path_position[1];
+    //     pose.pose.position.z = path_position[2];
+    //     return pose;
+    // }
+
+    // void CommonUtils::printStampedTf(tf::StampedTransform sTf){
+    //     tf::Transform tf;
+    //     BOOST_LOG_TRIVIAL(info) << "frame_id: "<<sTf.frame_id_;
+    //     BOOST_LOG_TRIVIAL(info) << "child_frame_id: "<<sTf.child_frame_id_; 
+    //     tf = get_tf_from_stamped_tf(sTf); //extract the tf from the stamped tf  
+    //     printTf(tf);       
+    // }
+
+    // void CommonUtils::printTf(tf::Transform tf) {
+    //     tf::Vector3 tfVec;
+    //     tf::Matrix3x3 tfR;
+    //     Eigen::Matrix3d e;
+        
+    //     tf::Quaternion quat;
+    //     tfVec = tf.getOrigin();
+    //     BOOST_LOG_TRIVIAL(info) << "Vector from reference frame to child frame: "<<tfVec.getX()<<","<<tfVec.getY()<<","<<tfVec.getZ();
+    //     tfR = tf.getBasis();
+    //     BOOST_LOG_TRIVIAL(info) << "Orientation of child frame w/rt reference frame: ";
+    //     tfVec = tfR.getRow(0);
+    //     BOOST_LOG_TRIVIAL(info) << tfVec.getX()<<","<<tfVec.getY()<<","<<tfVec.getZ();
+    //     tfVec = tfR.getRow(1);
+    //     BOOST_LOG_TRIVIAL(info) << tfVec.getX()<<","<<tfVec.getY()<<","<<tfVec.getZ();    
+    //     tfVec = tfR.getRow(2);
+    //     BOOST_LOG_TRIVIAL(info) << tfVec.getX()<<","<<tfVec.getY()<<","<<tfVec.getZ(); 
+    //     quat = tf.getRotation();
+    //     BOOST_LOG_TRIVIAL(info) << "quaternion: " <<quat.x()<<", "<<quat.y()<<", "
+    //     <<quat.z()<<", "<<quat.w();
+    //     tf::matrixTFToEigen(tfR, e);
+    //     std::cout << e << std::endl;   
+    // }
+
+    // tf::Transform CommonUtils::get_tf_from_stamped_tf(tf::StampedTransform sTf) {
+    //     tf::Transform tf(sTf.getBasis(), sTf.getOrigin());
+    //     return tf;
+    // }
+
+    // void CommonUtils::PrintMsgStats(const sensor_msgs::PointCloud2ConstPtr& msg) {
+    //     fprintf(stderr, "<<<<<<<<<<<<<<< new cloud >>>>>>>>>>>>>>>\n");
+    //     fprintf(stderr, "received msg   %d\n", msg->header.seq);
+    //     fprintf(stderr, "height:        %d\n", msg->height);
+    //     fprintf(stderr, "width:         %d\n", msg->width);
+    //     fprintf(stderr, "num of fields: %lu\n", msg->fields.size());
+    //     fprintf(stderr, "fields of each point:\n");
+    //     for (auto const& pointField : msg->fields) {
+    //         fprintf(stderr, "\tname:     %s\n", pointField.name.c_str());
+    //         fprintf(stderr, "\toffset:   %d\n", pointField.offset);
+    //         fprintf(stderr, "\tdatatype: %d\n", pointField.datatype);
+    //         fprintf(stderr, "\tcount:    %d\n", pointField.count);
+    //         fprintf(stderr, "\n");
+    //     }
+    //     fprintf(stderr, "is bigendian:  %s\n", msg->is_bigendian ? "true" : "false");
+    //     fprintf(stderr, "point step:    %d\n", msg->point_step);
+    //     fprintf(stderr, "row step:      %d\n", msg->row_step);
+    //     fprintf(stderr, "data size:     %lu\n", msg->data.size() * sizeof(msg->data));
+    //     fprintf(stderr, "is dense:      %s\n", msg->is_dense ? "true" : "false");
+    //     fprintf(stderr, "=========================================\n");
+    // }
 
 }
 }
