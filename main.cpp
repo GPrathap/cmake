@@ -34,6 +34,10 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
+#include "spline/polynomial.h"
+#include <Eigen/Core>
+#include <unsupported/Eigen/Splines>
+
 using kamaz::hagen::SearchSpace;
 // using kamaz::hagen::AStarImproved;
 // using kamaz::hagen::APFCalculator;
@@ -551,59 +555,116 @@ using kamaz::hagen::PointCloudPtr;
 //   return 0;
 // }
 
+typedef Eigen::Spline<double, 4> Spline4d;
+
+
 int main(){
-
-  std::string filename ="/tmp/fff_946685000909756.pcd"; 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
-  if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
-  {
-      PCL_ERROR("Could not read the file");
-      return 0;
-  }
-  std::cout<<"Loaded"<<cloud1->width * cloud1->height
-            <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
-            <<std::endl;
-
-  pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
-  Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
+    float time_ = 0;
+    Eigen::MatrixXd points(4, 3);
+    // for(int i = 0; col < 5; ++i) {
+      // The spline position will be milliseconds.
+      time_ = 1.0/3.0;
+      points(0, 0) =  time_ ;// Time in msecs
+      points(1, 0) = 2; // X
+      points(2, 0) = 3; // Y
+      points(3, 0) = 4; // Z
+      time_ = time_ + 1.0/3.0;
+      points(0, 1) =  time_ ;
+      points(1, 1) = 3; // X
+      points(2, 1) = 3; // Y
+      points(3, 1) = 4; // Z
+      time_ = time_ + 1.0/3.0;
+      points(0, 2) =  time_ ;
+      points(1, 2) = 4; // X
+      points(2, 2) = 3; // Y
+      points(3, 2) = 4; // Z
+      
+    // }
   
-  auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
-  kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
+  // The degree of the interpolating spline needs to be one less than the number of points
+  // that are fitted to the spline.
+  Spline4d spline = Eigen::SplineFitting<Spline4d>::Interpolate(points, 2);
+
+  time_ = 0;
+  int count = 0;
+  std::vector<float> edges; 
+  for(int g=1; g< 20; g++){
+    time_ += 1.0/(20*1.0);
+    Eigen::Vector4d values = spline(time_);
+    std::cout<< values << std::endl;
+    edges.push_back(values[0]);
+    edges.push_back(values[1]);
+    edges.push_back(values[2]);
+    edges.push_back(values[3]);
+    count += 1;
+  }
+  cnpy::npy_save("file_name.npy", &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)4},"w");
+
+
+ 
+    // Eigen::MatrixXd points(2, 3);
+    // points << 0, 15, 30,
+    //           0, 12, 17;
+
+    // typedef Eigen::Spline<double, 2> spline2d;
+    // spline2d s = Eigen::SplineFitting<spline2d>::Interpolate(points, 2);
+
+    // // I now have a spline called s.
+    // // I want to do something like:
+    // double x = 12.34;
+    // double new_y = s(x)[1];
+  
+  // std::string filename ="/tmp/fff_946685000909756.pcd"; 
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
+  // if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
+  // {
+  //     PCL_ERROR("Could not read the file");
+  //     return 0;
+  // }
+  // std::cout<<"Loaded"<<cloud1->width * cloud1->height
+  //           <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
+  //           <<std::endl;
+
+  // pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
+  // Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
+  
+  // auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
+  // kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
    
-   kamaz::hagen::DepthGroundRemover* depth_ground_remover;
-   std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
-   proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
-   depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
+  //  kamaz::hagen::DepthGroundRemover* depth_ground_remover;
+  //  std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
+  //  proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
+  //  depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
 
-    cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
+  //   cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
         
-    cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
-    try{
-      cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
-    }catch (const std::length_error& le) {
-      std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
-      return 0;
-    }
-    BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
-    depth_ground_remover->options.bin_size = 7;
-    depth_ground_remover->options.ground_remove_angle = 10;
-    depth_ground_remover->options.step = 5;
-    depth_ground_remover->options.depth_threshold = 1.0f;
-    depth_ground_remover->options.window_size = 7;
-    depth_ground_remover->options.kernel_size = 7;
-    // depth_ground_remover->options.depth_expiration_time = 1.0;
-    depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
+  //   cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
+  //   try{
+  //     cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
+  //   }catch (const std::length_error& le) {
+  //     std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
+  //     return 0;
+  //   }
+  //   BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
+  //   depth_ground_remover->options.bin_size = 7;
+  //   depth_ground_remover->options.ground_remove_angle = 10;
+  //   depth_ground_remover->options.step = 5;
+  //   depth_ground_remover->options.depth_threshold = 1.0f;
+  //   depth_ground_remover->options.window_size = 7;
+  //   depth_ground_remover->options.kernel_size = 7;
+  //   // depth_ground_remover->options.depth_expiration_time = 1.0;
+  //   depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
 
 
-  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
-  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_2.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
-  //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_3.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  // //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  // //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_2.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
+  // //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_3.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
 
-  //   pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_1 (new pcl::PointCloud<pcl::PointXYZ>);
-  //   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_1.pcd", *diksha_cloud_1) == -1) //* load the file
+  // //   pcl::PointCloud<pcl::PointXYZ>::Ptr diksha_cloud_1 (new pcl::PointCloud<pcl::PointXYZ>);
+  // //   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/tmp/diksha_cloud_1.pcd", *diksha_cloud_1) == -1) //* load the file
   //   {
   //     PCL_ERROR ("Couldn't read file /tmp/diksha_cloud_1.pcd \n");
   //     return (-1);
