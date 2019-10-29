@@ -555,50 +555,52 @@ using kamaz::hagen::PointCloudPtr;
 //   return 0;
 // }
 
-typedef Eigen::Spline<double, 4> Spline4d;
+typedef Eigen::Spline<float, 3> Spline3d;
 
 
 int main(){
-    float time_ = 0;
-    Eigen::MatrixXd points(4, 3);
-    // for(int i = 0; col < 5; ++i) {
-      // The spline position will be milliseconds.
-      time_ = 1.0/3.0;
-      points(0, 0) =  time_ ;// Time in msecs
-      points(1, 0) = 2; // X
-      points(2, 0) = 3; // Y
-      points(3, 0) = 4; // Z
-      time_ = time_ + 1.0/3.0;
-      points(0, 1) =  time_ ;
-      points(1, 1) = 3; // X
-      points(2, 1) = 3; // Y
-      points(3, 1) = 4; // Z
-      time_ = time_ + 1.0/3.0;
-      points(0, 2) =  time_ ;
-      points(1, 2) = 4; // X
-      points(2, 2) = 3; // Y
-      points(3, 2) = 4; // Z
+  std::vector<Eigen::VectorXf> waypoints;
+  Eigen::Vector3f po1(2,3,4);
+  Eigen::Vector3f po2(2,5,4);
+  Eigen::Vector3f po3(2,8,9);
+  Eigen::Vector3f po4(2,8,23);
+  waypoints.push_back(po1);
+  waypoints.push_back(po2);
+  waypoints.push_back(po3);
+  waypoints.push_back(po4);
       
-    // }
-  
   // The degree of the interpolating spline needs to be one less than the number of points
   // that are fitted to the spline.
-  Spline4d spline = Eigen::SplineFitting<Spline4d>::Interpolate(points, 2);
-
-  time_ = 0;
-  int count = 0;
-  std::vector<float> edges; 
-  for(int g=1; g< 20; g++){
-    time_ += 1.0/(20*1.0);
-    Eigen::Vector4d values = spline(time_);
-    std::cout<< values << std::endl;
-    edges.push_back(values[0]);
-    edges.push_back(values[1]);
-    edges.push_back(values[2]);
-    edges.push_back(values[3]);
-    count += 1;
+  Eigen::MatrixXf points(3, waypoints.size());
+  int row_index = 0;
+  for(auto const way_point : waypoints){
+      points.col(row_index) << way_point[0], way_point[1], way_point[2];
+      row_index++;
   }
-  cnpy::npy_save("file_name.npy", &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)4},"w");
+  Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
+  float time_ = 0;
+  for(int i=0; i<20; i++){
+      time_ += 1.0/(20*1.0);
+      Eigen::VectorXf values = spline(time_);
+      std::cout<< values << std::endl;
+  }
+  // std::cout << "Nodes: " << 20 << std::endl;
+// std::cout << "Total length: " << smoothed_trajectory.size() << std::endl;
+
+  // time_ = 0;
+  // int count = 0;
+  // std::vector<float> edges; 
+  // for(int g=0; g< 20; g++){
+  //   time_ += 1.0/(20*1.0);
+  //   Eigen::Vector3f values = spline(time_);
+  //   std::cout<< values << std::endl;
+  //   edges.push_back(values[0]);
+  //   edges.push_back(values[1]);
+  //   edges.push_back(values[2]);
+  //   // edges.push_back(values[3]);
+  //   count += 1;
+  // }
+  // cnpy::npy_save("file_name.npy", &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)3},"w");
 
 
  
