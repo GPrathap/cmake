@@ -3,13 +3,9 @@
 namespace kamaz {
 namespace hagen {
 
-    SingularSpectrumAnalysis::SingularSpectrumAnalysis(int window_size, int comps, bool normalized){
-        M = window_size;
-        num_of_principal_components = comps;
-        is_normalized = normalized;
-    }
-    void SingularSpectrumAnalysis::init(Eigen::VectorXf input_signal){
+    SingularSpectrumAnalysis::SingularSpectrumAnalysis(Eigen::VectorXf input_signal, int win_size){
         feature_vector = input_signal;
+        M = win_size;
         N = feature_vector.size(); 
         number_of_lags = N - M + 1;
     }
@@ -45,7 +41,7 @@ namespace hagen {
             std::tuple<float, Eigen::VectorXf> vec_and_val(eigen_values[i], eigen_vectors.row(i));
             eigen_vectors_and_values.push_back(vec_and_val);
         }
-        std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
+        __gnu_parallel::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
             [&](const std::tuple<float, Eigen::VectorXf>& a, const std::tuple<float, Eigen::VectorXf>& b) -> bool{ 
                 return std::get<0>(a) > std::get<0>(b); 
         });
@@ -59,6 +55,10 @@ namespace hagen {
 
     void SingularSpectrumAnalysis::calculate_principle_components(){
         int number_of_values = eigen_vectors_and_values.size();
+        if(number_of_values<1){
+            std::cout<< "No eiegen values has found" << std::endl;
+            return;
+        }
         eigen_vectors = Eigen::MatrixXf::Zero(number_of_values, std::get<1>(eigen_vectors_and_values[0]).size());
         for(int i=0; i<number_of_values; i++){
             eigen_vectors.row(i) = std::get<1>(eigen_vectors_and_values[i]);
@@ -70,6 +70,10 @@ namespace hagen {
     }
 
     void SingularSpectrumAnalysis::reconstruct_matrix(){
+        if(eigen_vectors_and_values.size()<1){
+            std::cout<< "No eiegen values has found" << std::endl;
+            return;
+        }
         reconstructed_matrix = Eigen::MatrixXf::Zero(N, M);
         for(auto m(0); m<M; m++){
             Eigen::MatrixXf buf = principal_components.col(m)*eigen_vectors.col(m).transpose();
@@ -85,7 +89,10 @@ namespace hagen {
     }
 
     Eigen::VectorXf SingularSpectrumAnalysis::get_reconstructed_signal(int number_comps){
-        // Eigen::MatrixXf gg = reconstructed_matrix.transpose();
+        Eigen::MatrixXf gg = reconstructed_matrix.transpose();
+        if(number_comps> reconstructed_matrix.cols()){
+            number_comps = reconstructed_matrix.cols();
+        }
         Eigen::VectorXf reconstructed_final_signal
          = reconstructed_matrix.block(0, 0, reconstructed_matrix.rows(), number_comps).rowwise().sum();
         return reconstructed_final_signal;
@@ -145,7 +152,9 @@ namespace hagen {
             std::cout<<" Max_lags should be positive and less than given feature vector" << std::endl;
         }
         auto points =  2*max_lags+1;
-        return c.segment(Nx-1-max_lags, points);
+        // std::cout<< c.transpose() << std::endl;
+        Eigen::VectorXf res = c.segment(Nx-1-max_lags, points);
+        return res;
     }
 
     Eigen::VectorXf SingularSpectrumAnalysis::conv(Eigen::VectorXf f, Eigen::VectorXf g) {
@@ -163,16 +172,19 @@ namespace hagen {
         return out; 
     }
 
-    Eigen::VectorXf SingularSpectrumAnalysis::execute(){
+    Eigen::VectorXf SingularSpectrumAnalysis::execute(int number_of_components, bool is_normalized){
         if(is_normalized){
             normalize();
         }
         calculate_trajectory_matrix();
         calculate_covariance_matrix_toeplitz();
         calculate_eigne_vectors_and_values();
+        if(eigen_vectors_and_values.size()<1){
+            return feature_vector;
+        }
         calculate_principle_components();
         reconstruct_matrix();
-        return get_reconstructed_signal(num_of_principal_components);
+        return get_reconstructed_signal(number_of_components);
     }
 
     void SingularSpectrumAnalysis::save_data(int i){
@@ -190,8 +202,8 @@ namespace hagen {
         for(auto i(0); i<size_of; i++){
             feature_vector_np.push_back(vec[i]);
         }
-        std::string location = "/dataset/images/result/11/" + name + ".npy";
-        cnpy::npy_save(location ,&feature_vector_np[0],{1, size_of, 1},"w");
+        std::string location = "/dataset/result/" + name + ".npy";
+        cnpy::npy_save(location ,&feature_vector_np[0],{(unsigned int)1, (unsigned int)size_of, (unsigned int)1},"w");
     }
 
     void SingularSpectrumAnalysis::save_mat(Eigen::MatrixXf matrix, std::string name){
@@ -203,8 +215,8 @@ namespace hagen {
                 matrix_np.push_back(matrix(i,j));
             }
         }
-        std::string location = "/dataset/images/result/11/" + name + ".npy";
-        cnpy::npy_save(location ,&matrix_np[0],{1, rows, cols},"w");
+        std::string location = "/dataset/result/" + name + ".npy";
+        cnpy::npy_save(location ,&matrix_np[0],{(unsigned int)1, (unsigned int)rows, (unsigned int)cols},"w");
     }
     
 }

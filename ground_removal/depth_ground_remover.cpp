@@ -53,19 +53,19 @@ void DepthGroundRemover::RepairDepth(cv::Mat& inpainted_depth, int step,
       }
     }
 
-    // filtered_map = cv::Mat::zeros(inpainted_depth.size(), cv::DataType<float>::type);
-    // LocalMaximaFilter local_maximum_filter;
-    // local_maximum_filter.persistence(inpainted_depth, filtered_map, local_maxima_poses);
+    filtered_map = cv::Mat::zeros(inpainted_depth.size(), cv::DataType<float>::type);
+    LocalMaximaFilter local_maximum_filter;
+    local_maximum_filter.persistence(inpainted_depth, filtered_map, local_maxima_poses);
     // // local_maximum_filter.persistence_and_save_data(inpainted_depth, filtered_map, index_);
     // // int folder_index = 9;
     // // std::string folder = "/dataset/images/result/";
     // // folder = folder + std::to_string(folder_index) + "/";
     // // cv::imwrite(folder + std::to_string(index_) + "_processed.jpg", inpainted_depth);
-    // cv::resize(filtered_map, filtered_map, cv::Size(), 1.0, 1.0);
-    // cv::resize(inpainted_depth, inpainted_depth, cv::Size(),1.0, 1.0);
-    // cv::Mat prossed_image = (filtered_map + inpainted_depth)/2;
-    // depth_img_pointer = prossed_image;
-    depth_img_pointer = inpainted_depth;
+    cv::resize(filtered_map, filtered_map, cv::Size(), 1.0, 1.0);
+    cv::resize(inpainted_depth, inpainted_depth, cv::Size(),1.0, 1.0);
+    cv::Mat prossed_image = (filtered_map + inpainted_depth)/2;
+    depth_img_pointer = prossed_image;
+    // depth_img_pointer = inpainted_depth;
     // DepthCatcher depth_current = {depth_img_pointer, current_cloud_time_stamp};
     // while(depth_catcher.size()>0){
     //   ros::Duration time_diff = current_cloud_time_stamp - depth_catcher.front().time_stamp;
@@ -135,8 +135,8 @@ void DepthGroundRemover::ApplySSASmoothing(int window_size, int bin_size, bool i
           input_signal[it] = index_val;
       }
       if(sum > 0){
-        // kamaz::hagen::SingularSpectrumAnalysis ssa(input_signal, window_size);
-        // smoothed_image.col(x.first) = ssa.execute(bin_size, is_normalized); 
+        kamaz::hagen::SingularSpectrumAnalysis ssa(input_signal, window_size);
+        smoothed_image.col(x.first) = ssa.execute(bin_size, is_normalized); 
       }
       // ssa.save_data(i);
       // std::cout<< f.transpose() << std::endl;

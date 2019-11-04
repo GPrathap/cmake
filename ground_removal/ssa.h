@@ -1,5 +1,5 @@
-#ifndef SSA_H
-#define SSA_H
+#ifndef GROUND_REMOVAL_SSA_H_
+#define GROUND_REMOVAL_SSA_H_
 
 #include <stack>
 #include <vector>
@@ -25,17 +25,17 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
 
+#include <parallel/algorithm>
+
 namespace kamaz {
 namespace hagen {
         class SingularSpectrumAnalysis {
             public:
-                SingularSpectrumAnalysis(int window_size, int principal_components, bool normalized);
+                SingularSpectrumAnalysis(Eigen::VectorXf input_signal, int win_size);
                 ~SingularSpectrumAnalysis() = default; 
-                Eigen::VectorXf execute();
-                void init(Eigen::VectorXf input_signal);
+                Eigen::VectorXf execute(int number_of_components, bool is_normalized);
                 void save_data(int i);
                 void save_vec(Eigen::VectorXf vec, std::string name);
-                // Eigen::MatrixXf get_smoothed_image(cv::Mat& image);
 
             private:
                 void normalize();
@@ -60,8 +60,6 @@ namespace hagen {
                 int M;
                 int N;
                 int number_of_lags;
-                int num_of_principal_components;
-                bool is_normalized;
             };
     }
 }

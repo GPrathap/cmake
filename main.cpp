@@ -1,5 +1,3 @@
-#include "ssa/ssa.h"
-
 #include "./local_maxima/local_maxima_filter.h"
 // #include "./local_maxima/bilateral_filter.h"
 
@@ -18,7 +16,7 @@
 #include "./spline/BSpline.h"
 // #include "./spline/CatmullRom.h"
 #include "./common/search_space.h"
-#include "../ssa/ssa.h"
+#include "../ground_removal/ssa.h"
 #include "quadtree/quadtree.h"
 #include <random>
 #include "trajectory_planning/trajectory_planning.h"
@@ -559,31 +557,31 @@ typedef Eigen::Spline<float, 3> Spline3d;
 
 
 int main(){
-  std::vector<Eigen::VectorXf> waypoints;
-  Eigen::Vector3f po1(2,3,4);
-  Eigen::Vector3f po2(2,5,4);
-  Eigen::Vector3f po3(2,8,9);
-  Eigen::Vector3f po4(2,8,23);
-  waypoints.push_back(po1);
-  waypoints.push_back(po2);
-  waypoints.push_back(po3);
-  waypoints.push_back(po4);
+  // std::vector<Eigen::VectorXf> waypoints;
+  // Eigen::Vector3f po1(2,3,4);
+  // Eigen::Vector3f po2(2,5,4);
+  // Eigen::Vector3f po3(2,8,9);
+  // Eigen::Vector3f po4(2,8,23);
+  // waypoints.push_back(po1);
+  // waypoints.push_back(po2);
+  // waypoints.push_back(po3);
+  // waypoints.push_back(po4);
       
-  // The degree of the interpolating spline needs to be one less than the number of points
-  // that are fitted to the spline.
-  Eigen::MatrixXf points(3, waypoints.size());
-  int row_index = 0;
-  for(auto const way_point : waypoints){
-      points.col(row_index) << way_point[0], way_point[1], way_point[2];
-      row_index++;
-  }
-  Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
-  float time_ = 0;
-  for(int i=0; i<20; i++){
-      time_ += 1.0/(20*1.0);
-      Eigen::VectorXf values = spline(time_);
-      std::cout<< values << std::endl;
-  }
+  // // The degree of the interpolating spline needs to be one less than the number of points
+  // // that are fitted to the spline.
+  // Eigen::MatrixXf points(3, waypoints.size());
+  // int row_index = 0;
+  // for(auto const way_point : waypoints){
+  //     points.col(row_index) << way_point[0], way_point[1], way_point[2];
+  //     row_index++;
+  // }
+  // Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
+  // float time_ = 0;
+  // for(int i=0; i<20; i++){
+  //     time_ += 1.0/(20*1.0);
+  //     Eigen::VectorXf values = spline(time_);
+  //     std::cout<< values << std::endl;
+  // }
   // std::cout << "Nodes: " << 20 << std::endl;
 // std::cout << "Total length: " << smoothed_trajectory.size() << std::endl;
 
@@ -602,63 +600,83 @@ int main(){
   // }
   // cnpy::npy_save("file_name.npy", &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)3},"w");
 
+  // void TrajectorySmoother::get_smoothed_trajectory(std::vector<Eigen::VectorXf> waypoints
+  //                                           , int _number_of_steps
+  //                                           , std::vector<Eigen::VectorXf>& smoothed_trajectory){
+                
+  //               if(waypoints.size()<2){
+  //                   smoothed_trajectory = waypoints;
+  //                   return;
+  //               }
+  //               Eigen::MatrixXf points(3, waypoints.size());
+  //               // points.col(0) << waypoints[0][0], waypoints[0][1], waypoints[0][2];
 
- 
-    // Eigen::MatrixXd points(2, 3);
-    // points << 0, 15, 30,
-    //           0, 12, 17;
+  //               int row_index = 0;
+  //               for(auto const way_point : waypoints){
+  //                   points.col(row_index) << way_point[0], way_point[1], way_point[2];
+  //                   std::cout<< "inpuse :-->" << way_point << std::endl;
+  //                   row_index++;
+  //               }
+  //               // points.col(row_index) << waypoints.back()[0], waypoints.back()[1], waypoints.back()[2];
 
-    // typedef Eigen::Spline<double, 2> spline2d;
-    // spline2d s = Eigen::SplineFitting<spline2d>::Interpolate(points, 2);
+  //               Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
 
-    // // I now have a spline called s.
-    // // I want to do something like:
-    // double x = 12.34;
-    // double new_y = s(x)[1];
+  //               // _curve->add_way_point(Vector(waypoints.back()[0], waypoints.back()[1], waypoints.back()[2]));
+  //               float time_ = 0;
+  //               for(int i=0; i<_number_of_steps; i++){
+  //                   time_ += 1.0/(_number_of_steps*1.0);
+  //                   Eigen::VectorXf values = spline(time_);
+  //                   std::cout<< values << std::endl;
+  //                   smoothed_trajectory.push_back(values);
+  //               }
+  //               std::cout << "Nodes: " << _number_of_steps << std::endl;
+	//             std::cout << "Total length: " << smoothed_trajectory.size() << std::endl;
+  //           }
+
   
-  // std::string filename ="/tmp/fff_946685000909756.pcd"; 
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
-  // if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
-  // {
-  //     PCL_ERROR("Could not read the file");
-  //     return 0;
-  // }
-  // std::cout<<"Loaded"<<cloud1->width * cloud1->height
-  //           <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
-  //           <<std::endl;
+  std::string filename ="/tmp/fff_946685000909756.pcd"; 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
+  if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
+  {
+      PCL_ERROR("Could not read the file");
+      return 0;
+  }
+  std::cout<<"Loaded"<<cloud1->width * cloud1->height
+            <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
+            <<std::endl;
 
-  // pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
-  // Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
+  pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
+  Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
   
-  // auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
-  // kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
+  auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
+  kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
    
-  //  kamaz::hagen::DepthGroundRemover* depth_ground_remover;
-  //  std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
-  //  proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
-  //  depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
+   kamaz::hagen::DepthGroundRemover* depth_ground_remover;
+   std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
+   proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
+   depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
 
-  //   cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
+    cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
         
-  //   cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-  //   cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-  //   cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
-  //   cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
-  //   try{
-  //     cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
-  //   }catch (const std::length_error& le) {
-  //     std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
-  //     return 0;
-  //   }
-  //   BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
-  //   depth_ground_remover->options.bin_size = 7;
-  //   depth_ground_remover->options.ground_remove_angle = 10;
-  //   depth_ground_remover->options.step = 5;
-  //   depth_ground_remover->options.depth_threshold = 1.0f;
-  //   depth_ground_remover->options.window_size = 7;
-  //   depth_ground_remover->options.kernel_size = 7;
-  //   // depth_ground_remover->options.depth_expiration_time = 1.0;
-  //   depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
+    cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+    cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+    cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
+    cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
+    try{
+      cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
+    }catch (const std::length_error& le) {
+      std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
+      return 0;
+    }
+    BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
+    depth_ground_remover->options.bin_size = 7;
+    depth_ground_remover->options.ground_remove_angle = 10;
+    depth_ground_remover->options.step = 5;
+    depth_ground_remover->options.depth_threshold = 1.0f;
+    depth_ground_remover->options.window_size = 7;
+    depth_ground_remover->options.kernel_size = 7;
+    // depth_ground_remover->options.depth_expiration_time = 1.0;
+    depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
 
 
   // //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));

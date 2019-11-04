@@ -24,7 +24,7 @@ include_directories(${BOOST_INCLUDE_DIRS})
 
 
 message( STATUS "Include sub-directories into build process:" )
-foreach( DIR rrt_star a_star apf common spline utils ssa ground_removal projections local_maxima quadtree trajectory_planning)
+foreach( DIR rrt_star a_star apf common spline utils ground_removal projections local_maxima quadtree trajectory_planning)
     message( STATUS "  - include/" ${DIR} )
     include_directories( "${DIR}" )
     link_directories("${DIR}")
@@ -38,7 +38,7 @@ link_directories(/usr/local/lib/)
 
 set(TRACKING_LIB ${TRACKING_LIB} ${Boost_LIBRARIES})
 set(TRACKING_LIB ${TRACKING_ESTIMATION_LIB} ${PCL_LIBRARIES})
-set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf utils common spline projections ground_removal cnpy z ssa local_maxima quadtree trajectory_planning)
+set(TRACKING_LIB ${TRACKING_LIB} rrt_star a_star apf utils common spline projections ground_removal cnpy z  local_maxima quadtree trajectory_planning)
 set(TRACKING_LIB ${TRACKING_LIB} ${OpenCV_LIBS})
 
 add_executable(${PROJECT_NAME}_node main.cpp)

@@ -22,7 +22,7 @@
 #include "../projections/projection_params.h"
 #include "../utils/radians.h"
 #include "../utils/cloud.h"
-#include "../ssa/ssa.h"
+#include "ssa.h"
 #include "../quadtree/quadtree.h"
 #include <opencv2/highgui/highgui.hpp>
 #include "local_maxima_filter.h"
@@ -72,7 +72,7 @@ public:
         // cv::imwrite(folder + std::to_string(counter) + "_depth_img.jpg", cloud_ptr_current_ptr->projection_ptr()->depth_image());
         CreateAngleImage();
         // cv::imwrite(folder + std::to_string(counter) + "_angle_img.jpg", angle_img_pointer);
-        // ApplySSASmoothing(options.window_size, options.bin_size, false);
+        ApplySSASmoothing(options.window_size, options.bin_size, false);
         // cv::imwrite(folder + std::to_string(counter) + "_angle_smoothed_img.jpg", angle_img_pointer);
         ZeroOutGroundBFS<T>(options.ground_remove_angle, cloud_ptr_current_ptr, options.kernel_size);
   }
