@@ -556,7 +556,7 @@ using kamaz::hagen::PointCloudPtr;
 typedef Eigen::Spline<float, 3> Spline3d;
 
 
-int main(){
+// int main(){
   // std::vector<Eigen::VectorXf> waypoints;
   // Eigen::Vector3f po1(2,3,4);
   // Eigen::Vector3f po2(2,5,4);
@@ -634,49 +634,49 @@ int main(){
   //           }
 
   
-  std::string filename ="/tmp/fff_946685000909756.pcd"; 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
-  if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
-  {
-      PCL_ERROR("Could not read the file");
-      return 0;
-  }
-  std::cout<<"Loaded"<<cloud1->width * cloud1->height
-            <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
-            <<std::endl;
+  // std::string filename ="/tmp/fff_946685000909756.pcd"; 
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
+  // if(pcl::io::loadPCDFile<pcl::PointXYZ> (filename, *cloud1) == -1) // load point cloud file
+  // {
+  //     PCL_ERROR("Could not read the file");
+  //     return 0;
+  // }
+  // std::cout<<"Loaded"<<cloud1->width * cloud1->height
+  //           <<"data points from /tmp/fff_946685000909756.pcd with the following fields: "
+  //           <<std::endl;
 
-  pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
-  Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
+  // pcl::PointCloud<pcl::PointXYZ> pc = *cloud1;
+  // Eigen::Matrix4f sensor_to_world_rotation = Eigen::Matrix4f::Identity();
   
-  auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
-  kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
+  // auto in_cloud = boost::make_shared<pcl::PointCloud<PCLPoint>>(pc);
+  // kamaz::hagen::Cloud::Ptr cloud_ptr_current_ptr;
    
-   kamaz::hagen::DepthGroundRemover* depth_ground_remover;
-   std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
-   proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
-   depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
+  //  kamaz::hagen::DepthGroundRemover* depth_ground_remover;
+  //  std::unique_ptr<kamaz::hagen::ProjectionParams> proj_params_ptr;
+  //  proj_params_ptr = kamaz::hagen::ProjectionParams::VLP_16(10);
+  //  depth_ground_remover = new kamaz::hagen::DepthGroundRemover(*proj_params_ptr);
 
-    cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
+  //   cloud_ptr_current_ptr.reset(new kamaz::hagen::Cloud());
         
-    cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
-    cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
-    try{
-      cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
-    }catch (const std::length_error& le) {
-      std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
-      return 0;
-    }
-    BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
-    depth_ground_remover->options.bin_size = 7;
-    depth_ground_remover->options.ground_remove_angle = 10;
-    depth_ground_remover->options.step = 5;
-    depth_ground_remover->options.depth_threshold = 1.0f;
-    depth_ground_remover->options.window_size = 7;
-    depth_ground_remover->options.kernel_size = 7;
-    // depth_ground_remover->options.depth_expiration_time = 1.0;
-    depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
+  //   cloud_ptr_current_ptr->point_cloud_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_non_ground_plane.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_ptr.reset(new pcl::PointCloud<PCLPoint>());
+  //   cloud_ptr_current_ptr->point_cloud_ptr = in_cloud;
+  //   try{
+  //     cloud_ptr_current_ptr->InitProjection(*proj_params_ptr);
+  //   }catch (const std::length_error& le) {
+  //     std::cerr << FBLU("Error:point cloud is empty...") << le.what() << std::endl;;
+  //     return 0;
+  //   }
+  //   BOOST_LOG_TRIVIAL(info) << FCYN("Number of points in the cloud") << cloud_ptr_current_ptr->point_cloud_ptr->points.size();
+  //   depth_ground_remover->options.bin_size = 7;
+  //   depth_ground_remover->options.ground_remove_angle = 10;
+  //   depth_ground_remover->options.step = 5;
+  //   depth_ground_remover->options.depth_threshold = 1.0f;
+  //   depth_ground_remover->options.window_size = 7;
+  //   depth_ground_remover->options.kernel_size = 7;
+  //   // depth_ground_remover->options.depth_expiration_time = 1.0;
+  //   depth_ground_remover->execute<kamaz::hagen::Cloud::Ptr>(cloud_ptr_current_ptr, 0);
 
 
   // //   pcl::io::savePCDFileASCII ("/tmp/diksha_cloud_1.pcd", *(cloud_ptr_current_ptr->point_cloud_ptr));
@@ -723,142 +723,141 @@ int main(){
   //   *(cloud_ptr_current->point_cloud_non_ground_plane) += *(diksha_cloud_3);
   //   *(cloud_ptr_current->point_cloud_ptr) += *(diksha_cloud_3);
     
-}
-
-// int main()
-// {
-//     kamaz::hagen::RRTStar3D rrtstart3d;
-//     kamaz::hagen::CommonUtils common_utils;
-//     Eigen::VectorXf x_dimentions(3);
-//     x_dimentions << 100, 100, 100;
-//     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
-//     // auto obstacles = rrtstart3d.get_obstacles();
-//     auto obstacles = rrtstart3d.get_random_obstacles(70, x_dimentions);
-//     // std::cout<< "-----1" << std::endl;
-//     Eigen::VectorXf x_init(3);
-//     x_init << 0, 0, 0 ;
-//     Eigen::VectorXf x_goal(3);
-//     x_goal << 89, 99, 99;
-
-//     std::atomic_bool planner_status;
-//     planner_status = ATOMIC_VAR_INIT(true);
-//     std::vector<Eigen::VectorXf> Q;
-//     Eigen::VectorXf dim_in(2);
-//     dim_in << 8, 4;
-//     Q.push_back(dim_in);
-//     // std::cout<< "-----1" << std::endl;
-//     int r = 1;
-//     int max_samples = 1000;
-//     int rewrite_count = 32;
-//     float proc = 0.1;
-//     float obstacle_width = 0.5;
-//     kamaz::hagen::SearchSpace X;
-//     X.init_search_space(map_dim, max_samples, obstacle_width, 0.0, 200, 0.1);
-//     // X.insert_obstacles(obstacles);
-//     X.update_obstacles_map(obstacles);
-//     int save_data_index = 0;
-//     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-
-//     std::vector<SearchSpace::Rect> current_desired_trajectory;
-   
-//     current_desired_trajectory.push_back(SearchSpace::Rect(0
-//                                ,0, 0
-//                                , obstacle_width
-//                                , obstacle_width
-//                                , obstacle_width));
-//     current_desired_trajectory.push_back(SearchSpace::Rect(25
-//                                ,25, 25
-//                                , 25+obstacle_width
-//                                , 25+obstacle_width
-//                                , 25+obstacle_width));
-//     current_desired_trajectory.push_back(SearchSpace::Rect(89
-//                                ,99, 99
-//                                , 89+obstacle_width
-//                                , 99+obstacle_width
-//                                , 99+obstacle_width));
-
-//     Eigen::VectorXf center = (x_goal - x_init);
-//     Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
-//     covmat(0,0) = 40;
-//     covmat(1,1) = 40;
-//     covmat(2,2) = 40;
-    
-//     center = (x_goal + x_init)/2;
-//     // Eigen::Vector3f a(1,0,0);
-//     // Eigen::Vector3f b = x_goal-x_init;
-//     // Eigen::Matrix3f rotation_matrix;
-//     // common_utils.get_roration_matrix(a, b, rotation_matrix);
-//     // Eigen::Quaternion<double> q;
-//     // q = rotation_matrix.cast <double>();
-
-//     Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
-//     int ndims = covmat.rows();       
-//     Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(max_samples, ndims);
-//     common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
-//             , random_points);
-
-//     std::cout<< random_points << std::endl;
-
-//     X.use_whole_search_sapce = true;
-//     X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
-
-//     auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
-//     std::ref(planner_status), save_data_index);
-//     Curve* bspline_curve = new BSpline();
-// 	bspline_curve->set_steps(100);
-//     bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-//     for(auto const way_point : path){
-//       std::cout<<"main: "<< way_point.transpose() << std::endl;
-//       bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-//     }
-//     bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-//     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-// 	std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-//     std::vector<Eigen::VectorXf> new_path_bspline;
-//     if(path.size()>0){
-//       new_path_bspline.push_back(path[0]);
-//     }
-//     for (int i = 0; i < bspline_curve->node_count(); ++i) {
-// 	    Eigen::VectorXf pose(3);
-//         auto node = bspline_curve->node(i);
-//         pose<< node.x, node.y, node.z; 
-//         new_path_bspline.push_back(pose);
-// 	}
-//     std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-//     rrtstart3d.save_path(new_path_bspline, path_ingg);
-
-    
-//     save_data_index++;
-//     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-//     X.use_whole_search_sapce = false;
-//     X.insert_trajectory(current_desired_trajectory);
-//     path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 2.0, 3.0, common_utils, 
-//     std::ref(planner_status), save_data_index);
-//     bspline_curve = new BSpline();
-// 	  bspline_curve->set_steps(100);
-//     bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-//     for(auto const way_point : path){
-//       std::cout<<"main: "<< way_point.transpose() << std::endl;
-//       bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-//     }
-//     bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-//     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-// 	std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-//     new_path_bspline.clear();
-//     if(path.size()>0){
-//       new_path_bspline.push_back(path[0]);
-//     }
-//     for (int i = 0; i < bspline_curve->node_count(); ++i) {
-// 	    Eigen::VectorXf pose(3);
-//         auto node = bspline_curve->node(i);
-//         pose<< node.x, node.y, node.z; 
-//         new_path_bspline.push_back(pose);
-// 	}
-//     path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-//     rrtstart3d.save_path(new_path_bspline, path_ingg);
-
-//     return 0;
 // }
+
+int main()
+{
+    kamaz::hagen::RRTStar3D rrtstart3d;
+    kamaz::hagen::CommonUtils common_utils;
+    Eigen::VectorXf x_dimentions(3);
+    x_dimentions << 100, 100, 100;
+    auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
+    // auto obstacles = rrtstart3d.get_obstacles();
+    auto obstacles = rrtstart3d.get_random_obstacles(20, x_dimentions);
+    // std::cout<< "-----1" << std::endl;
+    Eigen::VectorXf x_init(3);
+    x_init << 0, 0, 0 ;
+    Eigen::VectorXf x_goal(3);
+    x_goal << 89, 99, 99;
+
+    std::atomic_bool planner_status;
+    planner_status = ATOMIC_VAR_INIT(true);
+    std::vector<Eigen::VectorXf> Q;
+    Eigen::VectorXf dim_in(2);
+    dim_in << 8, 4;
+    Q.push_back(dim_in);
+    // std::cout<< "-----1" << std::endl;
+    int r = 1;
+    int max_samples = 1000;
+    int rewrite_count = 32;
+    float proc = 0.1;
+    float obstacle_width = 0.5;
+    kamaz::hagen::SearchSpace X;
+    X.init_search_space(map_dim, max_samples, obstacle_width, 0.0, 200, 0.1);
+    // X.insert_obstacles(obstacles);
+    X.update_obstacles_map(obstacles);
+    int save_data_index = 0;
+    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+
+    std::vector<SearchSpace::Rect> current_desired_trajectory;
+   
+    current_desired_trajectory.push_back(SearchSpace::Rect(0
+                               ,0, 0
+                               , obstacle_width
+                               , obstacle_width
+                               , obstacle_width));
+    current_desired_trajectory.push_back(SearchSpace::Rect(25
+                               ,25, 25
+                               , 25+obstacle_width
+                               , 25+obstacle_width
+                               , 25+obstacle_width));
+    current_desired_trajectory.push_back(SearchSpace::Rect(89
+                               ,99, 99
+                               , 89+obstacle_width
+                               , 99+obstacle_width
+                               , 99+obstacle_width));
+
+    Eigen::VectorXf center = (x_goal - x_init);
+    Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
+    covmat(0,0) = 40;
+    covmat(1,1) = 40;
+    covmat(2,2) = 40;
+    
+    center = (x_goal + x_init)/2;
+    Eigen::Vector3f a(1,0,0);
+    Eigen::Vector3f b = x_goal-x_init;
+    // Eigen::Matrix3f rotation_matrix;
+    // common_utils.get_roration_matrix(a, b, rotation_matrix);
+    // Eigen::Quaternion<double> q;
+    // q = rotation_matrix.cast <double>();
+
+    Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
+    int ndims = covmat.rows();       
+    Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(max_samples, ndims);
+    common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
+            , random_points);
+
+    std::cout<< random_points << std::endl;
+
+    X.use_whole_search_sapce = true;
+    X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
+
+    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
+    std::ref(planner_status), save_data_index);
+    Curve* bspline_curve = new BSpline();
+    bspline_curve->set_steps(100);
+    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+    for(auto const way_point : path){
+      std::cout<<"main: "<< way_point.transpose() << std::endl;
+      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+    }
+    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+    std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+    std::vector<Eigen::VectorXf> new_path_bspline;
+    if(path.size()>0){
+      new_path_bspline.push_back(path[0]);
+    }
+    for (int i = 0; i < bspline_curve->node_count(); ++i) {
+	    Eigen::VectorXf pose(3);
+        auto node = bspline_curve->node(i);
+        pose<< node.x, node.y, node.z; 
+        new_path_bspline.push_back(pose);
+	  }
+    std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    rrtstart3d.save_path(new_path_bspline, path_ingg);
+
+    save_data_index++;
+    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    X.use_whole_search_sapce = false;
+    X.insert_trajectory(current_desired_trajectory);
+    path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 2.0, 3.0, common_utils, 
+    std::ref(planner_status), save_data_index);
+    bspline_curve = new BSpline();
+	  bspline_curve->set_steps(100);
+    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+    for(auto const way_point : path){
+      std::cout<<"main: "<< way_point.transpose() << std::endl;
+      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+    }
+    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+    new_path_bspline.clear();
+    if(path.size()>0){
+      new_path_bspline.push_back(path[0]);
+    }
+    for (int i = 0; i < bspline_curve->node_count(); ++i) {
+	    Eigen::VectorXf pose(3);
+        auto node = bspline_curve->node(i);
+        pose<< node.x, node.y, node.z; 
+        new_path_bspline.push_back(pose);
+	}
+    path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    rrtstart3d.save_path(new_path_bspline, path_ingg);
+
+    return 0;
+}
 // // // Generic functor
 // // template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
 // // struct Functor
