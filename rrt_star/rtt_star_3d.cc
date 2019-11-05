@@ -35,14 +35,37 @@ namespace hagen {
 
         auto rrtstar =  RRTStar(rrt_planner_options, _rewrite_count, common_utils
                         , is_allowed_to_run);
-
+        
+        std::ofstream outfile;
+        outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
+        const clock_t begin_time = clock();
         auto path = rrtstar.rrt_star();
+        float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+        if(search_space.use_whole_search_sapce){
+             outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path)  << "\n";
+        }else{
+            outfile << "rrt_modified,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "\n";
+        }
         stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(start_pose, goal_pose, stotage_location + "start_and_end_pose.npy");
         save_path(path, stotage_location + "rrt_star_path.npy");
         return path;
+    }
+
+    float  RRTStar3D::get_distance(std::vector<Eigen::VectorXf> trajectory_){
+			float distance = 0.0f;
+        if(trajectory_.size() < 1){
+            return distance;
+        }
+        Eigen::VectorXf previous = trajectory_[0].head(3);
+        for (int i = 1; (unsigned)i < trajectory_.size(); i++){
+            float dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
+            previous = trajectory_[i].head(3);
+            distance += dis;
+        }
+        return distance;
     }
 
     void RRTStar3D::save_trajectory(std::vector<Eigen::VectorXf> trajectory_of_drone){

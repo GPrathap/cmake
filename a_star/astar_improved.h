@@ -100,6 +100,7 @@ public:
 	bool astar(const int start, const int goal, bool diag_ok, std::vector<int>& paths);
 	float float_max;
 	bool init_planner();
+	float get_distance(std::vector<Eigen::VectorXf> trajectory_);
 	void save_path(std::vector<Eigen::VectorXf> path);
 	std::vector<Eigen::VectorXf> astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
 									Eigen::VectorXf x_goal);

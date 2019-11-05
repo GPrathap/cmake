@@ -202,6 +202,20 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner_and_save(SearchSpace X
 						return path;				
 }
 
+float  AStarImproved::get_distance(std::vector<Eigen::VectorXf> trajectory_){
+			float distance = 0.0f;
+      if(trajectory_.size() < 1){
+        return distance;
+      }
+      Eigen::VectorXf previous = trajectory_[0].head(3);
+      for (int i = 1; (unsigned)i < trajectory_.size(); i++){
+           float dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
+           previous = trajectory_[i].head(3);
+           distance += dis;
+      }
+      return distance;
+}
+
 std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
 									Eigen::VectorXf x_goal){
 
@@ -217,7 +231,14 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen:
 		std::cout<< "rows: " << w << " cols:" << h << " depth: " << d << std::endl;
 
 		std::vector<int> paths(w*h*d);
-		bool success = astar(start_idx, goal_idx, false, paths);
+
+		std::ofstream outfile;
+    outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
+    const clock_t begin_time = clock();
+    bool success = astar(start_idx, goal_idx, false, paths);
+    float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+	
+       
 		std::vector<Eigen::VectorXf> projected_trajectory;
 		if(success){
 				std::cout<< "Path is found"<< std::endl;
@@ -238,6 +259,9 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen:
 		}else{
 				std::cout<< "Path is not found"<< std::endl;
 		}
+		float dis = get_distance(projected_trajectory);
+		outfile << "astar,"<<  time_diff <<","<< projected_trajectory.size() << "," << dis << "\n";
+
 		return projected_trajectory;
 }
 
@@ -307,7 +331,7 @@ bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::ve
            projected_path.push_back(way_point[1]);
            projected_path.push_back(way_point[2]);
        }
-       cnpy::npy_save("/dataset/a_star_path.npy",&projected_path[0],{path.size(), 3},"w");
+       cnpy::npy_save("/dataset/rrt_old/a_star_path.npy",&projected_path[0],{path.size(), 3},"w");
     }
 }
 }

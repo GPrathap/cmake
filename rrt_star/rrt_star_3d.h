@@ -15,6 +15,7 @@
 #include <cstring>
 #include <cnpy.h>
 #include<complex>
+#include<ctime>
 #include<cstdlib>
 #include<iostream>
 #include<map>
@@ -53,6 +54,8 @@ namespace hagen {
                void save_poses(Eigen::VectorXf start, Eigen::VectorXf end, std::string file_name);
                void save_path(std::vector<Eigen::VectorXf> path, std::string file_name);
                void save_trajectory(std::vector<Eigen::VectorXf> trajectory_of_drone);
+               float get_distance(std::vector<Eigen::VectorXf> trajectory_);
+
 
             private:
                std::vector<Eigen::VectorXf> lengths_of_edges;

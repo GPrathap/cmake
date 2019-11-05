@@ -10,7 +10,7 @@
 #include <mutex>
 
 #include "./rrt_star/rrt_star_3d.h"
-// #include "./a_star/astar_improved.h"
+#include "./a_star/astar_improved.h"
 // #include "./apf/differential_equation_solver.h"
 // #include "./spline/Curve.h"
 #include "./spline/BSpline.h"
@@ -37,7 +37,7 @@
 #include <unsupported/Eigen/Splines>
 
 using kamaz::hagen::SearchSpace;
-// using kamaz::hagen::AStarImproved;
+using kamaz::hagen::AStarImproved;
 // using kamaz::hagen::APFCalculator;
 // using kamaz::hagen::DifferentialEquationSolver;
 using kamaz::hagen::QuadTree;
@@ -733,7 +733,7 @@ int main()
     x_dimentions << 100, 100, 100;
     auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
     // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(20, x_dimentions);
+    auto obstacles = rrtstart3d.get_random_obstacles(2, x_dimentions);
     // std::cout<< "-----1" << std::endl;
     Eigen::VectorXf x_init(3);
     x_init << 0, 0, 0 ;
@@ -801,7 +801,6 @@ int main()
 
     X.use_whole_search_sapce = true;
     X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
-
     auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
     std::ref(planner_status), save_data_index);
     Curve* bspline_curve = new BSpline();
@@ -853,10 +852,49 @@ int main()
         pose<< node.x, node.y, node.z; 
         new_path_bspline.push_back(pose);
 	}
-    path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-    rrtstart3d.save_path(new_path_bspline, path_ingg);
+  path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+  rrtstart3d.save_path(new_path_bspline, path_ingg);
 
-    return 0;
+  AStarImproved path_planner;
+  AStarImproved::Options options;
+  // path_planner.init_planner(X, options);
+
+  int rows = x_dimentions[0];
+  int cols = x_dimentions[1];
+  int depth = x_dimentions[2];
+
+  AStarImproved::pose start;
+  start.x = x_init[0];
+  start.y = x_init[1];
+  start.z = x_init[2];
+
+  AStarImproved::pose end;
+  end.x =  x_goal[0];
+  end.y =  x_goal[1];
+  end.z =  x_goal[2];
+
+  if(end.x >= rows){
+      end.x = rows - 1;
+    }
+    if(end.y >= cols ){
+      end.y = cols - 1;
+    }
+    if(end.z >= depth){
+      end.z = depth - 1;
+    }
+    if(end.x < 0 || end.y < 0 || end.z < 0){
+      return false;
+    }
+    // int start_idx = path_planner.to1D(start.x, start.y, start.z);
+    // int goal_idx = path_planner.to1D(end.x, end.y, end.z);
+    // std::vector<int> paths(rows*cols*depth);
+    // bool success = path_planner.astar(start_idx, goal_idx, false, paths);
+    std::vector<Eigen::VectorXf> paths_astar = path_planner.astar_planner(X, x_init, x_goal);
+    std::cout<< "Size of the a* path size: "<< paths_astar.size() << std::endl;
+    
+    path_planner.save_path(paths_astar);
+
+  return 0;
 }
 // // // Generic functor
 // // template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
