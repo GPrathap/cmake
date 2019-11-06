@@ -28,6 +28,21 @@ namespace hagen{
         path_position = path_position + start_point;
   }
 
+  float CommonUtils::get_cost_of_path(std::vector<Eigen::VectorXf> path1){
+    int size_of_path = path1.size();
+    Eigen::VectorXf path1_dis(size_of_path);
+    for(int i=0; i< path1.size(); i++){
+        path1_dis[i] = path1[i].head(3).norm();
+    }
+    Eigen::MatrixXf smoothed_map  = Eigen::MatrixXf::Zero(size_of_path, size_of_path);
+    for(int i=0; i<size_of_path-1; i++){
+      smoothed_map(i,i) = 2;
+      smoothed_map(i,i+1) = smoothed_map(i+1,i) = -1;
+    }
+    smoothed_map(size_of_path-1, size_of_path-1) = 2;
+    return path1_dis.transpose()*smoothed_map*path1_dis;
+  }
+
   // https://geus.wordpress.com/2011/09/15/how-to-represent-a-3d-normal-function-with-ros-rviz/
   // https://ma.ttpitk.in/blog/?p=368&cpage=1
   void CommonUtils::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, 
@@ -79,6 +94,8 @@ namespace hagen{
         }
         std::cout << "points: " << container << std::endl;
     }
+
+
 
     // dji_sdk::Gimbal CommonUtils::get_gimbal_msg(int mode, float roll, float pitch
     //         , float yaw){

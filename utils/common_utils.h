@@ -86,6 +86,7 @@ class CommonUtils {
             , Eigen::MatrixXf& container);
   
   void get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b, Eigen::Matrix3f& r);
+  float get_cost_of_path(std::vector<Eigen::VectorXf> path1);
 //   visualization_msgs::Marker create_marker_point(Eigen::VectorXf _point_on_path
 //         , Eigen::MatrixXf covmat, int id_, std::string name_space);
 //   visualization_msgs::Marker create_marker_point(Eigen::VectorXf _point_on_path

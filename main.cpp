@@ -874,26 +874,25 @@ int main()
   end.z =  x_goal[2];
 
   if(end.x >= rows){
-      end.x = rows - 1;
-    }
-    if(end.y >= cols ){
-      end.y = cols - 1;
-    }
-    if(end.z >= depth){
-      end.z = depth - 1;
-    }
-    if(end.x < 0 || end.y < 0 || end.z < 0){
-      return false;
-    }
-    // int start_idx = path_planner.to1D(start.x, start.y, start.z);
-    // int goal_idx = path_planner.to1D(end.x, end.y, end.z);
-    // std::vector<int> paths(rows*cols*depth);
-    // bool success = path_planner.astar(start_idx, goal_idx, false, paths);
-    std::vector<Eigen::VectorXf> paths_astar = path_planner.astar_planner(X, x_init, x_goal);
-    std::cout<< "Size of the a* path size: "<< paths_astar.size() << std::endl;
-    
-    path_planner.save_path(paths_astar);
-
+    end.x = rows - 1;
+  }
+  if(end.y >= cols ){
+    end.y = cols - 1;
+  }
+  if(end.z >= depth){
+    end.z = depth - 1;
+  }
+  if(end.x < 0 || end.y < 0 || end.z < 0){
+    return false;
+  }
+  // int start_idx = path_planner.to1D(start.x, start.y, start.z);
+  // int goal_idx = path_planner.to1D(end.x, end.y, end.z);
+  // std::vector<int> paths(rows*cols*depth);
+  // bool success = path_planner.astar(start_idx, goal_idx, false, paths);
+  std::vector<Eigen::VectorXf> paths_astar = path_planner.astar_planner(X, x_init, x_goal);
+  std::cout<< "Astar cost: "<< common_utils.get_cost_of_path(paths_astar) << std::endl;
+  std::cout<< "Size of the a* path size: "<< paths_astar.size() << std::endl;
+  path_planner.save_path(paths_astar);
   return 0;
 }
 // // // Generic functor
