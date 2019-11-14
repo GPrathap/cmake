@@ -40,15 +40,15 @@ namespace hagen {
     }
 
     void SearchSpace::insert_obstacles(std::vector<Rect> obstacles){
-        if(obstacles.size() == 0){
-            std::cout<< "No obstacle to be inserted" << std::endl;
-        }
-        for(size_t i = 0; i < obstacles.size(); i++){
-            Rect const& r = obstacles[i];
-            box_t b(point_t(r.min[0], r.min[1], r.min[2]), point_t(r.max[0], r.max[1], r.max[2]));
-            bg_tree.insert(value_t(b, i));
-        }
-        random_objects = obstacles;
+        // if(obstacles.size() == 0){
+        //     std::cout<< "No obstacle to be inserted" << std::endl;
+        // }
+        // for(size_t i = 0; i < obstacles.size(); i++){
+        //     Rect const& r = obstacles[i];
+        //     box_t b(point_t(r.min[0], r.min[1], r.min[2]), point_t(r.max[0], r.max[1], r.max[2]));
+        //     bg_tree.insert(value_t(b, i));
+        // }
+        // random_objects = obstacles;
     }
 
     void SearchSpace::insert_trajectory(std::vector<Rect> way_points){
@@ -117,15 +117,51 @@ namespace hagen {
         , point_t(index[0]+avoidance_width, index[1]+avoidance_width
         , index[2]+avoidance_width));
         obs_tree.insert(value_t(b, obstacle_counter));
-        obstacle_counter++;
     }
 
-    std::vector<Eigen::VectorXf> SearchSpace::nearest_obstacles(Eigen::VectorXf x, int max_neighbours){
+    void SearchSpace::insert_vertex(Eigen::VectorXf index){
+        box_t b(point_t(index[0], index[1], index[2])
+        , point_t(index[0]+avoidance_width, index[1]+avoidance_width
+        , index[2]+avoidance_width));
+        bg_tree.insert(value_t(b, obstacle_counter));
+        obstacle_counter++;
+    }
+    
+     std::vector<Eigen::VectorXf> SearchSpace::nearest_obstacles(Eigen::VectorXf x, int max_neighbours){
         std::vector<value_t> returned_values;
         
         std::vector<Eigen::VectorXf> neighbour_points;
         for ( RTree::const_query_iterator it = obs_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
                 it != obs_tree.qend() ; ++it )
+        {
+            Eigen::VectorXf pose(3);
+            auto cube = (*it).first;
+
+            // std::cout<< "SearchSpace::nearest_obstacles:  distance: " << bg::distance(cube, point_t(x[0], x[1], x[2])) << std::endl;
+
+            float min_x = bg::get<bg::min_corner, 0>(cube);
+            float min_y = bg::get<bg::min_corner, 1>(cube);
+            float min_z = bg::get<bg::min_corner, 2>(cube);
+
+            // float max_x = bg::get<bg::max_corner, 0>(cube);
+            // float max_y = bg::get<bg::max_corner, 1>(cube);
+            // float max_z = bg::get<bg::max_corner, 2>(cube);
+
+            // std::cout<< "SearchSpace::nearest_obstacles: "<< min_x << ","<<min_y << ", "<< min_z << ", " << max_x << ", "<< max_y << ", " << max_z << std::endl;
+
+            // pose << (min_x+max_x)/2, (min_y+max_y)/2, (min_z+max_z)/2;
+            pose << min_x, min_y, min_z;
+            neighbour_points.push_back(pose);
+        
+        }
+        return neighbour_points;        
+     }
+    std::vector<Eigen::VectorXf> SearchSpace::nearest_veties(Eigen::VectorXf x, int max_neighbours){
+        std::vector<value_t> returned_values;
+        
+        std::vector<Eigen::VectorXf> neighbour_points;
+        for ( RTree::const_query_iterator it = bg_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
+                it != bg_tree.qend() ; ++it )
         {
             Eigen::VectorXf pose(3);
             auto cube = (*it).first;
@@ -261,7 +297,7 @@ namespace hagen {
         Eigen::VectorXf rs_pow = rs.array().pow(1.0/ndims);
         fac = rs_pow.array()/fac_sqrt.array();
         Eigen::VectorXf d = eigen_values_as_matrix.diagonal().array().sqrt();
-        std::cout << "============================================>>>>>>" << npts << std::endl;
+        // std::cout << "============================================>>>>>>" << npts << std::endl;
         for(auto i(0); i<npts; i++){
             (*random_points_tank).row(i) = fac(i)*pt.row(i).array();
             Eigen::MatrixXf  fff = ((*random_points_tank).row(i).array()*d.transpose().array());
@@ -302,13 +338,13 @@ namespace hagen {
             auto index = *(random_call);
             // std::cout<< "========================1113" << std::endl;
             while(true){
-                std::cout<< "===="<< index << "   " << (*random_points_tank).rows() << std::endl;
+                // std::cout<< "===="<< index << "   " << (*random_points_tank).rows() << std::endl;
                 if((index < (*random_points_tank).rows()) && (index>0)){
-                    std::cout<< "========================1114"<< index << "===" << (*random_points_tank).rows() << std::endl;
-                    std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
+                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).rows() << std::endl;
+                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
                     // if(is_random_tank_is_ready){
                         random_pose = (*random_points_tank).row(index);
-                        std::cout<< "========================1115" << std::endl;
+                        // std::cout<< "========================1115" << std::endl;
                     // }
                     break;
                 }

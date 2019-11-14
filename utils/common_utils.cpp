@@ -85,14 +85,14 @@ namespace hagen{
         Eigen::VectorXf rs_pow = rs.array().pow(1.0/ndims);
         fac = rs_pow.array()/fac_sqrt.array();
         Eigen::VectorXf d = eigen_values_as_matrix.diagonal().array().sqrt();
-        std::cout << "============================================>>>>>>" << npts << std::endl;
+        // std::cout << "============================================>>>>>>" << npts << std::endl;
         for(auto i(0); i<npts; i++){
             container.row(i) = fac(i)*pt.row(i).array();
             Eigen::MatrixXf  fff = (container.row(i).array()*d.transpose().array());
             Eigen::VectorXf bn = rotation_mat*fff.transpose();
             container.row(i) = bn.array() + cent.head(3).array();
         }
-        std::cout << "points: " << container << std::endl;
+        // std::cout << "points: " << container << std::endl;
     }
 
 

@@ -111,6 +111,8 @@ namespace hagen {
                 float get_free_space(Eigen::VectorXf pose, std::vector<Eigen::VectorXf>& obs_poses
                                                     , int num_of_obs);
                 float get_free_space(Eigen::VectorXf pose);
+                void insert_vertex(Eigen::VectorXf index);
+                std::vector<Eigen::VectorXf> nearest_veties(Eigen::VectorXf x, int max_neighbours);
                 
                 int dementions = 3;
                 Eigen::VectorXf dim_lengths;

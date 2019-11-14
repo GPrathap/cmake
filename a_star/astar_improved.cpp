@@ -216,6 +216,21 @@ float  AStarImproved::get_distance(std::vector<Eigen::VectorXf> trajectory_){
       return distance;
 }
 
+  float AStarImproved::get_cost_of_path(std::vector<Eigen::VectorXf> path1){
+    int size_of_path = path1.size();
+    Eigen::VectorXf path1_dis(size_of_path);
+    for(int i=0; i< path1.size(); i++){
+        path1_dis[i] = path1[i].head(3).norm();
+    }
+    Eigen::MatrixXf smoothed_map  = Eigen::MatrixXf::Zero(size_of_path, size_of_path);
+    for(int i=0; i<size_of_path-1; i++){
+      smoothed_map(i,i) = 2;
+      smoothed_map(i,i+1) = smoothed_map(i+1,i) = -1;
+    }
+    smoothed_map(size_of_path-1, size_of_path-1) = 2;
+    return path1_dis.transpose()*smoothed_map*path1_dis;
+  }
+
 std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
 									Eigen::VectorXf x_goal){
 
@@ -260,8 +275,8 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen:
 				std::cout<< "Path is not found"<< std::endl;
 		}
 		float dis = get_distance(projected_trajectory);
-		outfile << "astar,"<<  time_diff <<","<< projected_trajectory.size() << "," << dis << "\n";
-
+		outfile << "astar,"<<  time_diff <<","<< projected_trajectory.size() << "," << dis << "," << get_cost_of_path(projected_trajectory)<< "\n";
+    
 		return projected_trajectory;
 }
 

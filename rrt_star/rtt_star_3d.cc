@@ -42,9 +42,9 @@ namespace hagen {
         auto path = rrtstar.rrt_star();
         float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
         if(search_space.use_whole_search_sapce){
-             outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path)  << "\n";
+             outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
         }else{
-            outfile << "rrt_modified,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "\n";
+            outfile << "rrt_modified,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << ","<< common_utils.get_cost_of_path(path) << "\n";
         }
         stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");

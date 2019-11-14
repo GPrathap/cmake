@@ -102,12 +102,13 @@ public:
 	bool init_planner();
 	float get_distance(std::vector<Eigen::VectorXf> trajectory_);
 	void save_path(std::vector<Eigen::VectorXf> path);
+	float get_cost_of_path(std::vector<Eigen::VectorXf> path1);
+
 	std::vector<Eigen::VectorXf> astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
 									Eigen::VectorXf x_goal);
 	
 	std::vector<Eigen::VectorXf> astar_planner_and_save(SearchSpace X,  Eigen::VectorXf x_init, 
 									Eigen::VectorXf x_goal);
-
 	int start_idx;
 	int goal_idx;
 };
