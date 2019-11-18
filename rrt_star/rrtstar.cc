@@ -12,7 +12,8 @@ namespace hagen {
     
     std::vector<std::tuple<float, Eigen::VectorXf>> RRTStar::get_nearby_vertices(int tree, Eigen::VectorXf x_init
                                             , Eigen::VectorXf x_new){
-        auto X_near = nearby_obstacles(tree, x_new, current_rewrite_count(tree));
+        auto X_near = nearby_vertices(tree, x_new, current_rewrite_count(tree));
+        std::cout<< "RRTStar::get_nearby_vertices" << X_near.size() << std::endl;
         std::vector<std::tuple<float, Eigen::VectorXf>> L_near;
         for(auto const x_near : X_near){
             auto new_s = segment_cost(x_near, x_new);
@@ -79,13 +80,16 @@ namespace hagen {
                         return path;   
                    }
                    auto new_and_next = new_and_near(0, q);
+                   std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
                    if(new_and_next.size()==0){
                        continue;
                    }
                    auto x_new = new_and_next[0];
-                   if(check_none_vector(x_new)){
-                       continue;
-                   }
+                   std::cout<< "rstar loop.... x_new" << x_new.transpose() << std::endl;
+                //    if(check_none_vector(x_new)){
+                //        continue;
+                //    }
+                   std::cout<< "rstar loop...." << std::endl;
                    auto l_near = get_nearby_vertices(0, x_init, x_new);
                    connect_shortest_valid(0, x_new, l_near);
                    if (isEdge(x_new, 0)){

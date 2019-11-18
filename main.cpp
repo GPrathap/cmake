@@ -729,16 +729,16 @@ int main()
 {
     kamaz::hagen::RRTStar3D rrtstart3d;
     kamaz::hagen::CommonUtils common_utils;
-    Eigen::VectorXf x_dimentions(3);
-    x_dimentions << 100, 100, 100;
-    auto map_dim = rrtstart3d.get_search_space_dim(x_dimentions);
-    // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(60, x_dimentions);
-    // std::cout<< "-----1" << std::endl;
+    Eigen::VectorXf x_dimentions(6);
+    x_dimentions << -10, 10, -10, 10, -10, 10;
     Eigen::VectorXf x_init(3);
-    x_init << 0, 0, 0 ;
+    x_init << -9, -9, -9;
     Eigen::VectorXf x_goal(3);
-    x_goal << 89, 99, 99;
+    x_goal << 9, 9, 9;
+    // auto obstacles = rrtstart3d.get_obstacles();
+    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
+    // std::cout<< "-----1" << std::endl;
+    
 
     std::atomic_bool planner_status;
     planner_status = ATOMIC_VAR_INIT(true);
@@ -753,7 +753,7 @@ int main()
     float proc = 0.1;
     float obstacle_width = 0.5;
     kamaz::hagen::SearchSpace X;
-    X.init_search_space(map_dim, max_samples, obstacle_width, 0.0, 200, 0.1);
+    X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
     X.update_obstacles_map(obstacles);
     int save_data_index = 0;
     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
@@ -761,44 +761,16 @@ int main()
     std::vector<SearchSpace::Rect> current_desired_trajectory;
     std::vector<Eigen::VectorXf> trajectory_online;
 
-    current_desired_trajectory.push_back(SearchSpace::Rect(0
-                               ,0, 0
-                               , obstacle_width
-                               , obstacle_width
-                               , obstacle_width));
-    Eigen::VectorXf pose(3);
-    pose<< 0,0,0;
-    trajectory_online.push_back(pose);
-
-    current_desired_trajectory.push_back(SearchSpace::Rect(25
-                               ,25, 25
-                               , 25+obstacle_width
-                               , 25+obstacle_width
-                               , 25+obstacle_width));
-    pose<< 25,25,25;
-    trajectory_online.push_back(pose);
-    current_desired_trajectory.push_back(SearchSpace::Rect(89
-                               ,99, 99
-                               , 89+obstacle_width
-                               , 99+obstacle_width
-                               , 99+obstacle_width));
-    pose<< 89,99,99;
-    trajectory_online.push_back(pose);
-
     Eigen::VectorXf center = (x_goal - x_init);
     Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
 
-    covmat(0,0) = 40;
-    covmat(1,1) = 40;
-    covmat(2,2) = 40;
+    covmat(0,0) = 3;
+    covmat(1,1) = 3;
+    covmat(2,2) = 3;
     
     center = (x_goal + x_init)/2;
     Eigen::Vector3f a(1,0,0);
     Eigen::Vector3f b = x_goal-x_init;
-    // Eigen::Matrix3f rotation_matrix;
-    // common_utils.get_roration_matrix(a, b, rotation_matrix);
-    // Eigen::Quaternion<double> q;
-    // q = rotation_matrix.cast <double>();
 
     Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
     int ndims = covmat.rows();       
@@ -812,97 +784,31 @@ int main()
     X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
     auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
     std::ref(planner_status), save_data_index);
-    Curve* bspline_curve = new BSpline();
-    bspline_curve->set_steps(100);
-    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-    for(auto const way_point : path){
-      std::cout<<"Main: "<< way_point.transpose() << std::endl;
-      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
-    }
-    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-    std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-    std::vector<Eigen::VectorXf> new_path_bspline;
     if(path.size()>0){
-      new_path_bspline.push_back(path[0]);
-    }
-    for (int i = 0; i < bspline_curve->node_count(); ++i) {
-	    Eigen::VectorXf pose(3);
+      Curve* bspline_curve = new BSpline();
+      bspline_curve->set_steps(100);
+      bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
+      for(auto const way_point : path){
+        std::cout<<"Main: "<< way_point.transpose() << std::endl;
+        bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+      }
+      bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
+      std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+      std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+      std::vector<Eigen::VectorXf> new_path_bspline;
+      if(path.size()>0){
+        new_path_bspline.push_back(path[0]);
+      }
+      for (int i = 0; i < bspline_curve->node_count(); ++i) {
+        Eigen::VectorXf pose(3);
         auto node = bspline_curve->node(i);
         pose<< node.x, node.y, node.z; 
         new_path_bspline.push_back(pose);
-	  }
-    std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-    rrtstart3d.save_path(new_path_bspline, path_ingg);
-
-    save_data_index++;
-    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-    X.use_whole_search_sapce = false;
-    X.insert_trajectory(current_desired_trajectory);
-    path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_goal, 2.0, 3.0, common_utils, 
-    std::ref(planner_status), save_data_index);
-    bspline_curve = new BSpline();
-	  bspline_curve->set_steps(100);
-    bspline_curve->add_way_point(Vector(path[0][0], path[0][1], path[0][2]));
-    for(auto const way_point : path){
-      std::cout<<"main: "<< way_point.transpose() << std::endl;
-      bspline_curve->add_way_point(Vector(way_point[0], way_point[1], way_point[2]));
+      }
+      std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+      rrtstart3d.save_path(new_path_bspline, path_ingg);
     }
-    bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
-    std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-	  std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-    new_path_bspline.clear();
-    if(path.size()>0){
-      new_path_bspline.push_back(path[0]);
-    }
-    for (int i = 0; i < bspline_curve->node_count(); ++i) {
-	    Eigen::VectorXf pose(3);
-        auto node = bspline_curve->node(i);
-        pose<< node.x, node.y, node.z; 
-        new_path_bspline.push_back(pose);
-	  }
-  path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-  rrtstart3d.save_path(new_path_bspline, path_ingg);
-
-  AStarImproved path_planner;
-  AStarImproved::Options options;
-  // path_planner.init_planner(X, options);
-
-  int rows = x_dimentions[0];
-  int cols = x_dimentions[1];
-  int depth = x_dimentions[2];
-
-  AStarImproved::pose start;
-  start.x = x_init[0];
-  start.y = x_init[1];
-  start.z = x_init[2];
-
-  AStarImproved::pose end;
-  end.x =  x_goal[0];
-  end.y =  x_goal[1];
-  end.z =  x_goal[2];
-
-  if(end.x >= rows){
-    end.x = rows - 1;
-  }
-  if(end.y >= cols ){
-    end.y = cols - 1;
-  }
-  if(end.z >= depth){
-    end.z = depth - 1;
-  }
-  if(end.x < 0 || end.y < 0 || end.z < 0){
-    return false;
-  }
-  // int start_idx = path_planner.to1D(start.x, start.y, start.z);
-  // int goal_idx = path_planner.to1D(end.x, end.y, end.z);
-  // std::vector<int> paths(rows*cols*depth);
-  // bool success = path_planner.astar(start_idx, goal_idx, false, paths);
-  std::vector<Eigen::VectorXf> paths_astar = path_planner.astar_planner(X, x_init, x_goal);
-  std::cout<< "Astar cost: "<< common_utils.get_cost_of_path(trajectory_online) << std::endl;
-  std::cout<< "Size of the t_onlone path size: "<< paths_astar.size() << std::endl;
-  path_planner.save_path(paths_astar);
-
+    
   return 0;
 }
 // // // Generic functor

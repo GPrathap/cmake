@@ -20,7 +20,6 @@ namespace hagen {
         uni_dis_vector.push_back(distribution_z);
         number_of_rand_points = num_of_rand_points;
         number_of_max_attempts = number_of_tries_at_time;
-        voxel_side_length = _voxel_side_length;
         random_call = new Random_call(std::chrono::system_clock::now().time_since_epoch().count(), num_of_rand_points);
         obstacle_counter = 0;
         avoidance_width = _avoidance_width;
@@ -100,7 +99,7 @@ namespace hagen {
             return 3.0; //Since no onstacles on the obstacles map
         }
         obs_poses = obstacles;
-        return (obstacles[0]-pose).norm()*voxel_side_length;
+        return (obstacles[0]-pose).norm();
     }
 
     float SearchSpace::get_free_space(Eigen::VectorXf pose){
@@ -108,7 +107,7 @@ namespace hagen {
         if(obstacles.size() <= 0){
             return 10.0; //Since no onstacles on the obstacles map
         }
-        return (obstacles[0]-pose).norm()*voxel_side_length;
+        return (obstacles[0]-pose).norm();
     }
 
     void SearchSpace::insert_obstacle(Eigen::VectorXf index){
@@ -255,7 +254,10 @@ namespace hagen {
         sum += obs_tree.query(bgi::intersects(search_box)
         , boost::make_function_output_iterator(geometry_rtree_callback));
         // float s = t.elapsed();
-        // std::cout << s << " " << sum << std::endl;
+        // std::cout << search_rect.min[0] << " " << search_rect.min[1] << " " << search_rect.min[2] << std::endl;
+        // std::cout << search_rect.max[0] << " " << search_rect.max[1] << " " << search_rect.max[2] << std::endl;
+
+        // std::cout << "sum up..." << sum << std::endl;
         return sum > 0 ? false : true;
     }
 
@@ -319,6 +321,11 @@ namespace hagen {
         , boost::make_function_output_iterator(geometry_rtree_callback));
         // float s = t.elapsed();
         // std::cout <<" SearchSpace::obstacle_free: sum: " << sum << std::endl;
+        // std::cout << search_rect.transpose() << std::endl;
+        // // std::cout << search_rect.max[0] << " " << search_rect.max[1] << " " << search_rect.max[2] << std::endl;
+
+        std::cout << "sum up..." << sum << std::endl;
+  
         return sum > 0 ? false : true;
     }
 
@@ -333,6 +340,7 @@ namespace hagen {
             generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
             auto z_on = uni_dis_vector[2](generator_on_x);
             random_pose << x_on, y_on, z_on ;
+            // std::cout<< "========================" << random_pose << std::endl;
         }
         else{
             auto index = *(random_call);
@@ -363,7 +371,9 @@ namespace hagen {
                 use_whole_search_sapce = true;
             }
             auto x = sample();
+            // std::cout<< "sample--->" << x <<std::endl;
             if(obstacle_free(x)){
+                std::cout<< "free sample--->" << x.transpose() <<std::endl;
                 number_of_attempts = 0;
                 return x;
             }
@@ -376,17 +386,17 @@ namespace hagen {
         std::vector<float> res_on_x = linspace(start[0], end[0], resolution);
         std::vector<float> res_on_y = linspace(start[1], end[1], resolution);
         std::vector<float> res_on_z = linspace(start[2], end[2], resolution);
-        // std::cout<< "===================" << std::endl;
-        // std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
+        std::cout<< "===================:collision_free" << std::endl;
+        std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
         int len = std::min({res_on_x.size(), res_on_y.size(), res_on_z.size()}
         , [](const int s1, const int s2) -> bool{
                 return s1 < s2;
         });
-        // std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
+        std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
         for(int i=0; i<len; i++){
             Eigen::VectorXf search_rect(3);
             search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
-            // std::cout<< search_rect.transpose() << std::endl;
+            std::cout<<" collision_free  " << search_rect.transpose() << std::endl;
             if(!obstacle_free(search_rect)){
                 return false;
             }

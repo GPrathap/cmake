@@ -49,9 +49,9 @@ namespace hagen {
         std::cout<<"RRTBase::printEdge===="<< std::endl;
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::nearby_obstacles(int tree, Eigen::VectorXf x
+    std::vector<Eigen::VectorXf> RRTBase::nearby_vertices(int tree, Eigen::VectorXf x
                                             , int max_neighbors){
-        return trees[tree].V.nearest_obstacles(x, max_neighbors);
+        return trees[tree].V.nearest_veties(x, max_neighbors);
     }
 
     std::vector<Eigen::VectorXf> RRTBase::nearby_waypoints(int tree, Eigen::VectorXf x
@@ -61,15 +61,6 @@ namespace hagen {
 
     Eigen::VectorXf RRTBase::get_nearest(int tree, Eigen::VectorXf x){
         auto veties = trees[tree].V.nearest_veties(x, 1);
-
-        // auto neighbour_obstacles = nearby_obstacles(tree, x, 1);
-        // // std::cout<< "RRTBase::get_nearest: size: " << neighbours.size() << std::endl;  
-        // // std::cout<< "RRTBase::get_nearest: " << x.transpose() << std::endl;  
-        // // std::cout<< "RRTBase::get_nearest:neighbours " << neighbours.size() << std::endl;  
-        
-        // // for(auto const neigh : neighbours){
-        // //     std::cout<< neigh.transpose() << std::endl;
-        // // }
         if(veties.size()==0){
             BOOST_LOG_TRIVIAL(warning) << FYEL("There is no any neighbors");
             Eigen::VectorXf temp(3);
@@ -77,78 +68,6 @@ namespace hagen {
             return temp;
         }
         return veties[0];
-        //TODO remove this later
-        // if(X.use_whole_search_sapce){
-        //     return neighbour_obstacles[0];  
-        // }
-        // auto nearest_point_to_trajectory = nearby_waypoints(tree, neighbour_obstacles[0], 1);
-        // if(nearest_point_to_trajectory.size() > 0){
-        //     std::cout<< "nearest point on trajectory:" << nearest_point_to_trajectory[0].transpose() << std::endl;
-        //     std::cout<< "neighbour_obstacle:" << neighbour_obstacles[0].transpose() << std::endl;
-        //     float d_s = (x.head(3) - nearest_point_to_trajectory[0].head(3)).norm();
-        //     float d_o = (neighbour_obstacles[0].head(3) - nearest_point_to_trajectory[0].head(3)).norm();
-        //     std::cout<< "distance to random point: " << d_s << std::endl;
-        //     std::cout<< "distance to obstacle: "<< d_o << std::endl;
-            
-        //     int size_of_samples = 10;
-        //     center_sub_search =  nearest_point_to_trajectory[0].head(3);
-        //     covmat_sub_search = Eigen::MatrixXf::Zero(3,3);
-        //     float radius = d_o;
-            // if(d_o == 0){
-            //     // TODO need to fix this
-            //     return neighbour_obstacles[0];  
-            // }
-            
-            // radius = 60.0;
-            // covmat_sub_search(0,0) = radius;
-            // covmat_sub_search(1,1) = radius;
-            // covmat_sub_search(2,2) = radius;
-            // // std::cout<< "covmat_sub_search" << std::endl;
-            // // std::cout<< covmat_sub_search << std::endl;
-            // Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
-            // int ndims = covmat_sub_search.rows();       
-            // Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(size_of_samples, ndims);
-            // common_utils.generate_samples_from_ellipsoid(covmat_sub_search, rotation_matrix, center_sub_search
-            // , random_points);
-            // int max_attemp = 2;
-            // int attemp = 0;
-            // while(attemp <= max_attemp){
-            //     for(int inx=0; inx < size_of_samples; inx++){
-            //         Eigen::VectorXf next_pose = random_points.row(inx);
-            //         float dis = (next_pose-neighbour_obstacles[0].head(3)).norm();
-            //         // std::cout << "Generated sample: "<< next_pose.transpose() << std::endl;
-                    
-            //         float next_pose_norm = next_pose.head(3).norm();
-            //         float obs_norm = neighbour_obstacles[0].head(3).norm();
-            //         if(next_pose_norm <= 0.5 || obs_norm <= 0.5){
-            //             continue;
-            //         }
-            //         float angle_diff = next_pose.head(3).dot(neighbour_obstacles[0].head(3))/(next_pose_norm*obs_norm);
-            //         angle_diff = std::abs(std::acos(angle_diff)*(180.0/3.141));
-            //         std::cout << "Angle=====================----" << angle_diff << std::endl;
-            //         if((dis>_obstacle_fail_safe_distance) && (angle_diff > min_angle_allows_obs)){
-            //             if(X.obstacle_free(next_pose)){
-            //                 std::cout << "Valid generated sample:  "
-            //                 << next_pose.transpose() << " at " << attemp << " attemp" << std::endl;
-            //                 Eigen::VectorXf path_position(4);
-            //                 std::cout<< "*current_position" << (start_position).transpose() << std::endl;
-                            
-            //                 // common_utils.get_point_on_the_trajectory(center_sub_search
-            //                 // , start_position , path_position);
-                            
-            //                 // std::cout<< "*current_position" << (path_position).transpose() << std::endl;
-            //                 return next_pose;
-            //             }
-            //         }
-            //     }
-            //     covmat_sub_search(0,0) = radius*2;
-            //     covmat_sub_search(1,1) = radius*2;
-            //     covmat_sub_search(2,2) = radius;
-            //     attemp = attemp + 1 ;
-            // }
-            
-        // }
-        // return neighbour_obstacles[0];  
     }
 
     bool RRTBase::check_none_vector(Eigen::VectorXf  vector){
@@ -173,7 +92,7 @@ namespace hagen {
         sample_taken += 1;
         new_and_near_vec.push_back(x_new);
         new_and_near_vec.push_back(x_nearest);
-        // std::cout<<"RRTBase::new_and_near: new_and_near_vec "<< new_and_near_vec.size() <<std::endl;
+        std::cout<<"RRTBase::new_and_near: new_and_near_vec "<< new_and_near_vec.size() <<std::endl;
         return new_and_near_vec;
     }
 

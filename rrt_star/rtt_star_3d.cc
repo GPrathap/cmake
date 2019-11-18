@@ -41,16 +41,17 @@ namespace hagen {
         const clock_t begin_time = clock();
         auto path = rrtstar.rrt_star();
         float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
-        if(search_space.use_whole_search_sapce){
+        if(path.size()>1){
              outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
-        }else{
-            outfile << "rrt_modified,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << ","<< common_utils.get_cost_of_path(path) << "\n";
         }
         stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(start_pose, goal_pose, stotage_location + "start_and_end_pose.npy");
-        save_path(path, stotage_location + "rrt_star_path.npy");
+        if(path.size()>0){
+            save_path(path, stotage_location + "rrt_star_path.npy");
+        }
+        
         return path;
     }
 
@@ -90,8 +91,7 @@ namespace hagen {
     }
 
     Eigen::VectorXf RRTStar3D::get_search_space_dim(Eigen::VectorXf dimensions){
-        Eigen::VectorXf dim_(6);
-        dim_<< 0, dimensions[0], 0, dimensions[1], 0, dimensions[2];
+        Eigen::VectorXf dim_ = dimensions;
         return dim_;
     }
 
@@ -108,24 +108,37 @@ namespace hagen {
         return _objects;
     }
 
-    std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles, Eigen::VectorXf x_dimentions){
+    std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles
+    , Eigen::VectorXf x_dimentions, Eigen::VectorXf x_init, Eigen::VectorXf x_goal){
         std::vector<SearchSpace::Rect> _objects;
         srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
             
-            float x = (rand()%(int)x_dimentions[0]);
-            float y = (rand()%(int)x_dimentions[1]);
-            float z = (rand()%(int)x_dimentions[2]);
-            int width_x = x + rand()%10;
-            int width_y = y + rand()%10;
-            int width_z = z + rand()%10;
-            if(width_x >= (int)x_dimentions[0] 
-            || width_y >= (int)x_dimentions[1] || width_z >= (int)x_dimentions[2]){
+            float x_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[1];
+            float y_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[3];
+            float z_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[5];
+
+            float x_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[0];
+            float y_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[2];
+            float z_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[4];
+
+            float x = x_plus + x_minus;
+            float y = y_plus + y_minus;
+            float z = z_plus + z_minus;
+            float width_x = x + rand()%5;
+            float width_y = y + rand()%5;
+            float width_z = z + rand()%5;
+            std::cout<< x << " " <<  y << " "<< z << " " << width_x << " " << width_y << " " << width_z << std::endl;
+            if(width_x >= x_dimentions[1] || width_y >= x_dimentions[3] || width_z >= x_dimentions[5]){
                 continue;
             }
+            if(x <= x_dimentions[0]  || y <= x_dimentions[2]  || z <= x_dimentions[4] ){
+                continue;
+            }
+            
             _objects.push_back(SearchSpace::Rect(x, y, z, width_x, width_y, width_z));
         }
-        // std::cout<< "RRTStar3D::get_random_obstacles: Size of the obbjects "<< _objects.size() << std::endl;
+        std::cout<< "RRTStar3D::get_random_obstacles: Size of the objects "<< _objects.size() << std::endl;
         return _objects;
     }
 
@@ -133,7 +146,6 @@ namespace hagen {
        std::vector<float> edges; 
        int count = 0;
        for(auto const&item : trees[0].E){
-            // std::cout<< item.second.transpose() << std::endl;
             auto sp = item.first;
             auto ep = item.second;
             edges.push_back(std::get<0>(sp));

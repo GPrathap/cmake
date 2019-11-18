@@ -69,7 +69,7 @@ namespace hagen {
                 void add_tree();
                 void add_vertex(int tree, Eigen::VectorXf v);
                 void add_edge(int tree, Eigen::VectorXf child, Eigen::VectorXf parent);
-                std::vector<Eigen::VectorXf> nearby_obstacles(int tree, Eigen::VectorXf x
+                std::vector<Eigen::VectorXf> nearby_vertices(int tree, Eigen::VectorXf x
                                 , int max_neighbors);
                 std::vector<Eigen::VectorXf> nearby_waypoints(int tree, Eigen::VectorXf x
                                 , int max_neighbors);
