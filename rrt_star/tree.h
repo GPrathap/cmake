@@ -35,7 +35,7 @@ namespace hagen {
                     typedef typename C::value_type value_type;
                     inline std::size_t operator() (const C &c) const{
                         std::size_t seed = 0;
-                        // size_t h = std::hash<float>()(v[0]);
+                        // size_t h = std::hash<double>()(v[0]);
                         // hash_combine(h, v[1]);
                         // hash_combine(h, v[2]);
                         for(typename C::const_iterator it = c.begin(); it != c.end(); ++it){
@@ -47,8 +47,8 @@ namespace hagen {
                     }
                 };
 
-                std::unordered_map<std::array<float, 3>
-                                    , Eigen::VectorXf, Hasher<std::array<float, 3>>> E;
+                std::unordered_map<std::array<double, 3>
+                                    , Eigen::Vector3d, Hasher<std::array<double, 3>>> E;
                 void init(SearchSpace search_space);
         };
     }

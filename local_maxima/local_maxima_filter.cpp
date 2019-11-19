@@ -3,8 +3,8 @@
 namespace kamaz {
     namespace hagen{
         
-    float LocalMaximaFilter::get_pixel_value(Pixel p){
-        // cv::Scalar intensity = img.at<float>(p.index/img_width, p.index%img_width);                        
+    double LocalMaximaFilter::get_pixel_value(Pixel p){
+        // cv::Scalar intensity = img.at<double>(p.index/img_width, p.index%img_width);                        
         cv::Scalar intensity = depth_img_row_vector.at(p.index);
         return intensity[0];
     }
@@ -28,7 +28,7 @@ namespace kamaz {
                 int index_next = img_width*(x+i) + (y+j);
                 if((int)depth_img_row_vector.size()>index_next){
                         cv::Scalar intensity = depth_img_row_vector.at(index_next);                         
-                        Pixel selected_item = {index_next, (float)intensity[0]};
+                        Pixel selected_item = {index_next, (double)intensity[0]};
                         result.push_back(selected_item);
                 }  
             }
@@ -45,11 +45,11 @@ namespace kamaz {
         uf.set_max_row(w);
         depth_img_row_vector.clear();
         if (img.isContinuous()) {
-            depth_img_row_vector.assign((float*)img.data, (float*)img.data + img.total());
+            depth_img_row_vector.assign((double*)img.data, (double*)img.data + img.total());
         } else {
             for (int i = 0; i < img.rows; ++i) {
-                depth_img_row_vector.insert(depth_img_row_vector.end(), img.ptr<float>(i)
-                    , img.ptr<float>(i)+img.cols);
+                depth_img_row_vector.insert(depth_img_row_vector.end(), img.ptr<double>(i)
+                    , img.ptr<double>(i)+img.cols);
             }
         }
 
@@ -72,9 +72,9 @@ namespace kamaz {
         std::map<int, groups> group0;
         int k = 0;
         for (const auto& p : indices){
-            float v = p.value;
+            double v = p.value;
             int index_p = p.index;
-            std::vector<std::tuple<float,Pixel>> nc;
+            std::vector<std::tuple<double,Pixel>> nc;
             std::vector<Pixel> item_list;
             iter_neighbors(p, item_list);
             auto cmp_pixel = [](Pixel lhs, Pixel rhs) 
@@ -93,12 +93,12 @@ namespace kamaz {
             int couuu=0;
             for(auto ancesttor : ni){
                 couuu++;
-                std::tuple<float, Pixel> __item(ancesttor.value, ancesttor);
+                std::tuple<double, Pixel> __item(ancesttor.value, ancesttor);
                 nc.push_back(__item); 
             }
 
             __gnu_parallel::sort(nc.rbegin(), nc.rend(),
-                [](const std::tuple<float, Pixel> a, const std::tuple<float, Pixel> b){
+                [](const std::tuple<double, Pixel> a, const std::tuple<double, Pixel> b){
                     return std::get<0>(a) > std::get<0>(b); 
                 });
 
@@ -161,7 +161,7 @@ namespace kamaz {
         // std::vector<Pixel> indices;
         // for(int i=0; i<h; i++){
         //     for(int j=0; j<w; j++){
-        //         cv::Scalar intensity = img.at<float>(i, j);
+        //         cv::Scalar intensity = img.at<double>(i, j);
         //         int index_val = w*i + j;
         //         Pixel index_ = {index_val, intensity[0]};
         //         indices_queue.push(index_);
@@ -176,9 +176,9 @@ namespace kamaz {
         // std::map<int, groups> group0;
         // int k = 0;
         // for (const auto& p : indices){
-        //     float v = p.value;
+        //     double v = p.value;
         //     int index_p = p.index;
-        //     std::vector<std::tuple<float,Pixel>> nc;
+        //     std::vector<std::tuple<double,Pixel>> nc;
         //     std::vector<Pixel> item_list;
         //     iter_neighbors(p, w, h, item_list, img);
         //     auto cmp_pixel = [](Pixel lhs, Pixel rhs) 
@@ -193,16 +193,16 @@ namespace kamaz {
         //                 ni.insert(iy);
         //         }
         //     }
-        //     auto cmp_ni = [](std::tuple<float, Pixel> l, std::tuple<float, Pixel> r) 
+        //     auto cmp_ni = [](std::tuple<double, Pixel> l, std::tuple<double, Pixel> r) 
         //     { return std::get<0>(l) > std::get<0>(r);};
 
-        //     std::priority_queue<std::tuple<float, Pixel>
-        //     , std::vector<std::tuple<float, Pixel>>, decltype(cmp_ni)> ni_queue(cmp_ni);
+        //     std::priority_queue<std::tuple<double, Pixel>
+        //     , std::vector<std::tuple<double, Pixel>>, decltype(cmp_ni)> ni_queue(cmp_ni);
 
         //     int couuu=0;
         //     for(auto ancesttor : ni){
         //         couuu++;
-        //         std::tuple<float, Pixel> __item(ancesttor.value, ancesttor);
+        //         std::tuple<double, Pixel> __item(ancesttor.value, ancesttor);
         //         ni_queue.push(__item); 
         //     }
         //     while(!ni_queue.empty()) {
@@ -261,11 +261,11 @@ namespace kamaz {
         uf.set_max_row(w);
         depth_img_row_vector.clear();
         if (img.isContinuous()) {
-            depth_img_row_vector.assign((float*)img.data, (float*)img.data + img.total());
+            depth_img_row_vector.assign((double*)img.data, (double*)img.data + img.total());
         } else {
             for (int i = 0; i < img.rows; ++i) {
-                depth_img_row_vector.insert(depth_img_row_vector.end(), img.ptr<float>(i)
-                    , img.ptr<float>(i)+img.cols);
+                depth_img_row_vector.insert(depth_img_row_vector.end(), img.ptr<double>(i)
+                    , img.ptr<double>(i)+img.cols);
             }
         }
 
@@ -274,7 +274,7 @@ namespace kamaz {
             for(int j=0; j<w; j++){
                 int index_val = w*i + j;
                 cv::Scalar intensity = depth_img_row_vector.at(index_val);
-                // cv::Scalar intensity = img.at<float>(i, j);
+                // cv::Scalar intensity = img.at<double>(i, j);
                 Pixel index_ = {index_val, intensity[0]};
                 indices.push_back(index_);
             }
@@ -289,9 +289,9 @@ namespace kamaz {
         std::map<int, groups> group0;
         int k = 0;
         for (const auto& p : indices){
-            float v = p.value;
+            double v = p.value;
             int index_p = p.index;
-            std::vector<std::tuple<float,Pixel>> nc;
+            std::vector<std::tuple<double,Pixel>> nc;
             std::vector<Pixel> item_list;
             iter_neighbors(p, item_list);
             auto cmp_pixel = [](Pixel lhs, Pixel rhs) 
@@ -310,12 +310,12 @@ namespace kamaz {
             int couuu=0;
             for(auto ancesttor : ni){
                 couuu++;
-                std::tuple<float, Pixel> __item(ancesttor.value, ancesttor);
+                std::tuple<double, Pixel> __item(ancesttor.value, ancesttor);
                 nc.push_back(__item); 
             }
 
             __gnu_parallel::sort(nc.rbegin(), nc.rend(),
-                [](const std::tuple<float, Pixel> a, const std::tuple<float, Pixel> b){
+                [](const std::tuple<double, Pixel> a, const std::tuple<double, Pixel> b){
                     return std::get<0>(a) > std::get<0>(b); 
                 });
 
@@ -364,36 +364,36 @@ namespace kamaz {
             k+=1;
         }   
 
-        std::vector<std::tuple<int, int, float, float, float, int, int, float>> groupn;
+        std::vector<std::tuple<int, int, double, double, double, int, int, double>> groupn;
         std::cout<< "==============================" << group0.size() << std::endl;
         for (auto const k : group0){
             auto key = k.first;
             auto val = k.second;
             auto val_k = val.p3;
-            std::tuple<int, int, float, float, float, int,
-             int, float> m(key/img_width, key%img_width
+            std::tuple<int, int, double, double, double, int,
+             int, double> m(key/img_width, key%img_width
              , val.p2, val.p1, val.p2
              , val_k.index/img_width, val_k.index%img_width, val_k.value);
             groupn.push_back(m);
         }
 
         std::sort(groupn.rbegin(), groupn.rend(),
-                [](const std::tuple<int, int, float, float, float, int, int, float> a
-                , const std::tuple<int, int, float, float, float, int, int, float> b){
+                [](const std::tuple<int, int, double, double, double, int, int, double> a
+                , const std::tuple<int, int, double, double, double, int, int, double> b){
                     return std::get<2>(a) > std::get<2>(b); 
                 });
         
-        std::vector<float> np_mat;
+        std::vector<double> np_mat;
         int groupn_size = groupn.size();
         for(auto const vals : groupn){
-            np_mat.push_back((float)std::get<0>(vals));  
-            np_mat.push_back((float)std::get<1>(vals));  
-            np_mat.push_back((float)std::get<2>(vals));  
-            np_mat.push_back((float)std::get<3>(vals));
-            np_mat.push_back((float)std::get<4>(vals));  
-            np_mat.push_back((float)std::get<5>(vals));  
-            np_mat.push_back((float)std::get<6>(vals));  
-            np_mat.push_back((float)std::get<7>(vals));   
+            np_mat.push_back((double)std::get<0>(vals));  
+            np_mat.push_back((double)std::get<1>(vals));  
+            np_mat.push_back((double)std::get<2>(vals));  
+            np_mat.push_back((double)std::get<3>(vals));
+            np_mat.push_back((double)std::get<4>(vals));  
+            np_mat.push_back((double)std::get<5>(vals));  
+            np_mat.push_back((double)std::get<6>(vals));  
+            np_mat.push_back((double)std::get<7>(vals));   
         }
         
         std::string location = "/dataset/images/result/9/local_maxima_" + std::to_string(indexi) + ".npy";
@@ -407,17 +407,17 @@ namespace kamaz {
         std::cout<< "( " << std::get<0>(object) << " , " << std::get<1>(object) << ")" << std::endl;
     }
 
-    float LocalMaximaFilter::distance(int x, int y, int i, int j) {
-        return float(sqrt(pow(x - i, 2) + pow(y - j, 2)));
+    double LocalMaximaFilter::distance(int x, int y, int i, int j) {
+        return double(sqrt(pow(x - i, 2) + pow(y - j, 2)));
     }
 
-    float LocalMaximaFilter::gaussian(float x, float sigma) {
+    double LocalMaximaFilter::gaussian(double x, double sigma) {
         return exp(-(pow(x, 2))/(2 * pow(sigma, 2))) / (2 * CV_PI * pow(sigma, 2));
     }
 
-    void LocalMaximaFilter::applyBilateralFilter(cv::Mat& filteredImage, int source_index, int diameter, float sigmaI, float sigmaS) {
-        float iFiltered = 0;
-        float wP = 0;
+    void LocalMaximaFilter::applyBilateralFilter(cv::Mat& filteredImage, int source_index, int diameter, double sigmaI, double sigmaS) {
+        double iFiltered = 0;
+        double wP = 0;
         int neighbor_x = 0;
         int neighbor_y = 0;
         int neighbor_index = 0;
@@ -436,13 +436,13 @@ namespace kamaz {
                     continue;
                 }
                 neighbor_index = img_width*neighbor_x + neighbor_y;
-                // float gi = gaussian(source.at<float>(neighbor_x, neighbor_y) - source.at<float>(x_index, y_index), sigmaI);
-                // float gs = gaussian(distance(x_index, y_index, neighbor_x, neighbor_y), sigmaS);
-                float gi = gaussian(depth_img_row_vector.at(neighbor_index) - depth_img_row_vector.at(source_index), sigmaI);
-                float gs = gaussian(distance(x_index, y_index, neighbor_x, neighbor_y), sigmaS);
+                // double gi = gaussian(source.at<double>(neighbor_x, neighbor_y) - source.at<double>(x_index, y_index), sigmaI);
+                // double gs = gaussian(distance(x_index, y_index, neighbor_x, neighbor_y), sigmaS);
+                double gi = gaussian(depth_img_row_vector.at(neighbor_index) - depth_img_row_vector.at(source_index), sigmaI);
+                double gs = gaussian(distance(x_index, y_index, neighbor_x, neighbor_y), sigmaS);
 
-                float w_p = gi * gs;
-                // float w_p = gi;
+                double w_p = gi * gs;
+                // double w_p = gi;
                 iFiltered += depth_img_row_vector.at(neighbor_index) * w_p;
                 wP += wP + w_p;
             }
@@ -450,8 +450,8 @@ namespace kamaz {
         if(wP >0){
             iFiltered = iFiltered / wP;
         }
-        // filteredImage.at<float>(x_index, y_index) = iFiltered + depth_img_row_vector.at(neighbor_index);
-        filteredImage.at<float>(x_index, y_index) = iFiltered + depth_img_row_vector.at(source_index);
+        // filteredImage.at<double>(x_index, y_index) = iFiltered + depth_img_row_vector.at(neighbor_index);
+        filteredImage.at<double>(x_index, y_index) = iFiltered + depth_img_row_vector.at(source_index);
     }
 }
 }

@@ -3,7 +3,7 @@
 namespace kamaz {
 namespace hagen {
 
-    SingularSpectrumAnalysis::SingularSpectrumAnalysis(Eigen::VectorXf input_signal, int win_size){
+    SingularSpectrumAnalysis::SingularSpectrumAnalysis(Eigen::Vector3d input_signal, int win_size){
         feature_vector = input_signal;
         M = win_size;
         N = feature_vector.size(); 
@@ -21,7 +21,7 @@ namespace hagen {
     }
 
     void SingularSpectrumAnalysis::calculate_trajectory_matrix(){
-        trajectory_matrix = Eigen::MatrixXf::Zero(number_of_lags, M);
+        trajectory_matrix = Eigen::MatrixXd::Zero(number_of_lags, M);
         for(int i=0; i<number_of_lags; i++){
             trajectory_matrix.row(i) = feature_vector.segment(i, M);
         }
@@ -30,19 +30,19 @@ namespace hagen {
 
     void SingularSpectrumAnalysis::calculate_eigne_vectors_and_values(){
         
-        Eigen::EigenSolver<Eigen::MatrixXf> eigensolver;
+        Eigen::EigenSolver<Eigen::MatrixXd> eigensolver;
         eigensolver.compute(covariance_matrix);
-        Eigen::VectorXf eigen_values = eigensolver.eigenvalues().real();
-        Eigen::MatrixXf eigen_vectors = eigensolver.eigenvectors().real();
+        Eigen::Vector3d eigen_values = eigensolver.eigenvalues().real();
+        Eigen::MatrixXd eigen_vectors = eigensolver.eigenvectors().real();
         // std::cout<< "eigen_vectors" << eigen_vectors.real() << std::endl;
         // std::cout<< "eigen_values" << eigen_values.real() << std::endl;
 
         for(int i=0; i<eigen_values.size(); i++){
-            std::tuple<float, Eigen::VectorXf> vec_and_val(eigen_values[i], eigen_vectors.row(i));
+            std::tuple<double, Eigen::Vector3d> vec_and_val(eigen_values[i], eigen_vectors.row(i));
             eigen_vectors_and_values.push_back(vec_and_val);
         }
         __gnu_parallel::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
-            [&](const std::tuple<float, Eigen::VectorXf>& a, const std::tuple<float, Eigen::VectorXf>& b) -> bool{ 
+            [&](const std::tuple<double, Eigen::Vector3d>& a, const std::tuple<double, Eigen::Vector3d>& b) -> bool{ 
                 return std::get<0>(a) > std::get<0>(b); 
         });
         // std::cout<< "eigen_vectors_and_values" << std::endl;
@@ -59,7 +59,7 @@ namespace hagen {
             std::cout<< "No eiegen values has found" << std::endl;
             return;
         }
-        eigen_vectors = Eigen::MatrixXf::Zero(number_of_values, std::get<1>(eigen_vectors_and_values[0]).size());
+        eigen_vectors = Eigen::MatrixXd::Zero(number_of_values, std::get<1>(eigen_vectors_and_values[0]).size());
         for(int i=0; i<number_of_values; i++){
             eigen_vectors.row(i) = std::get<1>(eigen_vectors_and_values[i]);
         }
@@ -74,10 +74,10 @@ namespace hagen {
             std::cout<< "No eiegen values has found" << std::endl;
             return;
         }
-        reconstructed_matrix = Eigen::MatrixXf::Zero(N, M);
+        reconstructed_matrix = Eigen::MatrixXd::Zero(N, M);
         for(auto m(0); m<M; m++){
-            Eigen::MatrixXf buf = principal_components.col(m)*eigen_vectors.col(m).transpose();
-            Eigen::MatrixXf reversed_buf = Eigen::MatrixXf::Zero(buf.rows(), buf.cols());
+            Eigen::MatrixXd buf = principal_components.col(m)*eigen_vectors.col(m).transpose();
+            Eigen::MatrixXd reversed_buf = Eigen::MatrixXd::Zero(buf.rows(), buf.cols());
             for(auto k(0); k<buf.rows(); k++){
                 reversed_buf.row(k) = buf.row(buf.rows()-k-1);
             }
@@ -88,27 +88,27 @@ namespace hagen {
         // std::cout<< "reconstructed_matrix: "<< reconstructed_matrix << std::endl;
     }
 
-    Eigen::VectorXf SingularSpectrumAnalysis::get_reconstructed_signal(int number_comps){
-        Eigen::MatrixXf gg = reconstructed_matrix.transpose();
+    Eigen::Vector3d SingularSpectrumAnalysis::get_reconstructed_signal(int number_comps){
+        Eigen::MatrixXd gg = reconstructed_matrix.transpose();
         if(number_comps> reconstructed_matrix.cols()){
             number_comps = reconstructed_matrix.cols();
         }
-        Eigen::VectorXf reconstructed_final_signal
+        Eigen::Vector3d reconstructed_final_signal
          = reconstructed_matrix.block(0, 0, reconstructed_matrix.rows(), number_comps).rowwise().sum();
         return reconstructed_final_signal;
     }
 
     void SingularSpectrumAnalysis::calculate_covariance_matrix_toeplitz(){
-        Eigen::VectorXf correlation = cross_corelation(feature_vector, feature_vector, M-1);
-        Eigen::VectorXf coff = correlation.segment(M-1, M);
+        Eigen::Vector3d correlation = cross_corelation(feature_vector, feature_vector, M-1);
+        Eigen::Vector3d coff = correlation.segment(M-1, M);
         covariance_matrix = get_toeplitz_matrix(coff, coff);
         // std::cout<< "covariance_matrix: "<< covariance_matrix << std::endl;
     }
 
-    Eigen::MatrixXf SingularSpectrumAnalysis::get_toeplitz_matrix(Eigen::VectorXf c, Eigen::VectorXf r){
+    Eigen::MatrixXd SingularSpectrumAnalysis::get_toeplitz_matrix(Eigen::Vector3d c, Eigen::Vector3d r){
         int size_c = c.size();
         int size_r = r.size();
-        Eigen::MatrixXf toeplitz_matrix = Eigen::MatrixXf::Zero(size_c, size_r);
+        Eigen::MatrixXd toeplitz_matrix = Eigen::MatrixXd::Zero(size_c, size_r);
         for(auto i(0); i<size_c; i++){
             int index_c = i;
             for(auto j(0); j<=i; j++){
@@ -124,16 +124,16 @@ namespace hagen {
         return toeplitz_matrix;
     }
 
-    Eigen::VectorXf SingularSpectrumAnalysis::cross_corelation(Eigen::VectorXf x, Eigen::VectorXf y, int max_lags){
+    Eigen::Vector3d SingularSpectrumAnalysis::cross_corelation(Eigen::Vector3d x, Eigen::Vector3d y, int max_lags){
         auto Nx = x.size();
         auto Ny = y.size();
         if(Nx != Ny){
             std::cout<<" Both vectors must have same dimentions" << std::endl;
         }
         int n = Nx + Ny -1;
-        Eigen::VectorXf c(n);
+        Eigen::Vector3d c(n);
         for(int j=0; j<Ny; j++){
-            float sum_all = 0;
+            double sum_all = 0;
             for(int k=0; k<=j; k++){
                 sum_all += y[k]*x[Nx-j-1+k];
             }
@@ -144,7 +144,7 @@ namespace hagen {
             c[i] = c[Ny-2-j];
             j++;
         }
-        float factor = std::sqrt(x.dot(x) * y.dot(y));
+        double factor = std::sqrt(x.dot(x) * y.dot(y));
         if(factor != 0){
             c = c.array()/factor;
         }
@@ -153,15 +153,15 @@ namespace hagen {
         }
         auto points =  2*max_lags+1;
         // std::cout<< c.transpose() << std::endl;
-        Eigen::VectorXf res = c.segment(Nx-1-max_lags, points);
+        Eigen::Vector3d res = c.segment(Nx-1-max_lags, points);
         return res;
     }
 
-    Eigen::VectorXf SingularSpectrumAnalysis::conv(Eigen::VectorXf f, Eigen::VectorXf g) {
+    Eigen::Vector3d SingularSpectrumAnalysis::conv(Eigen::Vector3d f, Eigen::Vector3d g) {
         int const nf = f.size();
         int const ng = g.size();
         int const n  = nf + ng - 1;
-        Eigen::VectorXf out(n);
+        Eigen::Vector3d out(n);
         for(auto i(0); i < n; ++i) {
             int const jmn = (i >= ng - 1)? i - (ng - 1) : 0;
             int const jmx = (i <  nf - 1)? i : nf - 1;
@@ -172,7 +172,7 @@ namespace hagen {
         return out; 
     }
 
-    Eigen::VectorXf SingularSpectrumAnalysis::execute(int number_of_components, bool is_normalized){
+    Eigen::Vector3d SingularSpectrumAnalysis::execute(int number_of_components, bool is_normalized){
         if(is_normalized){
             normalize();
         }
@@ -196,8 +196,8 @@ namespace hagen {
         save_mat(eigen_vectors, "eigen_vectors_" + std::to_string(i));
     }
 
-    void SingularSpectrumAnalysis::save_vec(Eigen::VectorXf vec, std::string name){
-        std::vector<float> feature_vector_np;
+    void SingularSpectrumAnalysis::save_vec(Eigen::Vector3d vec, std::string name){
+        std::vector<double> feature_vector_np;
         int size_of = vec.size(); 
         for(auto i(0); i<size_of; i++){
             feature_vector_np.push_back(vec[i]);
@@ -206,8 +206,8 @@ namespace hagen {
         cnpy::npy_save(location ,&feature_vector_np[0],{(unsigned int)1, (unsigned int)size_of, (unsigned int)1},"w");
     }
 
-    void SingularSpectrumAnalysis::save_mat(Eigen::MatrixXf matrix, std::string name){
-        std::vector<float> matrix_np;
+    void SingularSpectrumAnalysis::save_mat(Eigen::MatrixXd matrix, std::string name){
+        std::vector<double> matrix_np;
         int rows = matrix.rows(); 
         int cols = matrix.cols(); 
         for(auto i(0); i<rows; i++){

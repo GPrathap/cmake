@@ -14,7 +14,7 @@ void SphericalProjection::InitFromPoints(kamaz::hagen::PointCloudPtr point_could
   }
   for (int index = 0; index < num_pts; ++index) {
     const auto& point = point_could_ptr->points[index];
-    float dist_to_sensor = sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
+    double dist_to_sensor = sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
     if (dist_to_sensor < 0.4f or dist_to_sensor > this->_params.getMaxDistance()) {
       // std::cout<< dist_to_sensor << std::endl; 
       continue;
@@ -28,7 +28,7 @@ void SphericalProjection::InitFromPoints(kamaz::hagen::PointCloudPtr point_could
     //std::cout<< "bin-->" << bin_rows << " : " << bin_cols << " : " << std::endl;
     // adding point pointer
     this->at(bin_rows, bin_cols).points().push_back(index);
-    auto& current_written_depth = this->_depth_image.template at<float>(bin_rows, bin_cols);
+    auto& current_written_depth = this->_depth_image.template at<double>(bin_rows, bin_cols);
     std::tuple<int, int> index_(bin_rows, bin_cols); 
     depth_cloud_mapper[index] = point;
     if (current_written_depth < dist_to_sensor) {

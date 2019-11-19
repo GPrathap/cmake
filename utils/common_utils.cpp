@@ -5,36 +5,36 @@ namespace hagen{
 
 
   //https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d/476311#476311
-  void CommonUtils::get_roration_matrix(Eigen::Vector3f a
-      , Eigen::Vector3f b, Eigen::Matrix3f& r){
+  void CommonUtils::get_roration_matrix(Eigen::Vector3d a
+      , Eigen::Vector3d b, Eigen::Matrix3d& r){
         a = a/a.norm();
-        float b_norm = b.norm();
+        double b_norm = b.norm();
         b = b/b_norm;
-        Eigen::Vector3f v = a.cross(b);
-        float s = v.norm();
-        float c = a.dot(b);
-        Eigen::Matrix3f vx;
+        Eigen::Vector3d v = a.cross(b);
+        double s = v.norm();
+        double c = a.dot(b);
+        Eigen::Matrix3d vx;
         vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
-        r = Eigen::Matrix3f::Identity(3,3);
+        r = Eigen::Matrix3d::Identity(3,3);
         if(s != 0 ){
             r = r + vx + vx*vx*((1-c)/std::pow(s, 2));
         }
   }
 
-  void CommonUtils::get_point_on_the_trajectory(Eigen::VectorXf way_point, Eigen::VectorXf start_point,  Eigen::VectorXf& path_position){
+  void CommonUtils::get_point_on_the_trajectory(Eigen::Vector3d way_point, Eigen::Vector3d start_point,  Eigen::Vector3d& path_position){
         path_position << way_point[0]*voxel_side_length + init_min_point[0]
         , way_point[1]*voxel_side_length + init_min_point[1]
         , way_point[2]*voxel_side_length + init_min_point[2], 1.0;
         path_position = path_position + start_point;
   }
 
-  float CommonUtils::get_cost_of_path(std::vector<Eigen::VectorXf> path1){
+  double CommonUtils::get_cost_of_path(std::vector<Eigen::Vector3d> path1){
     int size_of_path = path1.size();
-    Eigen::VectorXf path1_dis(size_of_path);
+    Eigen::Vector3d path1_dis(size_of_path);
     for(int i=0; i< path1.size(); i++){
         path1_dis[i] = path1[i].head(3).norm();
     }
-    Eigen::MatrixXf smoothed_map  = Eigen::MatrixXf::Zero(size_of_path, size_of_path);
+    Eigen::MatrixXd smoothed_map  = Eigen::MatrixXd::Zero(size_of_path, size_of_path);
     for(int i=0; i<size_of_path-1; i++){
       smoothed_map(i,i) = 2;
       smoothed_map(i,i+1) = smoothed_map(i+1,i) = -1;
@@ -45,51 +45,65 @@ namespace hagen{
 
   // https://geus.wordpress.com/2011/09/15/how-to-represent-a-3d-normal-function-with-ros-rviz/
   // https://ma.ttpitk.in/blog/?p=368&cpage=1
-  void CommonUtils::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, 
-            Eigen::VectorXf cent, Eigen::MatrixXf& container){
+  void CommonUtils::generate_samples_from_ellipsoid(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat, 
+            Eigen::Vector3d cent, Eigen::MatrixXd& container){
 
         int ndims = container.cols();
         int npts = container.rows();
-        Eigen::EigenSolver<Eigen::MatrixXf> eigensolver;
+        std::cout<< "====11" << std::endl;
+        Eigen::EigenSolver<Eigen::MatrixXd> eigensolver;
+        std::cout<< "====11" << std::endl;
         eigensolver.compute(covmat);
-        Eigen::VectorXf eigen_values = eigensolver.eigenvalues().real();
-        Eigen::MatrixXf eigen_vectors = eigensolver.eigenvectors().real();
-        std::vector<std::tuple<float, Eigen::VectorXf>> eigen_vectors_and_values; 
-
+        std::cout<< "====11" << std::endl;
+        Eigen::Vector3d eigen_values = eigensolver.eigenvalues().real();
+        std::cout<< "====11" << std::endl;
+        Eigen::MatrixXd eigen_vectors = eigensolver.eigenvectors().real();
+        std::cout<< "====11" << std::endl;
+        std::vector<std::tuple<double, Eigen::Vector3d>> eigen_vectors_and_values; 
+        std::cout<< "====11" << std::endl;
         for(int i=0; i<eigen_values.size(); i++){
-            std::tuple<float, Eigen::VectorXf> vec_and_val(eigen_values[i], eigen_vectors.row(i));
+            std::tuple<double, Eigen::Vector3d> vec_and_val(eigen_values[i], eigen_vectors.row(i));
             eigen_vectors_and_values.push_back(vec_and_val);
         }
+        std::cout<< "====22" << std::endl;
         std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
-            [&](const std::tuple<float, Eigen::VectorXf>& a, const std::tuple<float, Eigen::VectorXf>& b) -> bool{ 
+            [&](const std::tuple<double, Eigen::Vector3d>& a, const std::tuple<double, Eigen::Vector3d>& b) -> bool{ 
                 return std::get<0>(a) <= std::get<0>(b); 
         });
+        std::cout<< "====22" << std::endl;
         int index = 0;
         for(auto const vect : eigen_vectors_and_values){
             eigen_values(index) = std::get<0>(vect);
             eigen_vectors.row(index) = std::get<1>(vect);
             index++;
         }
+        std::cout<< "====33" << std::endl;
 
-        Eigen::MatrixXf eigen_values_as_matrix = eigen_values.asDiagonal();
+        Eigen::MatrixXd eigen_values_as_matrix = eigen_values.asDiagonal();
 
         std::random_device rd{};
         std::mt19937 gen{rd()};  
-        std::uniform_real_distribution<float> dis(0, 1);
+        std::uniform_real_distribution<double> dis(0, 1);
         std::normal_distribution<double> normal_dis{0.0f, 1.0f};
- 
-        Eigen::MatrixXf pt = Eigen::MatrixXf::Zero(npts, ndims).unaryExpr([&](float dummy){return (float)normal_dis(gen);});
-        Eigen::VectorXf rs = Eigen::VectorXf::Zero(npts).unaryExpr([&](float dummy){return dis(gen);});
-        Eigen::VectorXf fac = pt.array().pow(2).rowwise().sum();
-        Eigen::VectorXf fac_sqrt = fac.array().sqrt();
-        Eigen::VectorXf rs_pow = rs.array().pow(1.0/ndims);
+        std::cout<< "====44" << std::endl;
+        Eigen::MatrixXd pt = Eigen::MatrixXd::Zero(npts, ndims).unaryExpr([&](double dummy){return (double)normal_dis(gen);});
+        std::cout<< "====22" << std::endl;
+        Eigen::VectorXd rs = Eigen::VectorXf::Zero(npts).unaryExpr([&](double dummy){return dis(gen);});
+        std::cout<< "====22" << std::endl;
+        Eigen::VectorXd fac = pt.array().pow(2).rowwise().sum();
+        std::cout<< "====22" << std::endl;
+        Eigen::VectorXd fac_sqrt = fac.array().sqrt();
+        std::cout<< "====22" << std::endl;
+        Eigen::VectorXd rs_pow = rs.array().pow(1.0/ndims);
+        std::cout<< "====22" << std::endl;
         fac = rs_pow.array()/fac_sqrt.array();
-        Eigen::VectorXf d = eigen_values_as_matrix.diagonal().array().sqrt();
+        std::cout<< "====22" << std::endl;
+        Eigen::VectorXd d = eigen_values_as_matrix.diagonal().array().sqrt();
         // std::cout << "============================================>>>>>>" << npts << std::endl;
         for(auto i(0); i<npts; i++){
             container.row(i) = fac(i)*pt.row(i).array();
-            Eigen::MatrixXf  fff = (container.row(i).array()*d.transpose().array());
-            Eigen::VectorXf bn = rotation_mat*fff.transpose();
+            Eigen::MatrixXd  fff = (container.row(i).array()*d.transpose().array());
+            Eigen::VectorXd bn = rotation_mat*fff.transpose();
             container.row(i) = bn.array() + cent.head(3).array();
         }
         // std::cout << "points: " << container << std::endl;
@@ -97,8 +111,8 @@ namespace hagen{
 
 
 
-    // dji_sdk::Gimbal CommonUtils::get_gimbal_msg(int mode, float roll, float pitch
-    //         , float yaw){
+    // dji_sdk::Gimbal CommonUtils::get_gimbal_msg(int mode, double roll, double pitch
+    //         , double yaw){
     //     dji_sdk::Gimbal gimbal_angle;
     //     gimbal_angle.header.stamp = ros::Time::now();
     //     gimbal_angle.header.frame_id = world_frame_id;
@@ -109,8 +123,8 @@ namespace hagen{
     //     return gimbal_angle;
        
     // // }
-    // // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path,
-    //     Eigen::MatrixXf covmat, int id_, std::string name_space){ 
+    // // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::Vector3d _point_on_path,
+    //     Eigen::MatrixXd covmat, int id_, std::string name_space){ 
     //     visualization_msgs::Marker marker;
     //     marker.header.frame_id = world_frame_id;
     //     marker.header.stamp = ros::Time();
@@ -136,7 +150,7 @@ namespace hagen{
     //     return marker;
     // }
 
-    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path, ColorRGBA color_of_qupter, int id_, std::string name_space){ 
+    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::Vector3d _point_on_path, ColorRGBA color_of_qupter, int id_, std::string name_space){ 
     //     visualization_msgs::Marker marker;
     //     marker.header.frame_id = world_frame_id;
     //     marker.type = visualization_msgs::Marker::CUBE;
@@ -157,8 +171,8 @@ namespace hagen{
     //     return marker;
     // }
 
-    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::VectorXf _point_on_path,
-    //     Eigen::MatrixXf covmat, Eigen::Quaternion<double> q, int id_, std::string name_space){ 
+    // visualization_msgs::Marker CommonUtils::create_marker_point(Eigen::Vector3d _point_on_path,
+    //     Eigen::MatrixXd covmat, Eigen::Quaternion<double> q, int id_, std::string name_space){ 
     //     visualization_msgs::Marker marker;
     //     marker.header.frame_id = world_frame_id;
     //     marker.header.stamp = ros::Time();
@@ -184,7 +198,7 @@ namespace hagen{
     //     return marker;
     // }
 
-    // geometry_msgs::PoseStamped CommonUtils::constructPoseStamped(Eigen::VectorXf path_position){
+    // geometry_msgs::PoseStamped CommonUtils::constructPoseStamped(Eigen::Vector3d path_position){
     //     geometry_msgs::PoseStamped pose;
     //     pose.header.stamp = ros::Time::now();
     //     pose.header.frame_id = world_frame_id;

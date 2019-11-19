@@ -33,7 +33,7 @@ namespace hagen {
         namespace bg = boost::geometry;
         namespace bgi = boost::geometry::index;
         class SearchSpace {
-            typedef bg::model::point<float, 3, bg::cs::cartesian> point_t;
+            typedef bg::model::point<double, 3, bg::cs::cartesian> point_t;
             typedef bg::model::box<point_t> box_t;
             typedef std::pair<box_t, uint64_t> value_t;
             typedef boost::geometry::box_view<box_t> box_view;
@@ -47,8 +47,8 @@ namespace hagen {
 
                 struct Rect {
                     Rect()  {}
-                    Rect(float a_minX, float a_minY, float a_minZ, float a_maxX
-                    , float a_maxY, float a_maxZ){
+                    Rect(double a_minX, double a_minY, double a_minZ, double a_maxX
+                    , double a_maxY, double a_maxZ){
                         min[0] = a_minX;
                         min[1] = a_minY;
                         min[2] = a_minZ;
@@ -57,8 +57,8 @@ namespace hagen {
                         max[1] = a_maxY;
                         max[2] = a_maxZ;
                     }
-                    float min[3];
-                    float max[3];
+                    double min[3];
+                    double max[3];
                 };
 
                 struct Random_call
@@ -76,54 +76,54 @@ namespace hagen {
                     std::uniform_int_distribution<int> _uniform_int;
                 };
 
-                void init_search_space(Eigen::VectorXf dimension_lengths
-                        , int number_of_rand_points, float cube_size, float avoidance_width
-                        , int number_of_tries_at_time, float voxel_side_length);
+                void init_search_space(Eigen::VectorXd dimension_lengths
+                        , int number_of_rand_points, double cube_size, double avoidance_width
+                        , int number_of_tries_at_time, double voxel_side_length);
                 void generate_random_objects(int num_of_objects);
                 void insert_obstacles(std::vector<Rect> obstacles);
                 void insert_trajectory(std::vector<Rect> trajectory);
                 void search_all_obstacles();
                 bool obstacle_free(Rect search_rect);
-                bool obstacle_free(Eigen::VectorXf search_rect);
-                Eigen::VectorXf sample_free();
-                Eigen::VectorXf sample();
-                std::vector<float> linspace(float start_in, float end_in, float step_size);
-                bool collision_free(Eigen::VectorXf start, Eigen::VectorXf end, int r);
-                void insert_obstacle(Eigen::VectorXf index);
-                std::vector<Eigen::VectorXf> nearest_obstacles(Eigen::VectorXf x
+                bool obstacle_free(Eigen::Vector3d search_rect);
+                Eigen::Vector3d sample_free();
+                Eigen::Vector3d sample();
+                std::vector<double> linspace(double start_in, double end_in, double step_size);
+                bool collision_free(Eigen::Vector3d start, Eigen::Vector3d end, int r);
+                void insert_obstacle(Eigen::Vector3d index);
+                std::vector<Eigen::Vector3d> nearest_obstacles(Eigen::Vector3d x
                                     , int max_neighbours);
-                std::vector<Eigen::VectorXf> 
-                        nearest_point_on_trajectory(Eigen::VectorXf x
+                std::vector<Eigen::Vector3d> 
+                        nearest_point_on_trajectory(Eigen::Vector3d x
                         , int max_neighbours);
                 
-                void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
-                , Eigen::VectorXf cent);
+                void generate_samples_from_ellipsoid(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat
+                , Eigen::Vector3d cent);
 
 
-                void generate_search_sapce(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat
-                        , Eigen::VectorXf cent, int npts);
-                std::vector<float> arange(float start, float stop, float step);
+                void generate_search_sapce(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat
+                        , Eigen::Vector3d cent, int npts);
+                std::vector<double> arange(double start, double stop, double step);
                 void save_samples(int index);
                 void save_search_space(int index);
                 void update_obstacles_map(std::vector<Rect> way_points);
-                std::vector<Eigen::VectorXf> nearest_obstacles_to_current_pose(Eigen::VectorXf x
+                std::vector<Eigen::Vector3d> nearest_obstacles_to_current_pose(Eigen::Vector3d x
                                 , int max_neighbours);
-                float get_free_space(Eigen::VectorXf pose, std::vector<Eigen::VectorXf>& obs_poses
+                double get_free_space(Eigen::Vector3d pose, std::vector<Eigen::Vector3d>& obs_poses
                                                     , int num_of_obs);
-                float get_free_space(Eigen::VectorXf pose);
-                void insert_vertex(Eigen::VectorXf index);
-                std::vector<Eigen::VectorXf> nearest_veties(Eigen::VectorXf x, int max_neighbours);
+                double get_free_space(Eigen::Vector3d pose);
+                void insert_vertex(Eigen::Vector3d index);
+                std::vector<Eigen::Vector3d> nearest_veties(Eigen::Vector3d x, int max_neighbours);
                 
                 int dementions = 3;
-                Eigen::VectorXf dim_lengths;
+                Eigen::VectorXd dim_lengths;
                 std::vector<uint64_t> res;
-                std::shared_ptr<Eigen::MatrixXf> random_points_tank;
-                float cube_length = 2;
-                float avoidance_width = 1.5;
+                std::shared_ptr<Eigen::MatrixXd> random_points_tank;
+                double cube_length = 2;
+                double avoidance_width = 1.5;
                 int number_of_rand_points;
                 Random_call* random_call;
                 bool use_whole_search_sapce = false;
-                float voxel_side_length = 0.1f;
+                double voxel_side_length = 0.1f;
 
                 struct GeometryRTreeSearchCallback
                 {

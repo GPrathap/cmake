@@ -41,21 +41,21 @@ class Radians {
  public:
   class IsRadians {};  // a tag to prevent using raw constructor
   Radians() : _raw_angle{0}, _valid{false} {}
-  explicit constexpr Radians(IsRadians, float angle)
+  explicit constexpr Radians(IsRadians, double angle)
       : _raw_angle{angle}, _valid{true} {}
 
-  inline float val() const { return _raw_angle; }
+  inline double val() const { return _raw_angle; }
   inline bool valid() const { return _valid; }
 
-  static Radians FromRadians(float radians) {
+  static Radians FromRadians(double radians) {
     return Radians{IsRadians{}, radians};
   }
 
-  static Radians FromDegrees(float angle) {
-    return Radians{IsRadians{}, static_cast<float>(angle * M_PI / 180.)};
+  static Radians FromDegrees(double angle) {
+    return Radians{IsRadians{}, static_cast<double>(angle * M_PI / 180.)};
   }
 
-  float ToDegrees() const { return 180. * _raw_angle / M_PI; }
+  double ToDegrees() const { return 180. * _raw_angle / M_PI; }
 
   Radians operator-(const Radians& other) const {
     return FromRadians(_raw_angle - other._raw_angle);
@@ -75,15 +75,15 @@ class Radians {
     return *this;
   }
 
-  Radians operator/(const float& num) const {
+  Radians operator/(const double& num) const {
     return FromRadians(_raw_angle / num);
   }
 
-  float operator/(const Radians& other) const {
+  double operator/(const Radians& other) const {
     return _raw_angle / other._raw_angle;
   }
 
-  Radians operator*(const float& num) const {
+  Radians operator*(const double& num) const {
     return FromRadians(_raw_angle * num);
   }
 
@@ -91,15 +91,15 @@ class Radians {
 
   bool operator<(const Radians& other) const {
     return _raw_angle <
-           other._raw_angle - std::numeric_limits<float>::epsilon();
+           other._raw_angle - std::numeric_limits<double>::epsilon();
   }
   bool operator>(const Radians& other) const {
     return _raw_angle >
-           other._raw_angle + std::numeric_limits<float>::epsilon();
+           other._raw_angle + std::numeric_limits<double>::epsilon();
   }
 
   void Normalize(const Radians& from = 0_deg, const Radians& to = 360_deg) {
-    float diff = (to - from).val();
+    double diff = (to - from).val();
     while (_raw_angle < from.val()) {
       _raw_angle += diff;
     }
@@ -123,7 +123,7 @@ class Radians {
     return Radians::FromDegrees(floor(angle.ToDegrees()));
   }
 
-  float _raw_angle;
+  double _raw_angle;
  protected:
   bool _valid;
 };
@@ -132,18 +132,18 @@ class Radians {
 
 constexpr kamaz::hagen::Radians operator"" _rad(long double angle) {
   return kamaz::hagen::Radians{kamaz::hagen::Radians::IsRadians{},
-                                   static_cast<float>(angle)};
+                                   static_cast<double>(angle)};
 }
 
 constexpr kamaz::hagen::Radians operator"" _deg(
     unsigned long long int angle) {
   return kamaz::hagen::Radians{kamaz::hagen::Radians::IsRadians{},
-                                   static_cast<float>(angle * M_PI / 180.0)};
+                                   static_cast<double>(angle * M_PI / 180.0)};
 }
 
 constexpr kamaz::hagen::Radians operator"" _deg(long double angle) {
   return kamaz::hagen::Radians{kamaz::hagen::Radians::IsRadians{},
-                                   static_cast<float>(angle * M_PI / 180.0)};
+                                   static_cast<double>(angle * M_PI / 180.0)};
 }
 
 #endif 

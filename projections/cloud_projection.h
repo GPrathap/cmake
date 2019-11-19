@@ -81,7 +81,7 @@ class CloudProjection {
    *
    * @param[in]  corrections  A vector of correction in depth for every beam.
    */
-  inline void SetCorrections(const std::vector<float>& corrections) {
+  inline void SetCorrections(const std::vector<double>& corrections) {
     _corrections = corrections;
   }
 
@@ -98,7 +98,7 @@ class CloudProjection {
 
   cv::Mat _depth_image;
 
-  std::vector<float> _corrections;
+  std::vector<double> _corrections;
 };
 
 /**

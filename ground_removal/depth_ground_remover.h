@@ -37,10 +37,10 @@ public:
 
   struct HagenFilterOptions {
      int bin_size;
-     float ground_remove_angle;
+     double ground_remove_angle;
      int _counter;
      int step;
-     float depth_threshold;
+     double depth_threshold;
      int window_size;
      int kernel_size;
      double depth_expiration_time;
@@ -78,9 +78,9 @@ public:
   }
 
   template <typename T>
-      void ZeroOutGroundBFS(float threshold, T& cloud_ptr_current_ptr, int kernel_size) {
+      void ZeroOutGroundBFS(double threshold, T& cloud_ptr_current_ptr, int kernel_size) {
 
-    cv::Mat _label_image = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<float>::type);
+    cv::Mat _label_image = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<double>::type);
     std::vector<int> selected_depth_points;
     depth_img_cols =   depth_img_pointer.cols;
     depth_img_rows = depth_img_pointer.rows;
@@ -88,11 +88,11 @@ public:
     for (int c = 0; c < depth_img_cols; ++c) {
       int selected_r = -1;
       int selected_c = -1;
-      float selected_depth = 5;
+      double selected_depth = 5;
       bool depth_is_set = false;
       for(int r = depth_img_rows - 1; r>=0; r--){
-        auto depth = depth_img_pointer.at<float>(r, c);
-        auto angle = angle_img_pointer.at<float>(r, c);
+        auto depth = depth_img_pointer.at<double>(r, c);
+        auto angle = angle_img_pointer.at<double>(r, c);
         auto current_coord = Point(r, c, angle, depth);
         int index = depth_img_cols*r + c;
         depth_points[index] = current_coord;
@@ -144,14 +144,14 @@ public:
   Radians GetLineAngle(const cv::Mat& depth_image, int col, int row_curr, int row_neigh);
 
   void RepairDepth( cv::Mat& no_ground_image, int step,
-                      float depth_threshold, int index_);
+                      double depth_threshold, int index_);
 
   void labelOneComponent(int label, kamaz::hagen::Point& start,
-                        cv::Mat& label_image, float threshold);
+                        cv::Mat& label_image, double threshold);
 
   int WrapCols(int col, int _label_image_cols);
   ProjectionParams _params;
-  float _eps = 0.001f;
+  double _eps = 0.001f;
   std::array<Point, 4> adjacent = {{Point(-1,0), Point(1,0), Point(0,-1)
                           , Point(0,1)}};
   mutable int _counter = 0;
@@ -163,9 +163,9 @@ public:
   int depth_img_cols;
   int depth_img_rows;
   int index_upper_limit;
-  float previous_cloud_time_stamp;
+  double previous_cloud_time_stamp;
   // ros::Time current_cloud_time_stamp;
-  float max_time_limit = 1;
+  double max_time_limit = 1;
   std::deque<DepthCatcher> depth_catcher;
   std::map<int, int> local_maxima_poses; 
 };

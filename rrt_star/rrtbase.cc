@@ -27,14 +27,14 @@ namespace hagen {
         trees[0] = tree;
     }
 
-    void RRTBase::add_vertex(int tree, Eigen::VectorXf v){
+    void RRTBase::add_vertex(int tree, Eigen::Vector3d v){
         trees[tree].V.insert_vertex(v);
         trees[tree].v_count += 1;
         sample_taken += 1;
     }
 
-    void RRTBase::add_edge(int tree, Eigen::VectorXf child, Eigen::VectorXf parent){
-        std::array<float, 3> child_ = {child[0], child[1], child[2]};
+    void RRTBase::add_edge(int tree, Eigen::Vector3d child, Eigen::Vector3d parent){
+        std::array<double, 3> child_ = {child[0], child[1], child[2]};
         trees[tree].E[child_] = parent;
     }
 
@@ -49,33 +49,33 @@ namespace hagen {
         std::cout<<"RRTBase::printEdge===="<< std::endl;
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::nearby_vertices(int tree, Eigen::VectorXf x
+    std::vector<Eigen::Vector3d> RRTBase::nearby_vertices(int tree, Eigen::Vector3d x
                                             , int max_neighbors){
         return trees[tree].V.nearest_veties(x, max_neighbors);
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::nearby_waypoints(int tree, Eigen::VectorXf x
+    std::vector<Eigen::Vector3d> RRTBase::nearby_waypoints(int tree, Eigen::Vector3d x
                                             , int max_neighbors){
         return trees[tree].V.nearest_point_on_trajectory(x, max_neighbors);
     }
 
-    Eigen::VectorXf RRTBase::get_nearest(int tree, Eigen::VectorXf x){
+    Eigen::Vector3d RRTBase::get_nearest(int tree, Eigen::Vector3d x){
         auto veties = trees[tree].V.nearest_veties(x, 1);
         if(veties.size()==0){
             BOOST_LOG_TRIVIAL(warning) << FYEL("There is no any neighbors");
-            Eigen::VectorXf temp(3);
+            Eigen::Vector3d temp(3);
             temp << -1, -1, -1;
             return temp;
         }
         return veties[0];
     }
 
-    bool RRTBase::check_none_vector(Eigen::VectorXf  vector){
+    bool RRTBase::check_none_vector(Eigen::Vector3d  vector){
         return (vector[0]<0)? true: false;
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::new_and_near(int tree, Eigen::VectorXf q){
-        std::vector<Eigen::VectorXf> new_and_near_vec;
+    std::vector<Eigen::Vector3d> RRTBase::new_and_near(int tree, Eigen::Vector2d q){
+        std::vector<Eigen::Vector3d> new_and_near_vec;
         auto x_rand = X.sample_free();
         auto x_nearest = get_nearest(tree, x_rand);
         auto x_new = steer(x_nearest, x_rand, q[0]);
@@ -92,16 +92,16 @@ namespace hagen {
         sample_taken += 1;
         new_and_near_vec.push_back(x_new);
         new_and_near_vec.push_back(x_nearest);
-        std::cout<<"RRTBase::new_and_near: new_and_near_vec "<< new_and_near_vec.size() <<std::endl;
+        // std::cout<<"RRTBase::new_and_near: new_and_near_vec "<< new_and_near_vec.size() <<std::endl;
         return new_and_near_vec;
     }
 
-    Eigen::VectorXf RRTBase::steer(Eigen::VectorXf start, Eigen::VectorXf goal, float distance){
+    Eigen::Vector3d RRTBase::steer(Eigen::Vector3d start, Eigen::Vector3d goal, double distance){
         auto ab = goal - start;
         auto ba_length = ab.norm();
         auto unit_vector = ab/ba_length;
         auto scaled_vector = unit_vector*distance;
-        Eigen::VectorXf steered_point = start + scaled_vector;
+        Eigen::Vector3d steered_point = start + scaled_vector;
         int j = 0;
         for(int i=0; i<6; i+=2){
             if(steered_point[j] < X.dim_lengths[i]){
@@ -115,7 +115,7 @@ namespace hagen {
         return steered_point;
     }
 
-    bool RRTBase::connect_to_point(int tree, Eigen::VectorXf x_a, Eigen::VectorXf x_b){
+    bool RRTBase::connect_to_point(int tree, Eigen::Vector3d x_a, Eigen::Vector3d x_b){
         // std::cout<< "RRTBase::connect_to_point: "<< x_b.transpose() << std::endl;
         // std::cout<< "RRTBase::connect_to_point: "<< x_a.transpose() << std::endl;
 
@@ -160,29 +160,29 @@ namespace hagen {
         setEdge(x_goal, x_nearest, tree);
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::get_path(){
-        std::vector<Eigen::VectorXf> path;
+    std::vector<Eigen::Vector3d> RRTBase::get_path(){
+        std::vector<Eigen::Vector3d> path;
         if(can_connect_to_goal(0)){
              BOOST_LOG_TRIVIAL(info) << FCYN("Can connect to goal");
             connect_to_the_goal(0);
             return reconstruct_path(0, x_init, x_goal);
         }
-         BOOST_LOG_TRIVIAL(info) << FCYN("Could not connect to goal");
+        BOOST_LOG_TRIVIAL(info) << FCYN("Could not connect to goal");
         return path;
     }
 
-    bool RRTBase::isEdge(Eigen::VectorXf point, int tree){
-        std::array<float, 3> _key = {point[0], point[1], point[2]};
+    bool RRTBase::isEdge(Eigen::Vector3d point, int tree){
+        std::array<double, 3> _key = {point[0], point[1], point[2]};
         return (trees[tree].E.count(_key)) > 0 ? true : false;
     }
 
-    Eigen::VectorXf RRTBase::getEdge(Eigen::VectorXf point, int tree){
-        std::array<float, 3> _key = {point[0], point[1], point[2]};
+    Eigen::Vector3d RRTBase::getEdge(Eigen::Vector3d point, int tree){
+        std::array<double, 3> _key = {point[0], point[1], point[2]};
         return trees[tree].E[_key];
     }
 
-    void RRTBase::setEdge(Eigen::VectorXf key, Eigen::VectorXf value, int tree){
-        std::array<float, 3> _key = {key[0], key[1], key[2]};
+    void RRTBase::setEdge(Eigen::Vector3d key, Eigen::Vector3d value, int tree){
+        std::array<double, 3> _key = {key[0], key[1], key[2]};
         trees[tree].E[_key] = value;
     }
 
@@ -190,8 +190,8 @@ namespace hagen {
         return trees[tree].E.size();
     }
 
-    std::vector<Eigen::VectorXf> RRTBase::reconstruct_path(int tree, Eigen::VectorXf x_init, Eigen::VectorXf x_goal){
-        std::vector<Eigen::VectorXf> path;
+    std::vector<Eigen::Vector3d> RRTBase::reconstruct_path(int tree, Eigen::Vector3d x_init, Eigen::Vector3d x_goal){
+        std::vector<Eigen::Vector3d> path;
         path.push_back(x_goal);
         auto current = x_goal;
         
@@ -227,11 +227,11 @@ namespace hagen {
         return path; 
     }
 
-    bool RRTBase::is_equal_vectors(Eigen::VectorXf a, Eigen::VectorXf b){
+    bool RRTBase::is_equal_vectors(Eigen::Vector3d a, Eigen::Vector3d b){
         return ((a - b).norm()< min_acceptable) ? true : false;
     }
 
-    bool RRTBase::check_solution(std::vector<Eigen::VectorXf>& path){
+    bool RRTBase::check_solution(std::vector<Eigen::Vector3d>& path){
         if ( prc > std::rand() %1 ){
             BOOST_LOG_TRIVIAL(info) << FCYN("Checking if can connect to the goal at ")<< sample_taken << FCYN(" samples");
             path = get_path();
@@ -247,19 +247,19 @@ namespace hagen {
         return false;
     }
 
-    float RRTBase::cost_to_go(Eigen::VectorXf a, Eigen::VectorXf b){
+    double RRTBase::cost_to_go(Eigen::Vector3d a, Eigen::Vector3d b){
         return (a-b).norm();
     }
 
-    float RRTBase::path_cost(Eigen::VectorXf a, Eigen::VectorXf b, int tree){
-        float cost = 0;
+    double RRTBase::path_cost(Eigen::Vector3d a, Eigen::Vector3d b, int tree){
+        double cost = 0;
         // std::cout<< "RRTBase::path_cost" << std::endl;
         // std::cout<< "RRTBase::path_cost: a" << a.transpose() << std::endl;
         // std::cout<< "RRTBase::path_cost: b" << b.transpose() << std::endl;
         auto edges = trees[tree].E;
         while(!is_equal_vectors(a, b)){
             // std::cout<< "RRTBase::path_cost:a "<< a.transpose() << "  b: "<< b.transpose() << std::endl;
-            std::array<float, 3> _key = {b[0], b[1], b[2]};
+            std::array<double, 3> _key = {b[0], b[1], b[2]};
             if(edges.count(_key)<1){
                 // std::cout<< "RRTBase::path_cost:empty edge " << std::endl;
                 break;
@@ -274,7 +274,7 @@ namespace hagen {
         return cost;
     }
 
-    float RRTBase::segment_cost(Eigen::VectorXf a, Eigen::VectorXf b){
+    double RRTBase::segment_cost(Eigen::Vector3d a, Eigen::Vector3d b){
         return (a-b).norm();
     }
 

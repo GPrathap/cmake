@@ -29,22 +29,22 @@ namespace hagen {
 
         struct Point
         {
-            Point(float x, float y, float angle, float depth)
+            Point(double x, double y, double angle, double depth)
             : x(x), y(y), angle(angle), depth(depth)
             {}
 
-            Point(float x, float y)
+            Point(double x, double y)
             : x(x), y(y)
             {}
 
             Point(){}
 
-            float x;
-            float y;
-            float angle;
-            float depth;
+            double x;
+            double y;
+            double angle;
+            double depth;
 
-            float operator-(Point a){
+            double operator-(Point a){
                 return (a.x-x) + (a.y-y);
             }
 
@@ -60,13 +60,13 @@ namespace hagen {
 
                 struct Rect
                 {
-                    Rect(float x, float y, float w, float h):x(x), y(y), w(w), h(h){}
+                    Rect(double x, double y, double w, double h):x(x), y(y), w(w), h(h){}
                     Rect() {}
 
-                    float x;
-                    float y;
-                    float w;
-                    float h;
+                    double x;
+                    double y;
+                    double w;
+                    double h;
                     
                     bool contains(Point point){
                         if(!((x <= point.x) && (point.x <= x + w))){
@@ -83,15 +83,15 @@ namespace hagen {
                     }
 
                     std::vector<Rect> split(){
-                        float w2 = w/2;
-                        float h2 = h/2;
-                        std::array<float, 2> a = {0, h2};
-                        std::array<float, 2> b = {0, w2};
-                        std::vector<std::array<float, 2>> bounds;
-                        for(float i= 0; i<2; i++){
-                            for (float j= 0; j < 2; j++)
+                        double w2 = w/2;
+                        double h2 = h/2;
+                        std::array<double, 2> a = {0, h2};
+                        std::array<double, 2> b = {0, w2};
+                        std::vector<std::array<double, 2>> bounds;
+                        for(double i= 0; i<2; i++){
+                            for (double j= 0; j < 2; j++)
                             {
-                                std::array<float, 2> bound {a[i], b[j]};
+                                std::array<double, 2> bound {a[i], b[j]};
                                 bounds.push_back(bound);
                             }
                         }
@@ -167,8 +167,8 @@ namespace hagen {
 
                 };
 
-                QuadTree(std::vector<Point> data, float width, float height
-                    , float angle_threshold, const cv::Mat& angle_image
+                QuadTree(std::vector<Point> data, double width, double height
+                    , double angle_threshold, const cv::Mat& angle_image
                     , const cv::Mat& depth_image);
                 ~QuadTree() = default; 
                 void _split();
@@ -177,9 +177,9 @@ namespace hagen {
                 Rect rect;
                 int size;
                 Node root;
-                float width;
-                float height;
-                float angle_threshold;
+                double width;
+                double height;
+                double angle_threshold;
                 cv::Mat angle_image;
                 cv::Mat depth_image;
                 // const int y_direc[8] = {-1, -1, -1, 1, 1, 1, 0, 0};

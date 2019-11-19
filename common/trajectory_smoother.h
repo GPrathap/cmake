@@ -28,10 +28,10 @@ namespace hagen {
                 TrajectorySmoother() = default;
                 ~TrajectorySmoother() = default;
                 void set_smoother(std::string name);
-                void set_waypoints(std::vector<Eigen::VectorXf> waypoints, int number_of_steps);
-                std::vector<Eigen::VectorXf> get_smoothed_trajectory();
+                void set_waypoints(std::vector<Eigen::Vector3d> waypoints, int number_of_steps);
+                std::vector<Eigen::Vector3d> get_smoothed_trajectory();
                 void clear_smoother();
-                float get_distance(Eigen::VectorXf pont_a, Eigen::VectorXf pont_b, Eigen::VectorXf pont_c);
+                double get_distance(Eigen::Vector3d pont_a, Eigen::Vector3d pont_b, Eigen::Vector3d pont_c);
 
             private:
                 Curve* _curve;

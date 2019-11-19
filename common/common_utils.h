@@ -34,11 +34,11 @@ class CommonUtils {
   
   CommonUtils() = default;
   ~CommonUtils() = default;
-  void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat
-            , Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent
-            , Eigen::MatrixXf& container);
+  void generate_samples_from_ellipsoid(Eigen::MatrixXd covmat
+            , Eigen::Matrix3d rotation_mat, Eigen::Vector3d cent
+            , Eigen::MatrixXd& container);
   
-  void get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b, Eigen::Matrix3f& r);
+  void get_roration_matrix(Eigen::Vector3d a, Eigen::Vector3d b, Eigen::Matrix3d& r);
   
 };
 

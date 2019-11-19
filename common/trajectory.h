@@ -22,10 +22,10 @@ class Trajectory{
   Trajectory() = default;
   ~Trajectory() = default;
 
-  void generate_target_trajectory(std::vector<Eigen::VectorXf>&, std::string file_name);
-  void print_target_trajectory(std::queue<Eigen::VectorXf>);
-  void print_target_trajectory(std::vector<Eigen::VectorXf>);
-  std::vector<Eigen::VectorXf> proposed_trajectory;
+  void generate_target_trajectory(std::vector<Eigen::Vector3d>&, std::string file_name);
+  void print_target_trajectory(std::queue<Eigen::Vector3d>);
+  void print_target_trajectory(std::vector<Eigen::Vector3d>);
+  std::vector<Eigen::Vector3d> proposed_trajectory;
   std::string trajectory_to_be_flown;
 };
 } 

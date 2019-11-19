@@ -31,7 +31,7 @@ CloudProjection::CloudProjection(const ProjectionParams& params)
   }
   _data = PointMatrix(_params.cols(), PointColumn(_params.rows()));
   _depth_image =
-      cv::Mat::zeros(_params.rows(), _params.cols(), cv::DataType<float>::type);
+      cv::Mat::zeros(_params.rows(), _params.cols(), cv::DataType<double>::type);
 }
 
 void CloudProjection::FixDepthSystematicErrorIfNeeded() {
@@ -46,10 +46,10 @@ void CloudProjection::FixDepthSystematicErrorIfNeeded() {
   for (int r = 0; r < _depth_image.rows; ++r) {
     auto correction = _corrections[r];
     for (int c = 0; c < _depth_image.cols; ++c) {
-      if (_depth_image.at<float>(r, c) < 0.001f) {
+      if (_depth_image.at<double>(r, c) < 0.001f) {
         continue;
       }
-      _depth_image.at<float>(r, c) -= correction;
+      _depth_image.at<double>(r, c) -= correction;
     }
   }
 }

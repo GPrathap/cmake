@@ -7,23 +7,23 @@ namespace hagen {
                  CommonUtils& common_utils, std::atomic_bool &is_allowed_to_run) 
                 : RRT(options, common_utils, is_allowed_to_run){
             rewrite_count = _rewrite_count;
-            c_best = std::numeric_limits<float>::infinity();
+            c_best = std::numeric_limits<double>::infinity();
     }
     
-    std::vector<std::tuple<float, Eigen::VectorXf>> RRTStar::get_nearby_vertices(int tree, Eigen::VectorXf x_init
-                                            , Eigen::VectorXf x_new){
+    std::vector<std::tuple<double, Eigen::Vector3d>> RRTStar::get_nearby_vertices(int tree, Eigen::Vector3d x_init
+                                            , Eigen::Vector3d x_new){
         auto X_near = nearby_vertices(tree, x_new, current_rewrite_count(tree));
         std::cout<< "RRTStar::get_nearby_vertices" << X_near.size() << std::endl;
-        std::vector<std::tuple<float, Eigen::VectorXf>> L_near;
+        std::vector<std::tuple<double, Eigen::Vector3d>> L_near;
         for(auto const x_near : X_near){
             auto new_s = segment_cost(x_near, x_new);
             auto cost = path_cost(x_init, x_near, tree) + new_s;
             auto pose = x_near;
-            std::tuple<float, Eigen::VectorXf> a(cost, pose);
+            std::tuple<double, Eigen::Vector3d> a(cost, pose);
             L_near.push_back(a);
         }
         std::sort(L_near.begin(), L_near.end(),
-            [](const std::tuple<float, Eigen::VectorXf> a, const std::tuple<float, Eigen::VectorXf> b){
+            [](const std::tuple<double, Eigen::Vector3d> a, const std::tuple<double, Eigen::Vector3d> b){
                 return std::get<0>(a) < std::get<0>(b); 
         });
         return L_near;
@@ -37,7 +37,7 @@ namespace hagen {
         return std::min(trees[tree].v_count, rewrite_count);
     }
 
-    void RRTStar::rewrite(int tree, Eigen::VectorXf x_new, std::vector<std::tuple<float, Eigen::VectorXf>> L_near){
+    void RRTStar::rewrite(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near){
         for (auto const l_near : L_near){
             auto x_near = std::get<1>(l_near);
             auto curr_cost = path_cost(x_init, x_near, tree);
@@ -51,7 +51,7 @@ namespace hagen {
         }
     }
 
-    void RRTStar::connect_shortest_valid(int tree, Eigen::VectorXf x_new, std::vector<std::tuple<float, Eigen::VectorXf>> L_near){
+    void RRTStar::connect_shortest_valid(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near){
         // std::cout<< "RRTStar::connect_shortest_valid : L_near size: "<< L_near.size() << std::endl;
         for (auto const l_near : L_near){
             auto c_near = std::get<0>(l_near);
@@ -66,12 +66,12 @@ namespace hagen {
         }
     }
 
-    std::vector<Eigen::VectorXf> RRTStar::rrt_star(){
+    std::vector<Eigen::Vector3d> RRTStar::rrt_star(){
         add_vertex(0, x_init);
-        Eigen::VectorXf none_pose(3);
+        Eigen::Vector3d none_pose(3);
         none_pose << -1, -1, -1;
         add_edge(0, x_init, none_pose);
-        std::vector<Eigen::VectorXf> path;
+        std::vector<Eigen::Vector3d> path;
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){
@@ -80,16 +80,16 @@ namespace hagen {
                         return path;   
                    }
                    auto new_and_next = new_and_near(0, q);
-                   std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
+                //    std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
                    if(new_and_next.size()==0){
                        continue;
                    }
                    auto x_new = new_and_next[0];
-                   std::cout<< "rstar loop.... x_new" << x_new.transpose() << std::endl;
+                //    std::cout<< "rstar loop.... x_new" << x_new.transpose() << std::endl;
                 //    if(check_none_vector(x_new)){
                 //        continue;
                 //    }
-                   std::cout<< "rstar loop...." << std::endl;
+                //    std::cout<< "rstar loop...." << std::endl;
                    auto l_near = get_nearby_vertices(0, x_init, x_new);
                    connect_shortest_valid(0, x_new, l_near);
                    if (isEdge(x_new, 0)){

@@ -5,7 +5,7 @@
 namespace kamaz {
 namespace hagen {
 
-  void Trajectory::print_target_trajectory(std::queue<Eigen::VectorXf> target_trajectory){
+  void Trajectory::print_target_trajectory(std::queue<Eigen::Vector3d> target_trajectory){
     const Eigen::IOFormat fmt(4, Eigen::DontAlignCols, "\t", " ", "", "", "");
     while (!target_trajectory.empty()){
       proposed_trajectory.push_back(target_trajectory.front().transpose());
@@ -14,7 +14,7 @@ namespace hagen {
 	  }
   }
 
-  void Trajectory::print_target_trajectory(std::vector<Eigen::VectorXf> target_trajectory){
+  void Trajectory::print_target_trajectory(std::vector<Eigen::Vector3d> target_trajectory){
     const Eigen::IOFormat fmt(4, Eigen::DontAlignCols, "\t", " ", "", "", "");
     for(auto &item : target_trajectory){
       
@@ -22,9 +22,9 @@ namespace hagen {
     }
   }
 
-  void Trajectory::generate_target_trajectory(std::vector<Eigen::VectorXf>&  target_trajectory
+  void Trajectory::generate_target_trajectory(std::vector<Eigen::Vector3d>&  target_trajectory
   , std::string trajectory_to_be_flown_file_name){
-    Eigen::VectorXf path_position(4);
+    Eigen::Vector3d path_position(4);
     std::fstream infile;
 	  infile.open(trajectory_to_be_flown_file_name, std::ios::in);
     std::string line, word, temp;

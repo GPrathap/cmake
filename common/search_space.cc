@@ -3,13 +3,13 @@
 namespace kamaz {
 namespace hagen {
     SearchSpace::SearchSpace(): geometry_rtree_callback(this) {
-         random_points_tank = std::make_shared<Eigen::MatrixXf>();
+         random_points_tank = std::make_shared<Eigen::MatrixXd>();
         
     }
 
-    void SearchSpace::init_search_space(Eigen::VectorXf dimension_lengths
-                , int num_of_rand_points, float cube_size, float _avoidance_width
-                , int number_of_tries_at_time, float _voxel_side_length){
+    void SearchSpace::init_search_space(Eigen::VectorXd dimension_lengths
+                , int num_of_rand_points, double cube_size, double _avoidance_width
+                , int number_of_tries_at_time, double _voxel_side_length){
         dim_lengths = dimension_lengths;
         cube_length = cube_size;
         std::uniform_real_distribution<> distribution_x(dimension_lengths[0], dimension_lengths[1]);
@@ -28,12 +28,12 @@ namespace hagen {
     void SearchSpace::generate_random_objects(int num_of_objects){
         for (int i = 0 ; i < num_of_objects ; ++i)
         {
-            float min_x = rand() % 1000;
-            float min_y = rand() % 1000;
-            float min_z = rand() % 1000;
-            float w = 1 + rand() % 100;
-            float h = 1 + rand() % 100;
-            float d = 1 + rand() % 100;
+            double min_x = rand() % 1000;
+            double min_y = rand() % 1000;
+            double min_z = rand() % 1000;
+            double w = 1 + rand() % 100;
+            double h = 1 + rand() % 100;
+            double d = 1 + rand() % 100;
             random_objects.push_back(Rect(min_x, min_y, min_z, min_x+w, min_y+h, min_z+d));
         }
     }
@@ -75,25 +75,25 @@ namespace hagen {
         obstacle_counter = way_points.size();
     }
 
-    std::vector<Eigen::VectorXf> SearchSpace::nearest_obstacles_to_current_pose(Eigen::VectorXf x
+    std::vector<Eigen::Vector3d> SearchSpace::nearest_obstacles_to_current_pose(Eigen::Vector3d x
                 , int max_neighbours){
         std::vector<value_t> returned_values;
-        std::vector<Eigen::VectorXf> neighbour_points;
+        std::vector<Eigen::Vector3d> neighbour_points;
         for ( RTree::const_query_iterator it = obs_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
                 it != obs_tree.qend() ; ++it )
         {
-            Eigen::VectorXf pose(3);
+            Eigen::Vector3d pose(3);
             auto cube = (*it).first;
-            float min_x = bg::get<bg::min_corner, 0>(cube);
-            float min_y = bg::get<bg::min_corner, 1>(cube);
-            float min_z = bg::get<bg::min_corner, 2>(cube);
+            double min_x = bg::get<bg::min_corner, 0>(cube);
+            double min_y = bg::get<bg::min_corner, 1>(cube);
+            double min_z = bg::get<bg::min_corner, 2>(cube);
             pose << min_x, min_y, min_z;
             neighbour_points.push_back(pose);
         }
         return neighbour_points;        
     }
 
-    float SearchSpace::get_free_space(Eigen::VectorXf pose, std::vector<Eigen::VectorXf>& obs_poses, int num_of_obs){
+    double SearchSpace::get_free_space(Eigen::Vector3d pose, std::vector<Eigen::Vector3d>& obs_poses, int num_of_obs){
         auto obstacles = nearest_obstacles_to_current_pose(pose, num_of_obs);
         if(obstacles.size() <= 0){
             return 3.0; //Since no onstacles on the obstacles map
@@ -102,7 +102,7 @@ namespace hagen {
         return (obstacles[0]-pose).norm();
     }
 
-    float SearchSpace::get_free_space(Eigen::VectorXf pose){
+    double SearchSpace::get_free_space(Eigen::Vector3d pose){
         auto obstacles = nearest_obstacles_to_current_pose(pose, 1);
         if(obstacles.size() <= 0){
             return 10.0; //Since no onstacles on the obstacles map
@@ -110,7 +110,7 @@ namespace hagen {
         return (obstacles[0]-pose).norm();
     }
 
-    void SearchSpace::insert_obstacle(Eigen::VectorXf index){
+    void SearchSpace::insert_obstacle(Eigen::Vector3d index){
         //TODO not sure this method
         box_t b(point_t(index[0], index[1], index[2])
         , point_t(index[0]+avoidance_width, index[1]+avoidance_width
@@ -118,7 +118,7 @@ namespace hagen {
         obs_tree.insert(value_t(b, obstacle_counter));
     }
 
-    void SearchSpace::insert_vertex(Eigen::VectorXf index){
+    void SearchSpace::insert_vertex(Eigen::Vector3d index){
         box_t b(point_t(index[0], index[1], index[2])
         , point_t(index[0]+avoidance_width, index[1]+avoidance_width
         , index[2]+avoidance_width));
@@ -126,25 +126,25 @@ namespace hagen {
         obstacle_counter++;
     }
     
-     std::vector<Eigen::VectorXf> SearchSpace::nearest_obstacles(Eigen::VectorXf x, int max_neighbours){
+     std::vector<Eigen::Vector3d> SearchSpace::nearest_obstacles(Eigen::Vector3d x, int max_neighbours){
         std::vector<value_t> returned_values;
         
-        std::vector<Eigen::VectorXf> neighbour_points;
+        std::vector<Eigen::Vector3d> neighbour_points;
         for ( RTree::const_query_iterator it = obs_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
                 it != obs_tree.qend() ; ++it )
         {
-            Eigen::VectorXf pose(3);
+            Eigen::Vector3d pose(3);
             auto cube = (*it).first;
 
             // std::cout<< "SearchSpace::nearest_obstacles:  distance: " << bg::distance(cube, point_t(x[0], x[1], x[2])) << std::endl;
 
-            float min_x = bg::get<bg::min_corner, 0>(cube);
-            float min_y = bg::get<bg::min_corner, 1>(cube);
-            float min_z = bg::get<bg::min_corner, 2>(cube);
+            double min_x = bg::get<bg::min_corner, 0>(cube);
+            double min_y = bg::get<bg::min_corner, 1>(cube);
+            double min_z = bg::get<bg::min_corner, 2>(cube);
 
-            // float max_x = bg::get<bg::max_corner, 0>(cube);
-            // float max_y = bg::get<bg::max_corner, 1>(cube);
-            // float max_z = bg::get<bg::max_corner, 2>(cube);
+            // double max_x = bg::get<bg::max_corner, 0>(cube);
+            // double max_y = bg::get<bg::max_corner, 1>(cube);
+            // double max_z = bg::get<bg::max_corner, 2>(cube);
 
             // std::cout<< "SearchSpace::nearest_obstacles: "<< min_x << ","<<min_y << ", "<< min_z << ", " << max_x << ", "<< max_y << ", " << max_z << std::endl;
 
@@ -155,25 +155,25 @@ namespace hagen {
         }
         return neighbour_points;        
      }
-    std::vector<Eigen::VectorXf> SearchSpace::nearest_veties(Eigen::VectorXf x, int max_neighbours){
+    std::vector<Eigen::Vector3d> SearchSpace::nearest_veties(Eigen::Vector3d x, int max_neighbours){
         std::vector<value_t> returned_values;
         
-        std::vector<Eigen::VectorXf> neighbour_points;
+        std::vector<Eigen::Vector3d> neighbour_points;
         for ( RTree::const_query_iterator it = bg_tree.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
                 it != bg_tree.qend() ; ++it )
         {
-            Eigen::VectorXf pose(3);
+            Eigen::Vector3d pose(3);
             auto cube = (*it).first;
 
             // std::cout<< "SearchSpace::nearest_obstacles:  distance: " << bg::distance(cube, point_t(x[0], x[1], x[2])) << std::endl;
 
-            float min_x = bg::get<bg::min_corner, 0>(cube);
-            float min_y = bg::get<bg::min_corner, 1>(cube);
-            float min_z = bg::get<bg::min_corner, 2>(cube);
+            double min_x = bg::get<bg::min_corner, 0>(cube);
+            double min_y = bg::get<bg::min_corner, 1>(cube);
+            double min_z = bg::get<bg::min_corner, 2>(cube);
 
-            // float max_x = bg::get<bg::max_corner, 0>(cube);
-            // float max_y = bg::get<bg::max_corner, 1>(cube);
-            // float max_z = bg::get<bg::max_corner, 2>(cube);
+            // double max_x = bg::get<bg::max_corner, 0>(cube);
+            // double max_y = bg::get<bg::max_corner, 1>(cube);
+            // double max_z = bg::get<bg::max_corner, 2>(cube);
 
             // std::cout<< "SearchSpace::nearest_obstacles: "<< min_x << ","<<min_y << ", "<< min_z << ", " << max_x << ", "<< max_y << ", " << max_z << std::endl;
 
@@ -185,42 +185,42 @@ namespace hagen {
         return neighbour_points;        
     }
 
-    std::vector<Eigen::VectorXf> SearchSpace::nearest_point_on_trajectory(Eigen::VectorXf x, int max_neighbours){
+    std::vector<Eigen::Vector3d> SearchSpace::nearest_point_on_trajectory(Eigen::Vector3d x, int max_neighbours){
         std::vector<value_t> returned_values;
-        std::vector<Eigen::VectorXf> neighbour_points;
+        std::vector<Eigen::Vector3d> neighbour_points;
         for ( RTree::const_query_iterator it = current_trajectory.qbegin(bgi::nearest(point_t(x[0], x[1], x[2]), max_neighbours)) ;
                 it != current_trajectory.qend() ; ++it )
         {
-            Eigen::VectorXf pose(3);
+            Eigen::Vector3d pose(3);
             auto cube = (*it).first;
-            float min_x = bg::get<bg::min_corner, 0>(cube);
-            float min_y = bg::get<bg::min_corner, 1>(cube);
-            float min_z = bg::get<bg::min_corner, 2>(cube);
+            double min_x = bg::get<bg::min_corner, 0>(cube);
+            double min_y = bg::get<bg::min_corner, 1>(cube);
+            double min_z = bg::get<bg::min_corner, 2>(cube);
             pose << min_x, min_y, min_z;
             neighbour_points.push_back(pose);
         }
         return neighbour_points;        
     }
 
-     std::vector<float> SearchSpace::arange(float start, float stop, float step) {
-        std::vector<float> values;
-        for (float value = start; value < stop; value += step)
+     std::vector<double> SearchSpace::arange(double start, double stop, double step) {
+        std::vector<double> values;
+        for (double value = start; value < stop; value += step)
             values.push_back(value);
         return values;
     }
 
-    void SearchSpace::generate_search_sapce(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat,
-            Eigen::VectorXf cent, int npts){
+    void SearchSpace::generate_search_sapce(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat,
+            Eigen::Vector3d cent, int npts){
         int ndims = covmat.rows();
         number_of_points_in_random_tank = npts;
-        *random_points_tank = Eigen::MatrixXf::Zero(npts, ndims);
+        *random_points_tank = Eigen::MatrixXd::Zero(npts, ndims);
         generate_samples_from_ellipsoid(covmat, rotation_mat, cent);
         is_random_tank_is_ready = true;
         return;
     }
 
     void SearchSpace::save_search_space(int index){
-        std::vector<float> sample_pose;
+        std::vector<double> sample_pose;
         for(int i=0; i< random_objects.size(); i++){
                 sample_pose.push_back(random_objects[i].min[0]);
                 sample_pose.push_back(random_objects[i].min[1]);
@@ -234,7 +234,7 @@ namespace hagen {
     }
 
     void SearchSpace::save_samples(int index){
-        std::vector<float> sample_pose;
+        std::vector<double> sample_pose;
         for(int i=0; i< (*random_points_tank).rows(); i++){
             for(int j=0; j< (*random_points_tank).cols(); j++){
                 sample_pose.push_back((*random_points_tank)(i,j));
@@ -253,7 +253,7 @@ namespace hagen {
         res.clear();
         sum += obs_tree.query(bgi::intersects(search_box)
         , boost::make_function_output_iterator(geometry_rtree_callback));
-        // float s = t.elapsed();
+        // double s = t.elapsed();
         // std::cout << search_rect.min[0] << " " << search_rect.min[1] << " " << search_rect.min[2] << std::endl;
         // std::cout << search_rect.max[0] << " " << search_rect.max[1] << " " << search_rect.max[2] << std::endl;
 
@@ -261,21 +261,21 @@ namespace hagen {
         return sum > 0 ? false : true;
     }
 
-    void SearchSpace::generate_samples_from_ellipsoid(Eigen::MatrixXf covmat, Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent){
+    void SearchSpace::generate_samples_from_ellipsoid(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat, Eigen::Vector3d cent){
         int ndims = (*random_points_tank).cols();
         int npts = (*random_points_tank).rows();
-        Eigen::EigenSolver<Eigen::MatrixXf> eigensolver;
+        Eigen::EigenSolver<Eigen::MatrixXd> eigensolver;
         eigensolver.compute(covmat);
-        Eigen::VectorXf eigen_values = eigensolver.eigenvalues().real();
-        Eigen::MatrixXf eigen_vectors = eigensolver.eigenvectors().real();
-        std::vector<std::tuple<float, Eigen::VectorXf>> eigen_vectors_and_values; 
+        Eigen::Vector3d eigen_values = eigensolver.eigenvalues().real();
+        Eigen::MatrixXd eigen_vectors = eigensolver.eigenvectors().real();
+        std::vector<std::tuple<double, Eigen::Vector3d>> eigen_vectors_and_values; 
 
         for(int i=0; i<eigen_values.size(); i++){
-            std::tuple<float, Eigen::VectorXf> vec_and_val(eigen_values[i], eigen_vectors.row(i));
+            std::tuple<double, Eigen::Vector3d> vec_and_val(eigen_values[i], eigen_vectors.row(i));
             eigen_vectors_and_values.push_back(vec_and_val);
         }
         std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
-            [&](const std::tuple<float, Eigen::VectorXf>& a, const std::tuple<float, Eigen::VectorXf>& b) -> bool{ 
+            [&](const std::tuple<double, Eigen::Vector3d>& a, const std::tuple<double, Eigen::Vector3d>& b) -> bool{ 
                 return std::get<0>(a) <= std::get<0>(b); 
         });
         int index = 0;
@@ -285,32 +285,32 @@ namespace hagen {
             index++;
         }
 
-        Eigen::MatrixXf eigen_values_as_matrix = eigen_values.asDiagonal();
+        Eigen::MatrixXd eigen_values_as_matrix = eigen_values.asDiagonal();
 
         std::random_device rd{};
         std::mt19937 gen{rd()};  
-        std::uniform_real_distribution<float> dis(0, 1);
+        std::uniform_real_distribution<double> dis(0, 1);
         std::normal_distribution<double> normal_dis{0.0f, 1.0f};
  
-        Eigen::MatrixXf pt = Eigen::MatrixXf::Zero(npts, ndims).unaryExpr([&](float dummy){return (float)normal_dis(gen);});
-        Eigen::VectorXf rs = Eigen::VectorXf::Zero(npts).unaryExpr([&](float dummy){return dis(gen);});
-        Eigen::VectorXf fac = pt.array().pow(2).rowwise().sum();
-        Eigen::VectorXf fac_sqrt = fac.array().sqrt();
-        Eigen::VectorXf rs_pow = rs.array().pow(1.0/ndims);
+        Eigen::MatrixXd pt = Eigen::MatrixXd::Zero(npts, ndims).unaryExpr([&](double dummy){return (double)normal_dis(gen);});
+        Eigen::VectorXd rs = Eigen::VectorXd::Zero(npts).unaryExpr([&](double dummy){return dis(gen);});
+        Eigen::VectorXd fac = pt.array().pow(2).rowwise().sum();
+        Eigen::VectorXd fac_sqrt = fac.array().sqrt();
+        Eigen::VectorXd rs_pow = rs.array().pow(1.0/ndims);
         fac = rs_pow.array()/fac_sqrt.array();
-        Eigen::VectorXf d = eigen_values_as_matrix.diagonal().array().sqrt();
+        Eigen::VectorXd d = eigen_values_as_matrix.diagonal().array().sqrt();
         // std::cout << "============================================>>>>>>" << npts << std::endl;
         for(auto i(0); i<npts; i++){
             (*random_points_tank).row(i) = fac(i)*pt.row(i).array();
-            Eigen::MatrixXf  fff = ((*random_points_tank).row(i).array()*d.transpose().array());
-            Eigen::VectorXf bn = rotation_mat*fff.transpose();
+            Eigen::MatrixXd  fff = ((*random_points_tank).row(i).array()*d.transpose().array());
+            Eigen::VectorXd bn = rotation_mat*fff.transpose();
             (*random_points_tank).row(i) = bn.array() + cent.head(3).array();
         }
         // std::cout << "points: " << (*random_points_tank) << std::endl;
     }
 
 
-    bool SearchSpace::obstacle_free(Eigen::VectorXf search_rect){
+    bool SearchSpace::obstacle_free(Eigen::Vector3d search_rect){
         box_t search_box(
         point_t(search_rect[0], search_rect[1], search_rect[2]),
         point_t(search_rect[0]+cube_length, search_rect[1]+cube_length, search_rect[2]+cube_length));
@@ -319,18 +319,18 @@ namespace hagen {
         res.clear();
         sum += obs_tree.query(bgi::intersects(search_box)
         , boost::make_function_output_iterator(geometry_rtree_callback));
-        // float s = t.elapsed();
+        // double s = t.elapsed();
         // std::cout <<" SearchSpace::obstacle_free: sum: " << sum << std::endl;
         // std::cout << search_rect.transpose() << std::endl;
         // // std::cout << search_rect.max[0] << " " << search_rect.max[1] << " " << search_rect.max[2] << std::endl;
 
-        std::cout << "sum up..." << sum << std::endl;
+        // std::cout << "sum up..." << sum << std::endl;
   
         return sum > 0 ? false : true;
     }
 
-    Eigen::VectorXf SearchSpace::sample(){
-        Eigen::VectorXf random_pose(3);
+    Eigen::Vector3d SearchSpace::sample(){
+        Eigen::Vector3d random_pose(3);
         if(use_whole_search_sapce){
             std::default_random_engine generator_on_x;
             generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
@@ -362,7 +362,7 @@ namespace hagen {
         return random_pose;
     }
 
-    Eigen::VectorXf SearchSpace::sample_free(){
+    Eigen::Vector3d SearchSpace::sample_free(){
         int number_of_attempts = 0;
         while(true){
             number_of_attempts++;
@@ -380,23 +380,23 @@ namespace hagen {
         }
     }
 
-    bool SearchSpace::collision_free(Eigen::VectorXf start, Eigen::VectorXf end, int r){
+    bool SearchSpace::collision_free(Eigen::Vector3d start, Eigen::Vector3d end, int r){
         auto dist = (start - end).norm();
-        float resolution = std::ceil(dist/r);
-        std::vector<float> res_on_x = linspace(start[0], end[0], resolution);
-        std::vector<float> res_on_y = linspace(start[1], end[1], resolution);
-        std::vector<float> res_on_z = linspace(start[2], end[2], resolution);
-        std::cout<< "===================:collision_free" << std::endl;
-        std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
+        double resolution = std::ceil(dist/r);
+        std::vector<double> res_on_x = linspace(start[0], end[0], resolution);
+        std::vector<double> res_on_y = linspace(start[1], end[1], resolution);
+        std::vector<double> res_on_z = linspace(start[2], end[2], resolution);
+        // std::cout<< "===================:collision_free" << std::endl;
+        // std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
         int len = std::min({res_on_x.size(), res_on_y.size(), res_on_z.size()}
         , [](const int s1, const int s2) -> bool{
                 return s1 < s2;
         });
         std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
         for(int i=0; i<len; i++){
-            Eigen::VectorXf search_rect(3);
+            Eigen::Vector3d search_rect(3);
             search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
-            std::cout<<" collision_free  " << search_rect.transpose() << std::endl;
+            // std::cout<<" collision_free  " << search_rect.transpose() << std::endl;
             if(!obstacle_free(search_rect)){
                 return false;
             }
@@ -404,19 +404,19 @@ namespace hagen {
         return true;
     }
 
-    std::vector<float> SearchSpace::linspace(float start_in, float end_in, float step_size)
+    std::vector<double> SearchSpace::linspace(double start_in, double end_in, double step_size)
     {
-        std::vector<float> linspaced;
-        float start = static_cast<float>(start_in);
-        float end = static_cast<float>(end_in);
-        float num = static_cast<float>(step_size);
+        std::vector<double> linspaced;
+        double start = static_cast<double>(start_in);
+        double end = static_cast<double>(end_in);
+        double num = static_cast<double>(step_size);
         if (num == 0) { return linspaced; }
         if (num == 1)
         {
             linspaced.push_back(start);
             return linspaced;
         }
-        float delta = (end - start) / (num - 1);
+        double delta = (end - start) / (num - 1);
         for(int i=0; i < num-1; ++i)
             {
             linspaced.push_back(start + delta * i);

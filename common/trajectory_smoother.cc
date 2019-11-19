@@ -14,7 +14,7 @@ namespace hagen {
                 _curve->clear();
             }
 
-            void TrajectorySmoother::set_waypoints(std::vector<Eigen::VectorXf> waypoints, int _number_of_steps){
+            void TrajectorySmoother::set_waypoints(std::vector<Eigen::Vector3d> waypoints, int _number_of_steps){
                  number_of_steps = _number_of_steps;
                 _curve->clear();
                 // std::cout<<"=====================31========================"<< std::endl;
@@ -40,10 +40,10 @@ namespace hagen {
             }
 
                 
-            std::vector<Eigen::VectorXf> TrajectorySmoother::get_smoothed_trajectory(){
-                std::vector<Eigen::VectorXf> new_path;
+            std::vector<Eigen::Vector3d> TrajectorySmoother::get_smoothed_trajectory(){
+                std::vector<Eigen::Vector3d> new_path;
                 for (int i = 0; i < _curve->node_count(); ++i) {
-                    Eigen::VectorXf pose(4);
+                    Eigen::Vector3d pose(4);
                     auto node = _curve->node(i);
                     pose<< node.x, node.y, node.z, 1.0; 
                     new_path.push_back(pose);
@@ -52,15 +52,15 @@ namespace hagen {
             }
 
             // https://math.stackexchange.com/questions/1905533/find-perpendicular-distance-from-point-to-line-in-3d
-            float TrajectorySmoother::get_distance(Eigen::VectorXf pont_a, Eigen::VectorXf pont_b, Eigen::VectorXf pont_c){
-                Eigen::VectorXf d = (pont_c - pont_a);
+            double TrajectorySmoother::get_distance(Eigen::Vector3d pont_a, Eigen::Vector3d pont_b, Eigen::Vector3d pont_c){
+                Eigen::Vector3d d = (pont_c - pont_a);
                 if(d.norm() != 0){
                     d = (pont_c - pont_a)/(pont_c - pont_a).norm();
                 }
-                Eigen::VectorXf v = (pont_b - pont_a);
-                float t = v.dot(d);
-                Eigen::VectorXf p = pont_a + t*d;
-                float dis = (p-pont_b).norm();
+                Eigen::Vector3d v = (pont_b - pont_a);
+                double t = v.dot(d);
+                Eigen::Vector3d p = pont_a + t*d;
+                double dis = (p-pont_b).norm();
                 return dis;
             } 
     }

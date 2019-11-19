@@ -193,16 +193,16 @@ std::unique_ptr<ProjectionParams> ProjectionParams::HDL_64(double object_avoidan
   return mem_utils::make_unique<ProjectionParams>(params);
 }
 
-const std::vector<float>& ProjectionParams::RowAngleCosines() const {
+const std::vector<double>& ProjectionParams::RowAngleCosines() const {
   return _row_angles_cosines;
 }
-const std::vector<float>& ProjectionParams::ColAngleCosines() const {
+const std::vector<double>& ProjectionParams::ColAngleCosines() const {
   return _col_angles_cosines;
 }
-const std::vector<float>& ProjectionParams::RowAngleSines() const {
+const std::vector<double>& ProjectionParams::RowAngleSines() const {
   return _row_angles_sines;
 }
-const std::vector<float>& ProjectionParams::ColAngleSines() const {
+const std::vector<double>& ProjectionParams::ColAngleSines() const {
   return _col_angles_sines;
 }
 

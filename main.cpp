@@ -95,9 +95,9 @@ using kamaz::hagen::PointCloudPtr;
 //   std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;
 //   trajectory_planning.traj_opt7();
 
-//   float cstep = 0.05;
-//   float time = 0.0;
-//   float tstep = 0.01;
+//   double cstep = 0.05;
+//   double time = 0.0;
+//   double tstep = 0.01;
 
 //   int max_iter = (int) (trajectory_planning.total_time / cstep); 
 //   std::cout<< "===============max_iter============"<< max_iter << std::endl;
@@ -115,16 +115,16 @@ using kamaz::hagen::PointCloudPtr;
 
 //   //   std::cout<< trajectory_planning.X << std::endl;
 //   // //   std::cout<< trajectory_planning.time_segs << std::endl;
-//   // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(3, 6*6);
+//   // Eigen::MatrixXd A = Eigen::MatrixXd::Zero(3, 6*6);
 //   // int x_max = 6;
-//   // Eigen::MatrixXf g = A.block<1, x_max*x_max>(2,0);
+//   // Eigen::MatrixXd g = A.block<1, x_max*x_max>(2,0);
 //   // for(int k=0; k<x_max; k++){
 //   //   g(0, k*x_max+k) = 1;
 //   // }
-//   // Eigen::Map<Eigen::MatrixXf> M2(g.data(), x_max, x_max);
+//   // Eigen::Map<Eigen::MatrixXd> M2(g.data(), x_max, x_max);
 
 //   // std::cout<< M2 << std::endl; 
-//   // Eigen::MatrixXf gg = g.resize( 8*14, 8*14);
+//   // Eigen::MatrixXd gg = g.resize( 8*14, 8*14);
 
 //   return 0;
 // }
@@ -157,15 +157,15 @@ using kamaz::hagen::PointCloudPtr;
   // quadtree.in_order_traversal(quadtree.root);
 
   // SearchSpace search_space;
-  // Eigen::MatrixXf covmat(3,3);
+  // Eigen::MatrixXd covmat(3,3);
   // Eigen::VectorXd center(3);
   // center << 0,0,0;
   // covmat(0,0) = 8;
   // covmat(1,1) = 4;
   // covmat(2,2) = 4;
 
-  // Eigen::Vector3f a(1,0,0);
-  // Eigen::Vector3f b(0,1,1);
+  // Eigen::Vector3d a(1,0,0);
+  // Eigen::Vector3d b(0,1,1);
   // Eigen::VectorXd fg(6);
   // search_space.init(fg);
   // // Random_call random_call(std::chrono::system_clock::now().time_since_epoch().count(), 100);
@@ -173,17 +173,17 @@ using kamaz::hagen::PointCloudPtr;
   // // std::cout<<  num << std::endl;
   // int f = *(search_space.random_call);
   // std::cout<<  f << std::endl;
-  // // Eigen::Matrix3f rotation_matrix = search_space.get_roration_matrix(a, b);
+  // // Eigen::Matrix3d rotation_matrix = search_space.get_roration_matrix(a, b);
   // // search_space.generate_samples_from_ellipsoid(covmat, rotation_matrix, center, 1000);
   // // search_space.save_samples(1);
 
-  // Eigen::Vector3f pont_a(3);
+  // Eigen::Vector3d pont_a(3);
   // pont_a << 3,0,0;
-  // Eigen::Vector3f pont_b(3);
+  // Eigen::Vector3d pont_b(3);
   // pont_b << 2,5,5;
-  // Eigen::Vector3f pont_c(3);  
+  // Eigen::Vector3d pont_c(3);  
   // pont_c << 2,0,0;
-  // float dis = search_space.get_distance(pont_a, pont_b, pont_c);
+  // double dis = search_space.get_distance(pont_a, pont_b, pont_c);
   // // std::cout<< dis << std::endl;
 //   return 0;
 // }#include <iostream>
@@ -221,13 +221,13 @@ using kamaz::hagen::PointCloudPtr;
     // cout << *point_str << endl;
 
     // SearchSpace search_space;
-    // Eigen::Vector3f pont_a(3);
+    // Eigen::Vector3d pont_a(3);
     // pont_a << 3,0,0;
-    // Eigen::Vector3f pont_b(3);
+    // Eigen::Vector3d pont_b(3);
     // pont_b << 3,0.4,0;
-    // Eigen::Vector3f pont_c(3);  
+    // Eigen::Vector3d pont_c(3);  
     // pont_c << 3,0,0;
-    // float dis = search_space.get_distance(pont_a, pont_b, pont_c);
+    // double dis = search_space.get_distance(pont_a, pont_b, pont_c);
     // std::cout<< dis << std::endl;
     
     // cv::Mat I = cv::imread("/dataset/images/result/06/14391933_transformed.jpg", 0);
@@ -236,13 +236,13 @@ using kamaz::hagen::PointCloudPtr;
     //     std::cout << "!!! Failed imread(): image not found" << std::endl;
     // }
 
-    // cv::Mat m1 = cv::Mat::zeros(10, 10, cv::DataType<float>::type);  
+    // cv::Mat m1 = cv::Mat::zeros(10, 10, cv::DataType<double>::type);  
     // std::ifstream file("/dataset/test.txt");
-    // float a  = 0;
+    // double a  = 0;
     // for (int i = 0; i < 10; ++i) {
     //     for (int j = 0; j < 10; ++j) {
     //         file >> a;
-    //         m1.at<float>(i,j) = a; 
+    //         m1.at<double>(i,j) = a; 
     //     }
     // }
 
@@ -252,7 +252,7 @@ using kamaz::hagen::PointCloudPtr;
     // depth_normal.convertTo(depth_normal, CV_8U); 
     // std::cout <<  m1 << std::endl;
     // kamaz::hagen::LocalMaximaFilter local_maximum_filter;
-    // cv::Mat filtered_map = cv::Mat::zeros(10, 10, cv::DataType<float>::type);
+    // cv::Mat filtered_map = cv::Mat::zeros(10, 10, cv::DataType<double>::type);
     // int h = 10;
     // int w = 10; 
     // std::vector<std::tuple<int, int>> indices;
@@ -263,7 +263,7 @@ using kamaz::hagen::PointCloudPtr;
     //     }
     // }
 
-    // std::vector<std::tuple<std::tuple<int, int, float>, kamaz::hagen::groups>> local_minima;
+    // std::vector<std::tuple<std::tuple<int, int, double>, kamaz::hagen::groups>> local_minima;
     // local_maximum_filter.persistence_and_save_data(m1, filtered_map, 0);
     // local_maximum_filter.persistence(m1, filtered_map);
 
@@ -285,12 +285,12 @@ using kamaz::hagen::PointCloudPtr;
         
     //     cv::Mat image;
     //     image = cv::imread("/dataset/images/"+ std::to_string(i) +"_depth_image.jpg", 0);
-        // image.convertTo(image, cv::DataType<float>::type, 1/255.0);
+        // image.convertTo(image, cv::DataType<double>::type, 1/255.0);
 
         // std::vector<std::tuple<std::tuple<int, int>, kamaz::groups>> local_minima;
         // // local_maximum_filter.persistence(image, local_minima);
         // // cv::Mat filtered_map = cv::Mat::zeros( image.size(), CV_8UC1);
-        // cv::Mat filtered_map = cv::Mat::zeros(image.size(), cv::DataType<float>::type);
+        // cv::Mat filtered_map = cv::Mat::zeros(image.size(), cv::DataType<double>::type);
         // int h = image.rows;
         // int w = image.cols; 
         // std::vector<std::tuple<int, int>> indices;
@@ -448,17 +448,17 @@ using kamaz::hagen::PointCloudPtr;
 
 // int main(){
 
-//   Eigen::VectorXf a(4);
-//   Eigen::VectorXf b(4);
+//   Eigen::Vector3d a(4);
+//   Eigen::Vector3d b(4);
 //   a << 1,4,1,0;
 //   b << 1,2,1,0;
-//   Eigen::VectorXf projection_vector = b.head(3) - a.head(3);
-//   Eigen::VectorXf projection_vector_z = projection_vector;
+//   Eigen::Vector3d projection_vector = b.head(3) - a.head(3);
+//   Eigen::Vector3d projection_vector_z = projection_vector;
 //   projection_vector_z[2] = 0.0;
 
-//   float angle = projection_vector.dot(projection_vector_z)/(projection_vector.norm()*projection_vector_z.norm());
+//   double angle = projection_vector.dot(projection_vector_z)/(projection_vector.norm()*projection_vector_z.norm());
 //   angle = std::acos(angle);
-//   Eigen::VectorXf normalized_vector = projection_vector.normalized();
+//   Eigen::Vector3d normalized_vector = projection_vector.normalized();
 //   auto angle_z = std::atan2(normalized_vector[1], normalized_vector[0]);
 //   std::cout<< "======================" << angle_z*(180/3.14) << std::endl;    
 //   std::cout<< "======================" << angle*(180/3.14) << std::endl;     
@@ -469,7 +469,7 @@ using kamaz::hagen::PointCloudPtr;
   // Eigen::VectorXd b(8);
   // b << 12,13,14,15,16,17,18,19;
 
-  // Eigen::MatrixXf m(4,3);
+  // Eigen::MatrixXd m(4,3);
   // m <<  1, 2, 3,
   //       4, 5, 6, 
   //       7, 8,9,
@@ -486,7 +486,7 @@ using kamaz::hagen::PointCloudPtr;
   // cv::Mat image;
   // image = cv::imread("/dataset/images/result/10/3008_angle_img.jpg", CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
   
-  // Eigen::Matrix<float,Eigen::Dynamic, Eigen::Dynamic> bb;
+  // Eigen::Matrix<double,Eigen::Dynamic, Eigen::Dynamic> bb;
   // cv::cv2eigen(image, bb); 
   // for(auto i(0); i< bb.cols(); i++){
   //   SingularSpectrumAnalysis ssa(8, 8, false);
@@ -497,9 +497,9 @@ using kamaz::hagen::PointCloudPtr;
   //   ssa.save_vec(f, "smoothed_signal_"+ std::to_string(i));
   // }
 
-  // Eigen::MatrixXf SingularSpectrumAnalysis::get_smoothed_image(cv::Mat& image){
-  // Eigen::MatrixXf smoothed_image(image.rows, image.cols);
-  // Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> eigen_image;
+  // Eigen::MatrixXd SingularSpectrumAnalysis::get_smoothed_image(cv::Mat& image){
+  // Eigen::MatrixXd smoothed_image(image.rows, image.cols);
+  // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> eigen_image;
   // cv::cv2eigen(image, eigen_image); 
   // for(auto i(0); i< eigen_image.rows(); i++){
   //     kamaz::hagen::SingularSpectrumAnalysis ssa(16, 3, true);
@@ -553,15 +553,15 @@ using kamaz::hagen::PointCloudPtr;
 //   return 0;
 // }
 
-typedef Eigen::Spline<float, 3> Spline3d;
+typedef Eigen::Spline<double, 3> Spline3d;
 
 
 // int main(){
-  // std::vector<Eigen::VectorXf> waypoints;
-  // Eigen::Vector3f po1(2,3,4);
-  // Eigen::Vector3f po2(2,5,4);
-  // Eigen::Vector3f po3(2,8,9);
-  // Eigen::Vector3f po4(2,8,23);
+  // std::vector<Eigen::Vector3d> waypoints;
+  // Eigen::Vector3d po1(2,3,4);
+  // Eigen::Vector3d po2(2,5,4);
+  // Eigen::Vector3d po3(2,8,9);
+  // Eigen::Vector3d po4(2,8,23);
   // waypoints.push_back(po1);
   // waypoints.push_back(po2);
   // waypoints.push_back(po3);
@@ -569,17 +569,17 @@ typedef Eigen::Spline<float, 3> Spline3d;
       
   // // The degree of the interpolating spline needs to be one less than the number of points
   // // that are fitted to the spline.
-  // Eigen::MatrixXf points(3, waypoints.size());
+  // Eigen::MatrixXd points(3, waypoints.size());
   // int row_index = 0;
   // for(auto const way_point : waypoints){
   //     points.col(row_index) << way_point[0], way_point[1], way_point[2];
   //     row_index++;
   // }
   // Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
-  // float time_ = 0;
+  // double time_ = 0;
   // for(int i=0; i<20; i++){
   //     time_ += 1.0/(20*1.0);
-  //     Eigen::VectorXf values = spline(time_);
+  //     Eigen::Vector3d values = spline(time_);
   //     std::cout<< values << std::endl;
   // }
   // std::cout << "Nodes: " << 20 << std::endl;
@@ -587,10 +587,10 @@ typedef Eigen::Spline<float, 3> Spline3d;
 
   // time_ = 0;
   // int count = 0;
-  // std::vector<float> edges; 
+  // std::vector<double> edges; 
   // for(int g=0; g< 20; g++){
   //   time_ += 1.0/(20*1.0);
-  //   Eigen::Vector3f values = spline(time_);
+  //   Eigen::Vector3d values = spline(time_);
   //   std::cout<< values << std::endl;
   //   edges.push_back(values[0]);
   //   edges.push_back(values[1]);
@@ -600,15 +600,15 @@ typedef Eigen::Spline<float, 3> Spline3d;
   // }
   // cnpy::npy_save("file_name.npy", &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)3},"w");
 
-  // void TrajectorySmoother::get_smoothed_trajectory(std::vector<Eigen::VectorXf> waypoints
+  // void TrajectorySmoother::get_smoothed_trajectory(std::vector<Eigen::Vector3d> waypoints
   //                                           , int _number_of_steps
-  //                                           , std::vector<Eigen::VectorXf>& smoothed_trajectory){
+  //                                           , std::vector<Eigen::Vector3d>& smoothed_trajectory){
                 
   //               if(waypoints.size()<2){
   //                   smoothed_trajectory = waypoints;
   //                   return;
   //               }
-  //               Eigen::MatrixXf points(3, waypoints.size());
+  //               Eigen::MatrixXd points(3, waypoints.size());
   //               // points.col(0) << waypoints[0][0], waypoints[0][1], waypoints[0][2];
 
   //               int row_index = 0;
@@ -622,10 +622,10 @@ typedef Eigen::Spline<float, 3> Spline3d;
   //               Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 2);
 
   //               // _curve->add_way_point(Vector(waypoints.back()[0], waypoints.back()[1], waypoints.back()[2]));
-  //               float time_ = 0;
+  //               double time_ = 0;
   //               for(int i=0; i<_number_of_steps; i++){
   //                   time_ += 1.0/(_number_of_steps*1.0);
-  //                   Eigen::VectorXf values = spline(time_);
+  //                   Eigen::Vector3d values = spline(time_);
   //                   std::cout<< values << std::endl;
   //                   smoothed_trajectory.push_back(values);
   //               }
@@ -729,61 +729,67 @@ int main()
 {
     kamaz::hagen::RRTStar3D rrtstart3d;
     kamaz::hagen::CommonUtils common_utils;
-    Eigen::VectorXf x_dimentions(6);
+    Eigen::VectorXd x_dimentions(6);
     x_dimentions << -10, 10, -10, 10, -10, 10;
-    Eigen::VectorXf x_init(3);
+    Eigen::Vector3d x_init;
     x_init << -9, -9, -9;
-    Eigen::VectorXf x_goal(3);
+    Eigen::Vector3d x_goal;
     x_goal << 9, 9, 9;
     // auto obstacles = rrtstart3d.get_obstacles();
     auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
     // std::cout<< "-----1" << std::endl;
     
-
     std::atomic_bool planner_status;
     planner_status = ATOMIC_VAR_INIT(true);
-    std::vector<Eigen::VectorXf> Q;
-    Eigen::VectorXf dim_in(2);
+     std::cout<< "=====01" <<std::endl;
+    std::vector<Eigen::Vector2d> Q;
+     std::cout<< "=====01" <<std::endl;
+    Eigen::Vector2d dim_in;
+     std::cout<< "=====01" <<std::endl;
     dim_in << 8, 4;
+     std::cout<< "=====01" <<std::endl;
     Q.push_back(dim_in);
     // std::cout<< "-----1" << std::endl;
     int r = 1;
     int max_samples = 1000;
     int rewrite_count = 32;
-    float proc = 0.1;
-    float obstacle_width = 0.5;
+    double proc = 0.1;
+    double obstacle_width = 0.5;
+     std::cout<< "=====01" <<std::endl;
     kamaz::hagen::SearchSpace X;
+    std::cout<< "=====11" <<std::endl;
     X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
+    std::cout<< "=====21" <<std::endl;
     X.update_obstacles_map(obstacles);
+    std::cout<< "=====01" <<std::endl;
     int save_data_index = 0;
+    std::cout<< "=====01" <<std::endl;
     rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-
+    std::cout<< "=====01" <<std::endl;
     std::vector<SearchSpace::Rect> current_desired_trajectory;
-    std::vector<Eigen::VectorXf> trajectory_online;
+    std::vector<Eigen::Vector3d> trajectory_online;
 
-    Eigen::VectorXf center = (x_goal - x_init);
-    Eigen::MatrixXf covmat = Eigen::MatrixXf::Zero(3,3);
+    Eigen::Vector3d center = (x_goal - x_init);
+    Eigen::MatrixXd covmat = Eigen::MatrixXd::Zero(3,3);
 
     covmat(0,0) = 3;
     covmat(1,1) = 3;
     covmat(2,2) = 3;
     
     center = (x_goal + x_init)/2;
-    Eigen::Vector3f a(1,0,0);
-    Eigen::Vector3f b = x_goal-x_init;
+    Eigen::Vector3d a(1,0,0);
+    Eigen::Vector3d b = x_goal-x_init;
+    std::cout<< "=====01" <<std::endl;
+    Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity(3,3);
+    int ndims = covmat.rows(); 
 
-    Eigen::Matrix3f rotation_matrix = Eigen::Matrix3f::Identity(3,3);
-    int ndims = covmat.rows();       
-    Eigen::MatrixXf random_points = Eigen::MatrixXf::Zero(max_samples, ndims);
-    common_utils.generate_samples_from_ellipsoid(covmat, rotation_matrix, center
-            , random_points);
-
-    std::cout<< random_points << std::endl;
-
+    std::cout<< "=====1" <<std::endl;
     X.use_whole_search_sapce = true;
     X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
+    std::cout<< "=====2" <<std::endl;
     auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
     std::ref(planner_status), save_data_index);
+    std::cout<< "=====3" <<std::endl;
     if(path.size()>0){
       Curve* bspline_curve = new BSpline();
       bspline_curve->set_steps(100);
@@ -795,12 +801,12 @@ int main()
       bspline_curve->add_way_point(Vector(path.back()[0], path.back()[1], path.back()[2]));
       std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
       std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-      std::vector<Eigen::VectorXf> new_path_bspline;
+      std::vector<Eigen::Vector3d> new_path_bspline;
       if(path.size()>0){
         new_path_bspline.push_back(path[0]);
       }
       for (int i = 0; i < bspline_curve->node_count(); ++i) {
-        Eigen::VectorXf pose(3);
+        Eigen::Vector3d pose(3);
         auto node = bspline_curve->node(i);
         pose<< node.x, node.y, node.z; 
         new_path_bspline.push_back(pose);
@@ -834,9 +840,9 @@ int main()
 
 // // };
 
-// // struct my_functor : Functor<float>
+// // struct my_functor : Functor<double>
 // // {
-// //     my_functor(void): Functor<float>(2,2) {}
+// //     my_functor(void): Functor<double>(2,2) {}
 // //     int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
 // //     {
 // //         // Implement y = 10*(x0+3)^2 + (x1-5)^2
@@ -855,7 +861,7 @@ int main()
 
 // //     my_functor functor;
 // //     Eigen::NumericalDiff<my_functor> numDiff(functor);
-// //     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<my_functor>,float> lm(numDiff);
+// //     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<my_functor>,double> lm(numDiff);
 // //     lm.parameters.maxfev = 2000;
 // //     lm.parameters.xtol = 1.0e-10;
 // //     std::cout << lm.parameters.maxfev << std::endl;

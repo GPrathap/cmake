@@ -22,13 +22,13 @@ DepthGroundRemover::DepthGroundRemover(const ProjectionParams& params)
 : _params{params} {};
 
 void DepthGroundRemover::RepairDepth(cv::Mat& inpainted_depth, int step,
-                                    float depth_threshold, int index_) {
+                                    double depth_threshold, int index_) {
     for (int c = 0; c < inpainted_depth.cols; ++c) {
       for (int r = 0; r < inpainted_depth.rows; ++r) {
-        float& curr_depth = inpainted_depth.at<float>(r, c);
+        double& curr_depth = inpainted_depth.at<double>(r, c);
         if (curr_depth < 0.001f) {
           int counter = 0;
-          float sum = 0.0f;
+          double sum = 0.0f;
           for (int i = 1; i < step; ++i) {
             if (r - i < 0) {
               continue;
@@ -37,8 +37,8 @@ void DepthGroundRemover::RepairDepth(cv::Mat& inpainted_depth, int step,
               if (r + j > inpainted_depth.rows - 1) {
                 continue;
               }
-              const float& prev = inpainted_depth.at<float>(r - i, c);
-              const float& next = inpainted_depth.at<float>(r + j, c);
+              const double& prev = inpainted_depth.at<double>(r - i, c);
+              const double& next = inpainted_depth.at<double>(r + j, c);
               if (prev > 0.001f && next > 0.001f &&
                   fabs(prev - next) < depth_threshold) {
                 sum += prev + next;
@@ -53,7 +53,7 @@ void DepthGroundRemover::RepairDepth(cv::Mat& inpainted_depth, int step,
       }
     }
 
-    filtered_map = cv::Mat::zeros(inpainted_depth.size(), cv::DataType<float>::type);
+    filtered_map = cv::Mat::zeros(inpainted_depth.size(), cv::DataType<double>::type);
     LocalMaximaFilter local_maximum_filter;
     local_maximum_filter.persistence(inpainted_depth, filtered_map, local_maxima_poses);
     // // local_maximum_filter.persistence_and_save_data(inpainted_depth, filtered_map, index_);
@@ -85,21 +85,21 @@ void DepthGroundRemover::RepairDepth(cv::Mat& inpainted_depth, int step,
 }
 
 void DepthGroundRemover::CreateAngleImage() {
-  cv::Mat angle_image = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<float>::type);
-  cv::Mat x_mat = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<float>::type);
-  cv::Mat y_mat = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<float>::type);
+  cv::Mat angle_image = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<double>::type);
+  cv::Mat x_mat = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<double>::type);
+  cv::Mat y_mat = cv::Mat::zeros(depth_img_pointer.size(), cv::DataType<double>::type);
   const auto& sines_vec = _params.RowAngleSines();
   const auto& cosines_vec = _params.RowAngleCosines();
-  float dx, dy;
+  double dx, dy;
   x_mat.row(0) = depth_img_pointer.row(0) * cosines_vec[0];
   y_mat.row(0) = depth_img_pointer.row(0) * sines_vec[0];
   for (int r = 1; r < angle_image.rows; ++r) {
     x_mat.row(r) = depth_img_pointer.row(r) * cosines_vec[r];
     y_mat.row(r) = depth_img_pointer.row(r) * sines_vec[r];
     for (int c = 0; c < angle_image.cols; ++c) {
-      dx = fabs(x_mat.at<float>(r, c) - x_mat.at<float>(r - 1, c));
-      dy = fabs(y_mat.at<float>(r, c) - y_mat.at<float>(r - 1, c));
-      angle_image.at<float>(r, c) = atan2(dy, dx);
+      dx = fabs(x_mat.at<double>(r, c) - x_mat.at<double>(r - 1, c));
+      dy = fabs(y_mat.at<double>(r, c) - y_mat.at<double>(r - 1, c));
+      angle_image.at<double>(r, c) = atan2(dy, dx);
     }
   }
   angle_img_pointer = angle_image;
@@ -111,8 +111,8 @@ cv::Mat DepthGroundRemover::GetUniformKernel(int window_size, int type) const {
     throw std::logic_error("only odd window size allowed");
   }
   cv::Mat kernel = cv::Mat::zeros(window_size, 1, type);
-  kernel.at<float>(0, 0) = 1;
-  kernel.at<float>(window_size - 1, 0) = 1;
+  kernel.at<double>(0, 0) = 1;
+  kernel.at<double>(window_size - 1, 0) = 1;
   kernel /= 2;
   return kernel;
 }
@@ -120,17 +120,17 @@ cv::Mat DepthGroundRemover::GetUniformKernel(int window_size, int type) const {
 
 void DepthGroundRemover::ApplySSASmoothing(int window_size, int bin_size, bool is_normalized) {
 
-  Eigen::MatrixXf smoothed_image =  Eigen::MatrixXf::Zero(angle_img_pointer.rows, angle_img_pointer.cols);
-  Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> eigen_img;
-  float* angle_img_ptr = (float*)angle_img_pointer.data;
+  Eigen::MatrixXd smoothed_image =  Eigen::MatrixXd::Zero(angle_img_pointer.rows, angle_img_pointer.cols);
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> eigen_img;
+  double* angle_img_ptr = (double*)angle_img_pointer.data;
 
 
   for (auto const& x : local_maxima_poses)
   {
-      Eigen::VectorXf input_signal(angle_img_pointer.rows);
-      float sum = 0;
+      Eigen::Vector3d input_signal(angle_img_pointer.rows);
+      double sum = 0;
       for(int it = 0; it < angle_img_pointer.rows; ++it) {
-          float index_val = angle_img_ptr[it*angle_img_pointer.step1() + x.first];
+          double index_val = angle_img_ptr[it*angle_img_pointer.step1() + x.first];
           sum += index_val;
           input_signal[it] = index_val;
       }
@@ -144,10 +144,10 @@ void DepthGroundRemover::ApplySSASmoothing(int window_size, int bin_size, bool i
   }
 
   // for(auto i(0); i< angle_img_pointer.cols; i++){
-  //   Eigen::VectorXf input_signal(angle_img_pointer.rows);
-  //   float sum = 0;
+  //   Eigen::Vector3d input_signal(angle_img_pointer.rows);
+  //   double sum = 0;
   //   for(int it = 0; it < angle_img_pointer.rows; ++it) {
-  //       float index_val = angle_img_ptr[it*angle_img_pointer.step1() + i];
+  //       double index_val = angle_img_ptr[it*angle_img_pointer.step1() + i];
   //       sum += index_val;
   //       input_signal[it] = index_val;
   //   }
@@ -172,8 +172,8 @@ Radians DepthGroundRemover::GetLineAngle(const cv::Mat& depth_image, int col,
   current_angle = _params.AngleFromRow(row_curr);
   neighbor_angle = _params.AngleFromRow(row_neigh);
   // for easiness copy references to depth of current and neighbor positions
-  const float& depth_current = depth_image.at<float>(row_curr, col);
-  const float& depth_neighbor = depth_image.at<float>(row_neigh, col);
+  const double& depth_current = depth_image.at<double>(row_curr, col);
+  const double& depth_neighbor = depth_image.at<double>(row_neigh, col);
   if (depth_current < _eps || depth_neighbor < _eps) {
     return 0_deg;
   }
@@ -188,7 +188,7 @@ Radians DepthGroundRemover::GetLineAngle(const cv::Mat& depth_image, int col,
 }
 
 void DepthGroundRemover::labelOneComponent(int label, kamaz::hagen::Point& start
-                  , cv::Mat& label_image, float threshold) {
+                  , cv::Mat& label_image, double threshold) {
 
     std::queue<kamaz::hagen::Point> labeling_queue;
     labeling_queue.push(start);
@@ -197,11 +197,11 @@ void DepthGroundRemover::labelOneComponent(int label, kamaz::hagen::Point& start
       max_queue_size = std::max(labeling_queue.size(), max_queue_size);
       kamaz::hagen::Point current = labeling_queue.front();
       labeling_queue.pop();
-      uint current_label = label_image.at<float>(current.x, current.y);
+      uint current_label = label_image.at<double>(current.x, current.y);
       if (current_label > 0) {
         continue;
       }
-      label_image.at<float>(current.x, current.y) = label;
+      label_image.at<double>(current.x, current.y) = label;
       auto current_depth = current.depth;
       if (current_depth < 0.001f) {
         continue;
@@ -218,7 +218,7 @@ void DepthGroundRemover::labelOneComponent(int label, kamaz::hagen::Point& start
           continue;
         }
         neighbor = depth_points[index_neighbor];
-        uint neigh_label = label_image.at<float>(neighbor.x, neighbor.y);
+        uint neigh_label = label_image.at<double>(neighbor.x, neighbor.y);
         if (neigh_label > 0) {
           continue;
         }

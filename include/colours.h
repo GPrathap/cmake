@@ -35,24 +35,24 @@
 
 
 struct ColorRGBA{
-  float r;
-  float g;
-  float b;
-  float a;
+  double r;
+  double g;
+  double b;
+  double a;
 };
 
-inline ColorRGBA heightMapColor(float h) {
+inline ColorRGBA heightMapColor(double h) {
 
   ColorRGBA color;
   
   // blend over HSV-values (more colors)
-  float s = 1.0;
-  float v = 1.0;
+  double s = 1.0;
+  double v = 1.0;
 
   h -= std::floor(h);
   h *= 6;
   int i;
-  float m, n, f;
+  double m, n, f;
 
   i = std::floor(h);
   f = h - i;

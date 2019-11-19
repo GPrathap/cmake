@@ -157,10 +157,10 @@ class ProjectionParams {
    */
   size_t ColFromAngle(const Radians& angle) const;
 
-  const std::vector<float>& RowAngleCosines() const;
-  const std::vector<float>& ColAngleCosines() const;
-  const std::vector<float>& RowAngleSines() const;
-  const std::vector<float>& ColAngleSines() const;
+  const std::vector<double>& RowAngleCosines() const;
+  const std::vector<double>& ColAngleCosines() const;
+  const std::vector<double>& RowAngleSines() const;
+  const std::vector<double>& ColAngleSines() const;
 
   bool valid();
 
@@ -193,11 +193,11 @@ class ProjectionParams {
   std::vector<Radians> _col_angles;
   std::vector<Radians> _row_angles;
 
-  std::vector<float> _col_angles_sines;
-  std::vector<float> _col_angles_cosines;
+  std::vector<double> _col_angles_sines;
+  std::vector<double> _col_angles_cosines;
 
-  std::vector<float> _row_angles_sines;
-  std::vector<float> _row_angles_cosines;
+  std::vector<double> _row_angles_sines;
+  std::vector<double> _row_angles_cosines;
 };
 
 }  // namespace kamaz

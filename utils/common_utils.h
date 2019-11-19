@@ -81,33 +81,33 @@ class CommonUtils {
   
   CommonUtils() = default;
   ~CommonUtils() = default;
-  void generate_samples_from_ellipsoid(Eigen::MatrixXf covmat
-            , Eigen::Matrix3f rotation_mat, Eigen::VectorXf cent
-            , Eigen::MatrixXf& container);
+  void generate_samples_from_ellipsoid(Eigen::MatrixXd covmat
+            , Eigen::Matrix3d rotation_mat, Eigen::Vector3d cent
+            , Eigen::MatrixXd& container);
   
-  void get_roration_matrix(Eigen::Vector3f a, Eigen::Vector3f b, Eigen::Matrix3f& r);
-  float get_cost_of_path(std::vector<Eigen::VectorXf> path1);
-//   visualization_msgs::Marker create_marker_point(Eigen::VectorXf _point_on_path
-//         , Eigen::MatrixXf covmat, int id_, std::string name_space);
-//   visualization_msgs::Marker create_marker_point(Eigen::VectorXf _point_on_path
-//         , Eigen::MatrixXf covmat, Eigen::Quaternion<double> q, int id_
+  void get_roration_matrix(Eigen::Vector3d a, Eigen::Vector3d b, Eigen::Matrix3d& r);
+  double get_cost_of_path(std::vector<Eigen::Vector3d> path1);
+//   visualization_msgs::Marker create_marker_point(Eigen::Vector3d _point_on_path
+//         , Eigen::MatrixXd covmat, int id_, std::string name_space);
+//   visualization_msgs::Marker create_marker_point(Eigen::Vector3d _point_on_path
+//         , Eigen::MatrixXd covmat, Eigen::Quaternion<double> q, int id_
 //         , std::string name_space);
-//   visualization_msgs::Marker create_marker_point(Eigen::VectorXf _point_on_path
+//   visualization_msgs::Marker create_marker_point(Eigen::Vector3d _point_on_path
 //         , ColorRGBA color_of_qupter, int id_, std::string name_space);
   
-//   geometry_msgs::PoseStamped constructPoseStamped(Eigen::VectorXf path_position);
+//   geometry_msgs::PoseStamped constructPoseStamped(Eigen::Vector3d path_position);
 //   void printStampedTf(tf::StampedTransform sTf);
 //   void printTf(tf::Transform tf);
 //   void PrintMsgStats(const sensor_msgs::PointCloud2ConstPtr& msg);
 //   tf::Transform get_tf_from_stamped_tf(tf::StampedTransform sTf);
-//   dji_sdk::Gimbal get_gimbal_msg(int mode, float roll
-                                                //  , float pitch, float yaw);
+//   dji_sdk::Gimbal get_gimbal_msg(int mode, double roll
+                                                //  , double pitch, double yaw);
 
-  void get_point_on_the_trajectory(Eigen::VectorXf way_point
-      , Eigen::VectorXf start_point,  Eigen::VectorXf& path_position);
+  void get_point_on_the_trajectory(Eigen::Vector3d way_point
+      , Eigen::Vector3d start_point,  Eigen::Vector3d& path_position);
 
-  float voxel_side_length;
-  Eigen::Vector3f init_min_point;
+  double voxel_side_length;
+  Eigen::Vector3d init_min_point;
   std::string world_frame_id;
 };
 

@@ -3,7 +3,7 @@
 namespace kamaz {
 namespace hagen {
 
-    QuadTree::QuadTree(std::vector<Point> data, float width, float height, float angle_threshold, const cv::Mat& angle_image_ ,const cv::Mat& depth_image_ )
+    QuadTree::QuadTree(std::vector<Point> data, double width, double height, double angle_threshold, const cv::Mat& angle_image_ ,const cv::Mat& depth_image_ )
         :width(width), height(height), angle_threshold(angle_threshold), rect(0, 0, width, height), root(data, rect, 0){
             if(data.size()>0){
                 _split();
@@ -80,7 +80,7 @@ namespace hagen {
                 Point point =  node.val[0];
                 auto current_coord = Point(point.x, point.y);
                 // label_3rd_part.LabelOneComponent(1, current_coord);
-                // quadtree_labed_image.at<float>(point.x, point.y) = 1.0;
+                // quadtree_labed_image.at<double>(point.x, point.y) = 1.0;
                 // for(int index=0; index<4; ++index){
                 //     int neighbor_x = point.x + x_direc[index];
                 //     int neighbor_y = point.y + y_direc[index];
@@ -90,14 +90,14 @@ namespace hagen {
                 //     if (neighbor_y < 0 || neighbor_y >= angle_image.cols) {
                 //         continue;
                 //     }
-                //     if (quadtree_labed_image.at<float>(neighbor_x, neighbor_y) > 0) {
+                //     if (quadtree_labed_image.at<double>(neighbor_x, neighbor_y) > 0) {
                 //         continue;
                 //     }
-                //     auto diff = std::fabs(point.angle-angle_image.at<float>(neighbor_x, neighbor_y));
+                //     auto diff = std::fabs(point.angle-angle_image.at<double>(neighbor_x, neighbor_y));
                 //     if(diff< angle_threshold){
                 //                     //  std::cout<< "======>>>" << std::endl;
-                //         // if(depth_image.at<float>(neighbor_x, neighbor_y)>0.0){
-                //             quadtree_labed_image.at<float>(neighbor_x, neighbor_y) = 1.0;
+                //         // if(depth_image.at<double>(neighbor_x, neighbor_y)>0.0){
+                //             quadtree_labed_image.at<double>(neighbor_x, neighbor_y) = 1.0;
                 //             in_ggg++;
                 //         // }
                 //     }
@@ -118,7 +118,7 @@ namespace hagen {
                 //                 // std::cout<< "======>>>" << std::fabs(son_point.angle-point.angle) << std::endl;
                 //                 // if(std::fabs(son_point.angle-point.angle)< angle_threshold){
                 //                     //  std::cout<< "======>>>" << std::endl;
-                //                     // quadtree_labed_image.at<float>(son_point.x, son_point.y) = 1.0;
+                //                     // quadtree_labed_image.at<double>(son_point.x, son_point.y) = 1.0;
                 //                     in_ggg++;
                 //                 // }
                 //             }

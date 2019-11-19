@@ -7,12 +7,12 @@ namespace hagen {
                     CommonUtils& common_utils, std::atomic_bool &is_allowed_to_run)
         :RRTBase(options, common_utils, is_allowed_to_run){ }
     
-    std::vector<Eigen::VectorXf> RRT::rrt_search(){
+    std::vector<Eigen::Vector3d> RRT::rrt_search(){
         add_vertex(0, x_init);
-        Eigen::VectorXf none_pose(3);
+        Eigen::Vector3d none_pose(3);
         none_pose << -1, -1, -1;
         add_edge(0, x_init, none_pose); //TODO need to handle this proper way setting null pointer
-        std::vector<Eigen::VectorXf> path;
+        std::vector<Eigen::Vector3d> path;
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){

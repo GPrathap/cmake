@@ -3,10 +3,10 @@
 namespace kamaz {
 namespace hagen {
 
-    std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner(SearchSpace search_space
-                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
-                , Eigen::VectorXf start_position, float obstacle_fail_safe_distance
-                , float min_angle_allows_obs, CommonUtils& common_utils
+    std::vector<Eigen::Vector3d> RRTStar3D::rrt_planner(SearchSpace search_space
+                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
+                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance
+                , double min_angle_allows_obs, CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run){
         
         rrt_planner_options.search_space = search_space;
@@ -20,10 +20,10 @@ namespace hagen {
         return rrtstar.rrt_star();
     }
 
-    std::vector<Eigen::VectorXf> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
-                , Eigen::VectorXf start_pose, Eigen::VectorXf goal_pose
-                , Eigen::VectorXf start_position, float obstacle_fail_safe_distance
-                , float min_angle_allows_obs, CommonUtils& common_utils
+    std::vector<Eigen::Vector3d> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
+                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
+                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance
+                , double min_angle_allows_obs, CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run, int index){
         
         rrt_planner_options.search_space = search_space;
@@ -35,15 +35,18 @@ namespace hagen {
 
         auto rrtstar =  RRTStar(rrt_planner_options, _rewrite_count, common_utils
                         , is_allowed_to_run);
-        
         std::ofstream outfile;
-        outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
-        const clock_t begin_time = clock();
+        // std::cout<< " ========================4444444" << std::endl;
+        // outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
+        // std::cout<< " ========================4444444" << std::endl;
+        // const clock_t begin_time = clock();
+        // std::cout<< " ========================4444444" << std::endl;
         auto path = rrtstar.rrt_star();
-        float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
-        if(path.size()>1){
-             outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
-        }
+        // double time_diff =  double( clock () - begin_time ) /  CLOCKS_PER_SEC;
+        // if(path.size()>1){
+            //  outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
+        // }
+        // std::cout<< " ========================4444444" << std::endl;
         stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(search_space.random_objects, stotage_location + "obstacles.npy");
@@ -55,21 +58,21 @@ namespace hagen {
         return path;
     }
 
-    float  RRTStar3D::get_distance(std::vector<Eigen::VectorXf> trajectory_){
-			float distance = 0.0f;
+    double  RRTStar3D::get_distance(std::vector<Eigen::Vector3d> trajectory_){
+			double distance = 0.0f;
         if(trajectory_.size() < 1){
             return distance;
         }
-        Eigen::VectorXf previous = trajectory_[0].head(3);
+        Eigen::Vector3d previous = trajectory_[0].head(3);
         for (int i = 1; (unsigned)i < trajectory_.size(); i++){
-            float dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
+            double dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
             previous = trajectory_[i].head(3);
             distance += dis;
         }
         return distance;
     }
 
-    void RRTStar3D::save_trajectory(std::vector<Eigen::VectorXf> trajectory_of_drone){
+    void RRTStar3D::save_trajectory(std::vector<Eigen::Vector3d> trajectory_of_drone){
        std::string file_name = stotage_location + "smoothed_rrt_path.npy";
        std::vector<double> quad_status; 
        for(auto sector: trajectory_of_drone){
@@ -81,8 +84,8 @@ namespace hagen {
        cnpy::npy_save(file_name, &quad_status[0], {quad_status.size()}, "w");
     }
 
-    void RRTStar3D::rrt_init(std::vector<Eigen::VectorXf> _lengths_of_edges
-            , int max_samples, int _resolution, float _pro, int rewrite_count){
+    void RRTStar3D::rrt_init(std::vector<Eigen::Vector2d> _lengths_of_edges
+            , int max_samples, int _resolution, double _pro, int rewrite_count){
         rrt_planner_options.lengths_of_edges = _lengths_of_edges;
         rrt_planner_options.max_samples = max_samples;
         rrt_planner_options.resolution = _resolution; 
@@ -90,8 +93,8 @@ namespace hagen {
         _rewrite_count = rewrite_count;
     }
 
-    Eigen::VectorXf RRTStar3D::get_search_space_dim(Eigen::VectorXf dimensions){
-        Eigen::VectorXf dim_ = dimensions;
+    Eigen::Vector3d RRTStar3D::get_search_space_dim(Eigen::Vector3d dimensions){
+        Eigen::Vector3d dim_ = dimensions;
         return dim_;
     }
 
@@ -109,26 +112,26 @@ namespace hagen {
     }
 
     std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles
-    , Eigen::VectorXf x_dimentions, Eigen::VectorXf x_init, Eigen::VectorXf x_goal){
+    , Eigen::VectorXd x_dimentions, Eigen::Vector3d x_init, Eigen::Vector3d x_goal){
         std::vector<SearchSpace::Rect> _objects;
         srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
             
-            float x_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[1];
-            float y_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[3];
-            float z_plus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[5];
+            double x_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[1];
+            double y_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[3];
+            double z_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[5];
 
-            float x_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[0];
-            float y_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[2];
-            float z_minus = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) *x_dimentions[4];
+            double x_minus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[0];
+            double y_minus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[2];
+            double z_minus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[4];
 
-            float x = x_plus + x_minus;
-            float y = y_plus + y_minus;
-            float z = z_plus + z_minus;
-            float width_x = x + rand()%5;
-            float width_y = y + rand()%5;
-            float width_z = z + rand()%5;
-            std::cout<< x << " " <<  y << " "<< z << " " << width_x << " " << width_y << " " << width_z << std::endl;
+            double x = x_plus + x_minus;
+            double y = y_plus + y_minus;
+            double z = z_plus + z_minus;
+            double width_x = x + rand()%5;
+            double width_y = y + rand()%5;
+            double width_z = z + rand()%5;
+            // std::cout<< x << " " <<  y << " "<< z << " " << width_x << " " << width_y << " " << width_z << std::endl;
             if(width_x >= x_dimentions[1] || width_y >= x_dimentions[3] || width_z >= x_dimentions[5]){
                 continue;
             }
@@ -143,7 +146,7 @@ namespace hagen {
     }
 
     void RRTStar3D::save_edges(std::map<int, Tree> trees, std::string file_name){
-       std::vector<float> edges; 
+       std::vector<double> edges; 
        int count = 0;
        for(auto const&item : trees[0].E){
             auto sp = item.first;
@@ -161,7 +164,7 @@ namespace hagen {
     }
 
     void RRTStar3D::save_obstacle(std::vector<SearchSpace::Rect> obstacles, std::string file_name){
-        std::vector<float> obstacles_pose; 
+        std::vector<double> obstacles_pose; 
         int count = 0;
         for(auto const& rect : obstacles){
                 obstacles_pose.push_back(rect.min[0]);
@@ -175,8 +178,8 @@ namespace hagen {
         cnpy::npy_save(file_name, &obstacles_pose[0],{(unsigned int)1, (unsigned int)count, (unsigned int)6},"w");
     }
 
-    void RRTStar3D::save_poses(Eigen::VectorXf start, Eigen::VectorXf end, std::string file_name){
-       std::vector<float> obstacles_pose(6); 
+    void RRTStar3D::save_poses(Eigen::Vector3d start, Eigen::Vector3d end, std::string file_name){
+       std::vector<double> obstacles_pose(6); 
        obstacles_pose[0] = start[0];
        obstacles_pose[1] = start[1];
        obstacles_pose[2] = start[2];
@@ -186,8 +189,8 @@ namespace hagen {
        cnpy::npy_save(file_name, &obstacles_pose[0], {obstacles_pose.size()}, "w");
     }
 
-    void RRTStar3D::save_path(std::vector<Eigen::VectorXf> path, std::string file_name){
-       std::vector<float> projected_path;
+    void RRTStar3D::save_path(std::vector<Eigen::Vector3d> path, std::string file_name){
+       std::vector<double> projected_path;
         BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
        for(auto const& way_point : path){
            projected_path.push_back(way_point[0]);

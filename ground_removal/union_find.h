@@ -18,7 +18,7 @@ namespace kamaz {
         // int x;
         // int y;
         int index;
-        float value;
+        double value;
     };
 
 class UnionFindDS{

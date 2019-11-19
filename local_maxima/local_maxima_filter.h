@@ -18,8 +18,8 @@ namespace kamaz {
     namespace hagen{
 
     struct groups {
-        float p1;
-        float p2;
+        double p1;
+        double p2;
         Pixel p3;
     };
 
@@ -28,23 +28,23 @@ class LocalMaximaFilter{
     LocalMaximaFilter() = default;
     ~LocalMaximaFilter() = default;
 
-    float get_pixel_value(Pixel p);
-    //float get_pixel_value(const cv::cuda::GpuMat& img, std::tuple<int, int, float> p);
+    double get_pixel_value(Pixel p);
+    //double get_pixel_value(const cv::cuda::GpuMat& img, std::tuple<int, int, double> p);
     void iter_neighbors(Pixel p, std::vector<Pixel> &item_list); 
     void persistence(const cv::Mat& img, cv::Mat& filtered_image);
     void persistence_and_save_data(const cv::Mat& img, cv::Mat& filtered_image, int index);
 
-    float distance(int x, int y, int i, int j);
+    double distance(int x, int y, int i, int j);
     void print_tuple(std::tuple<int, int> object);
-    float gaussian(float x, float sigma);
-    void applyBilateralFilter(cv::Mat& filteredImage, int source_index, int diameter, float sigmaI, float sigmaS);
+    double gaussian(double x, double sigma);
+    void applyBilateralFilter(cv::Mat& filteredImage, int source_index, int diameter, double sigmaI, double sigmaS);
 
 private:
     UnionFindDS uf; 
     int img_width;
     int img_height;
 
-    std::vector<float> depth_img_row_vector;
+    std::vector<double> depth_img_row_vector;
 };
 }
 }

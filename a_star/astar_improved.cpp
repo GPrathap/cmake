@@ -27,7 +27,7 @@ bool AStarImproved::isValid(int x, int y, int z) {
 	if (x < 0 || y < 0 || z < 0 || x >= w || y >= h || z >= d) {
 		return false;
 	}else{
-		Eigen::VectorXf search_rect(3);
+		Eigen::Vector3d search_rect(3);
 		search_rect << x, y, z;
 		if(search_space.obstacle_free(search_rect)){
 			return true;
@@ -195,34 +195,34 @@ std::vector<int> AStarImproved::getNeighbors(int idx, bool diagonal) {
 }
 
 
-std::vector<Eigen::VectorXf> AStarImproved::astar_planner_and_save(SearchSpace X,  Eigen::VectorXf x_init, 
-									Eigen::VectorXf x_goal){
+std::vector<Eigen::Vector3d> AStarImproved::astar_planner_and_save(SearchSpace X,  Eigen::Vector3d x_init, 
+									Eigen::Vector3d x_goal){
 						auto path = astar_planner(X, x_init, x_goal);
 						save_path(path);
 						return path;				
 }
 
-float  AStarImproved::get_distance(std::vector<Eigen::VectorXf> trajectory_){
-			float distance = 0.0f;
+double  AStarImproved::get_distance(std::vector<Eigen::Vector3d> trajectory_){
+			double distance = 0.0f;
       if(trajectory_.size() < 1){
         return distance;
       }
-      Eigen::VectorXf previous = trajectory_[0].head(3);
+      Eigen::Vector3d previous = trajectory_[0].head(3);
       for (int i = 1; (unsigned)i < trajectory_.size(); i++){
-           float dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
+           double dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
            previous = trajectory_[i].head(3);
            distance += dis;
       }
       return distance;
 }
 
-  float AStarImproved::get_cost_of_path(std::vector<Eigen::VectorXf> path1){
+  double AStarImproved::get_cost_of_path(std::vector<Eigen::Vector3d> path1){
     int size_of_path = path1.size();
-    Eigen::VectorXf path1_dis(size_of_path);
+    Eigen::Vector3d path1_dis(size_of_path);
     for(int i=0; i< path1.size(); i++){
         path1_dis[i] = path1[i].head(3).norm();
     }
-    Eigen::MatrixXf smoothed_map  = Eigen::MatrixXf::Zero(size_of_path, size_of_path);
+    Eigen::MatrixXd smoothed_map  = Eigen::MatrixXd::Zero(size_of_path, size_of_path);
     for(int i=0; i<size_of_path-1; i++){
       smoothed_map(i,i) = 2;
       smoothed_map(i,i+1) = smoothed_map(i+1,i) = -1;
@@ -231,8 +231,8 @@ float  AStarImproved::get_distance(std::vector<Eigen::VectorXf> trajectory_){
     return path1_dis.transpose()*smoothed_map*path1_dis;
   }
 
-std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen::VectorXf x_init, 
-									Eigen::VectorXf x_goal){
+std::vector<Eigen::Vector3d> AStarImproved::astar_planner(SearchSpace X,  Eigen::Vector3d x_init, 
+									Eigen::Vector3d x_goal){
 
 		float_max = 200000000.45;
 		search_space = X;
@@ -251,30 +251,30 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen:
     outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
     const clock_t begin_time = clock();
     bool success = astar(start_idx, goal_idx, false, paths);
-    float time_diff =  float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+    double time_diff =  double( clock () - begin_time ) /  CLOCKS_PER_SEC;
 	
        
-		std::vector<Eigen::VectorXf> projected_trajectory;
+		std::vector<Eigen::Vector3d> projected_trajectory;
 		if(success){
 				std::cout<< "Path is found"<< std::endl;
 				auto path_idx = goal_idx;
 				int path_node_id=0;
 				while(path_idx != start_idx){
 						auto path_position = to3D(path_idx);
-						Eigen::VectorXf poseh(3);
+						Eigen::Vector3d poseh(3);
 						poseh << path_position[0], path_position[1], path_position[2];
 						projected_trajectory.push_back(poseh);
 						path_idx = paths[path_idx];
 						path_node_id++;
 				}
 				auto start_position = to3D(path_idx);
-				Eigen::VectorXf poseh(3);
+				Eigen::Vector3d poseh(3);
 				poseh << start_position[0], start_position[1], start_position[2];
 				projected_trajectory.push_back(poseh);
 		}else{
 				std::cout<< "Path is not found"<< std::endl;
 		}
-		float dis = get_distance(projected_trajectory);
+		double dis = get_distance(projected_trajectory);
 		outfile << "astar,"<<  time_diff <<","<< projected_trajectory.size() << "," << dis << "," << get_cost_of_path(projected_trajectory)<< "\n";
     
 		return projected_trajectory;
@@ -288,12 +288,12 @@ std::vector<Eigen::VectorXf> AStarImproved::astar_planner(SearchSpace X,  Eigen:
 // paths (output): for each node, stores previous node in path
 bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::vector<int>& paths) {
 
-  const float INF = std::numeric_limits<float>::infinity();
+  const double INF = std::numeric_limits<double>::infinity();
   AStarImproved::Node start_node(start, 0.);
   AStarImproved::Node goal_node(goal, 0.);
 
-//   float* costs = new float[h * w * d];
-  std::vector<float> costs(h*w*d);
+//   double* costs = new double[h * w * d];
+  std::vector<double> costs(h*w*d);
   for (int i = 0; i < h * w * d; ++i)
     costs[i] = INF;
   costs[start] = 0.;
@@ -309,12 +309,12 @@ bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::ve
     }
     nodes_to_visit.pop();
     auto nbrs = getNeighbors(cur.idx, false);
-    float heuristic_cost;
+    double heuristic_cost;
     for (int i = 0; i < nbrs.size(); ++i) {
       if (nbrs[i] >= 0) {
         // the sum of the cost so far and the cost of this move
 		auto tryy = to3D( nbrs[i]);
-		float new_cost = costs[cur.idx] + 0.0;
+		double new_cost = costs[cur.idx] + 0.0;
 		if (new_cost < costs[nbrs[i]]) {
           auto current_point = to3D( nbrs[i]);
           auto goal_point = to3D(goal);
@@ -326,7 +326,7 @@ bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::ve
             heuristic_cost = l1_norm(current_point[0], current_point[1],
                                        goal_point[0],  goal_point[1], current_point[2],  goal_point[2]);
           }
-          float priority = new_cost + heuristic_cost;
+          double priority = new_cost + heuristic_cost;
           nodes_to_visit.push(AStarImproved::Node(nbrs[i], priority));
           costs[nbrs[i]] = new_cost;
           paths[nbrs[i]] = cur.idx;
@@ -338,8 +338,8 @@ bool AStarImproved::astar(const int start, const int goal, bool diag_ok, std::ve
   return solution_found;
 }
 
-	   void AStarImproved::save_path(std::vector<Eigen::VectorXf> path){
-       std::vector<float> projected_path; 
+	   void AStarImproved::save_path(std::vector<Eigen::Vector3d> path){
+       std::vector<double> projected_path; 
        std::cout<< "Astar::save_path trajectory size: " << path.size()<< std::endl;
        for(auto const& way_point : path){
            projected_path.push_back(way_point[0]);

@@ -7,7 +7,7 @@
  *
  * This file contains math definitions used
  * used throughout the library.
- * Preprocessors definition are used to use eitheir float
+ * Preprocessors definition are used to use eitheir double
  * or double values, and 3 dimensional vectors for
  * the Point structure.
  */
