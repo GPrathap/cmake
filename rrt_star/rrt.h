@@ -11,7 +11,7 @@ namespace hagen {
                     CommonUtils& common_util, std::atomic_bool &is_allowed_to_run);
                 
                 ~RRT() = default;
-                std::vector<Eigen::Vector3d> rrt_search();
+                std::vector<PathNode> rrt_search();
         };
     }
 }

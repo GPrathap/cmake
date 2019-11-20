@@ -10,20 +10,22 @@ namespace hagen {
             c_best = std::numeric_limits<double>::infinity();
     }
     
-    std::vector<std::tuple<double, Eigen::Vector3d>> RRTStar::get_nearby_vertices(int tree, Eigen::Vector3d x_init
-                                            , Eigen::Vector3d x_new){
+    std::vector<std::tuple<double, PathNode>> RRTStar::get_nearby_vertices(int tree, PathNode x_init
+                                            , PathNode x_new){
         auto X_near = nearby_vertices(tree, x_new, current_rewrite_count(tree));
         std::cout<< "RRTStar::get_nearby_vertices" << X_near.size() << std::endl;
-        std::vector<std::tuple<double, Eigen::Vector3d>> L_near;
+        std::vector<std::tuple<double, PathNode>> L_near;
         for(auto const x_near : X_near){
-            auto new_s = segment_cost(x_near, x_new);
-            auto cost = path_cost(x_init, x_near, tree) + new_s;
-            auto pose = x_near;
-            std::tuple<double, Eigen::Vector3d> a(cost, pose);
+            PathNode x_near_node;
+            x_near_node.state<< x_near[0], x_near[1], x_near[2], 0, 0, 0;
+            auto new_s = segment_cost(x_near_node, x_new);
+            auto cost = path_cost(x_init, x_near_node, tree) + new_s;
+            auto pose = x_near_node;
+            std::tuple<double, PathNode> a(cost, pose);
             L_near.push_back(a);
         }
         std::sort(L_near.begin(), L_near.end(),
-            [](const std::tuple<double, Eigen::Vector3d> a, const std::tuple<double, Eigen::Vector3d> b){
+            [](const std::tuple<double, PathNode> a, const std::tuple<double, PathNode> b){
                 return std::get<0>(a) < std::get<0>(b); 
         });
         return L_near;
@@ -37,12 +39,12 @@ namespace hagen {
         return std::min(trees[tree].v_count, rewrite_count);
     }
 
-    void RRTStar::rewrite(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near){
+    void RRTStar::rewrite(int tree, PathNode x_new, std::vector<std::tuple<double, PathNode>> L_near){
         for (auto const l_near : L_near){
             auto x_near = std::get<1>(l_near);
             auto curr_cost = path_cost(x_init, x_near, tree);
             auto tent_cost = path_cost(x_init, x_new, tree) + segment_cost(x_new, x_near);
-            if((tent_cost < curr_cost) && (X.collision_free(x_near, x_new, r))){
+            if((tent_cost < curr_cost) && (X.collision_free(x_near.state.head(3), x_new.state.head(3), r))){
                 // std::cout<< "========RRTStar::rewrite======"<< std::endl;
                 // std::cout<< x_near << std::endl;
                 // std::cout<< x_new << std::endl;
@@ -51,7 +53,7 @@ namespace hagen {
         }
     }
 
-    void RRTStar::connect_shortest_valid(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near){
+    void RRTStar::connect_shortest_valid(int tree, PathNode x_new, std::vector<std::tuple<double, PathNode>> L_near){
         // std::cout<< "RRTStar::connect_shortest_valid : L_near size: "<< L_near.size() << std::endl;
         for (auto const l_near : L_near){
             auto c_near = std::get<0>(l_near);
@@ -66,12 +68,12 @@ namespace hagen {
         }
     }
 
-    std::vector<Eigen::Vector3d> RRTStar::rrt_star(){
+    std::vector<PathNode> RRTStar::rrt_star(){
         add_vertex(0, x_init);
-        Eigen::Vector3d none_pose(3);
-        none_pose << -1, -1, -1;
+        PathNode none_pose;
+        none_pose.state << -1, -1, -1, 0, 0, 0;
         add_edge(0, x_init, none_pose);
-        std::vector<Eigen::Vector3d> path;
+        std::vector<PathNode> path;
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){

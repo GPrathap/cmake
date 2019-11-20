@@ -32,14 +32,16 @@ namespace hagen {
                RRTStar3D() = default;
                ~RRTStar3D() = default;
 
-               std::vector<Eigen::Vector3d> rrt_planner(SearchSpace search_space
-                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
-                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance, double min_angle, CommonUtils& common_utils
+               std::vector<PathNode> rrt_planner(SearchSpace search_space
+                , PathNode start_pose, PathNode goal_pose
+                , PathNode start_position, double obstacle_fail_safe_distance, double min_angle
+                , CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run);
                
-               std::vector<Eigen::Vector3d> rrt_planner_and_save(SearchSpace search_space
-                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
-                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance, double min_angle, CommonUtils& common_utils
+               std::vector<PathNode> rrt_planner_and_save(SearchSpace search_space
+                , PathNode start_pose, PathNode goal_pose
+                , PathNode start_position, double obstacle_fail_safe_distance, double min_angle
+                , CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run, int index);
 
                void rrt_init(std::vector<Eigen::Vector2d> _lengths_of_edges
@@ -49,17 +51,17 @@ namespace hagen {
                Eigen::Vector3d get_search_space_dim(Eigen::Vector3d dim);
                std::vector<SearchSpace::Rect> get_obstacles();
                std::vector<SearchSpace::Rect> get_random_obstacles(int number_of_obstacles
-               , Eigen::VectorXd x_dimentions, Eigen::Vector3d x_init, Eigen::Vector3d x_goal);
+               , Eigen::VectorXd x_dimentions, PathNode x_init, PathNode x_goal);
                void save_edges(std::map<int, Tree> trees, std::string file_name);
                void save_obstacle(std::vector<SearchSpace::Rect> obstacles, std::string file_name);
-               void save_poses(Eigen::Vector3d start, Eigen::Vector3d end, std::string file_name);
-               void save_path(std::vector<Eigen::Vector3d> path, std::string file_name);
-               void save_trajectory(std::vector<Eigen::Vector3d> trajectory_of_drone);
-               double get_distance(std::vector<Eigen::Vector3d> trajectory_);
+               void save_poses(PathNode start, PathNode end, std::string file_name);
+               void save_path(std::vector<PathNode> path, std::string file_name);
+               void save_trajectory(std::vector<PathNode> trajectory_of_drone);
+               double get_distance(std::vector<PathNode> trajectory_);
 
 
             private:
-               std::vector<Eigen::Vector3d> lengths_of_edges;
+               std::vector<Eigen::Vector2d> lengths_of_edges;
                int _max_samples;
                int resolution; 
                double pro;

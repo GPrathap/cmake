@@ -26,11 +26,11 @@ namespace hagen {
                 RRTStar(RRTPlannerOptions options,  int rewrite_count, CommonUtils& common_utils, std::atomic_bool &is_allowed_to_run);
                 ~RRTStar() = default;
 
-                std::vector<std::tuple<double, Eigen::Vector3d>> get_nearby_vertices(int tree, Eigen::Vector3d x_init, Eigen::Vector3d x_new);
+                std::vector<std::tuple<double, PathNode>> get_nearby_vertices(int tree, PathNode x_init, PathNode x_new);
                 int current_rewrite_count(int tree);
-                void rewrite(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near);
-                void connect_shortest_valid(int tree, Eigen::Vector3d x_new, std::vector<std::tuple<double, Eigen::Vector3d>> L_near);
-                std::vector<Eigen::Vector3d> rrt_star();
+                void rewrite(int tree, PathNode x_new, std::vector<std::tuple<double, PathNode>> L_near);
+                void connect_shortest_valid(int tree, PathNode x_new, std::vector<std::tuple<double, PathNode>> L_near);
+                std::vector<PathNode> rrt_star();
                 int rewrite_count;
                 double c_best;
                 

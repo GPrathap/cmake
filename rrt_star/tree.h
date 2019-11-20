@@ -18,6 +18,25 @@
 
 namespace kamaz {
 namespace hagen {
+        struct PathNode
+        {
+            public:
+            /* -------------------- */
+            Eigen::Vector3d index;
+            Eigen::Matrix<double, 6, 1> state;
+            double g_score, f_score;
+            Eigen::Vector3d input;
+            double duration;
+            double time;  
+            int time_idx;
+            char node_state;
+            PathNode()
+            {
+                node_state = 0;
+            }
+            ~PathNode(){};
+        };
+        typedef PathNode* PathNodePtr;
         class Tree {
             public:
                 Tree() = default;
@@ -48,7 +67,7 @@ namespace hagen {
                 };
 
                 std::unordered_map<std::array<double, 3>
-                                    , Eigen::Vector3d, Hasher<std::array<double, 3>>> E;
+                                    , PathNode, Hasher<std::array<double, 3>>> E;
                 void init(SearchSpace search_space);
         };
     }

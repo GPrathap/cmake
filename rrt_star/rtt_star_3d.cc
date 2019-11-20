@@ -3,9 +3,9 @@
 namespace kamaz {
 namespace hagen {
 
-    std::vector<Eigen::Vector3d> RRTStar3D::rrt_planner(SearchSpace search_space
-                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
-                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance
+    std::vector<PathNode> RRTStar3D::rrt_planner(SearchSpace search_space
+                , PathNode start_pose, PathNode goal_pose
+                , PathNode start_position, double obstacle_fail_safe_distance
                 , double min_angle_allows_obs, CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run){
         
@@ -20,9 +20,9 @@ namespace hagen {
         return rrtstar.rrt_star();
     }
 
-    std::vector<Eigen::Vector3d> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
-                , Eigen::Vector3d start_pose, Eigen::Vector3d goal_pose
-                , Eigen::Vector3d start_position, double obstacle_fail_safe_distance
+    std::vector<PathNode> RRTStar3D::rrt_planner_and_save(SearchSpace search_space
+                , PathNode start_pose, PathNode goal_pose
+                , PathNode start_position, double obstacle_fail_safe_distance
                 , double min_angle_allows_obs, CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run, int index){
         
@@ -58,28 +58,28 @@ namespace hagen {
         return path;
     }
 
-    double  RRTStar3D::get_distance(std::vector<Eigen::Vector3d> trajectory_){
+    double  RRTStar3D::get_distance(std::vector<PathNode> trajectory_){
 			double distance = 0.0f;
         if(trajectory_.size() < 1){
             return distance;
         }
-        Eigen::Vector3d previous = trajectory_[0].head(3);
+        Eigen::Vector3d previous = trajectory_[0].state.head(3);
         for (int i = 1; (unsigned)i < trajectory_.size(); i++){
-            double dis = std::abs((previous.head(3) - trajectory_[i].head(3)).norm());
-            previous = trajectory_[i].head(3);
+            double dis = std::abs((previous.head(3) - trajectory_[i].state.head(3)).norm());
+            previous = trajectory_[i].state.head(3);
             distance += dis;
         }
         return distance;
     }
 
-    void RRTStar3D::save_trajectory(std::vector<Eigen::Vector3d> trajectory_of_drone){
+    void RRTStar3D::save_trajectory(std::vector<PathNode> trajectory_of_drone){
        std::string file_name = stotage_location + "smoothed_rrt_path.npy";
        std::vector<double> quad_status; 
        for(auto sector: trajectory_of_drone){
             // std::cout<< status.size() << std::endl;
-            quad_status.push_back(sector[0]);
-            quad_status.push_back(sector[1]);
-            quad_status.push_back(sector[2]);
+            quad_status.push_back(sector.state[0]);
+            quad_status.push_back(sector.state[1]);
+            quad_status.push_back(sector.state[2]);
        }
        cnpy::npy_save(file_name, &quad_status[0], {quad_status.size()}, "w");
     }
@@ -112,7 +112,7 @@ namespace hagen {
     }
 
     std::vector<SearchSpace::Rect> RRTStar3D::get_random_obstacles(int number_of_obstacles
-    , Eigen::VectorXd x_dimentions, Eigen::Vector3d x_init, Eigen::Vector3d x_goal){
+    , Eigen::VectorXd x_dimentions, PathNode x_init, PathNode x_goal){
         std::vector<SearchSpace::Rect> _objects;
         srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
@@ -154,9 +154,9 @@ namespace hagen {
             edges.push_back(std::get<0>(sp));
             edges.push_back(std::get<1>(sp));
             edges.push_back(std::get<2>(sp));
-            edges.push_back(ep[0]);
-            edges.push_back(ep[1]);
-            edges.push_back(ep[2]);
+            edges.push_back(ep.state[0]);
+            edges.push_back(ep.state[1]);
+            edges.push_back(ep.state[2]);
             count += 1;
         }
 
@@ -178,24 +178,24 @@ namespace hagen {
         cnpy::npy_save(file_name, &obstacles_pose[0],{(unsigned int)1, (unsigned int)count, (unsigned int)6},"w");
     }
 
-    void RRTStar3D::save_poses(Eigen::Vector3d start, Eigen::Vector3d end, std::string file_name){
+    void RRTStar3D::save_poses(PathNode start, PathNode end, std::string file_name){
        std::vector<double> obstacles_pose(6); 
-       obstacles_pose[0] = start[0];
-       obstacles_pose[1] = start[1];
-       obstacles_pose[2] = start[2];
-       obstacles_pose[3] = end[0];
-       obstacles_pose[4] = end[1];
-       obstacles_pose[5] = end[2];
+       obstacles_pose[0] = start.state[0];
+       obstacles_pose[1] = start.state[1];
+       obstacles_pose[2] = start.state[2];
+       obstacles_pose[3] = end.state[0];
+       obstacles_pose[4] = end.state[1];
+       obstacles_pose[5] = end.state[2];
        cnpy::npy_save(file_name, &obstacles_pose[0], {obstacles_pose.size()}, "w");
     }
 
-    void RRTStar3D::save_path(std::vector<Eigen::Vector3d> path, std::string file_name){
+    void RRTStar3D::save_path(std::vector<PathNode> path, std::string file_name){
        std::vector<double> projected_path;
         BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
        for(auto const& way_point : path){
-           projected_path.push_back(way_point[0]);
-           projected_path.push_back(way_point[1]);
-           projected_path.push_back(way_point[2]);
+           projected_path.push_back(way_point.state[0]);
+           projected_path.push_back(way_point.state[1]);
+           projected_path.push_back(way_point.state[2]);
        }
        cnpy::npy_save(file_name, &projected_path[0], {path.size(), 3}, "w");
     }
