@@ -16,6 +16,7 @@
 #include "./spline/BSpline.h"
 // #include "./spline/CatmullRom.h"
 #include "./common/search_space.h"
+#include "./common/dynamics.h"
 #include "../ground_removal/ssa.h"
 #include "quadtree/quadtree.h"
 #include <random>
@@ -47,7 +48,7 @@ using kamaz::hagen::SingularSpectrumAnalysis;
 using kamaz::hagen::PCLPoint;
 using kamaz::hagen::PointCloud;
 using kamaz::hagen::PointCloudPtr;
-
+using kamaz::hagen::Dynamics;
 
 // int main(){
 //   std::vector<Eigen::VectorXd> path;
@@ -727,79 +728,95 @@ typedef Eigen::Spline<double, 3> Spline3d;
 
 int main()
 {
-    kamaz::hagen::RRTStar3D rrtstart3d;
-    kamaz::hagen::CommonUtils common_utils;
-    Eigen::VectorXd x_dimentions(6);
-    x_dimentions << -10, 10, -10, 10, -10, 10;
-    kamaz::hagen::PathNode x_init;
-    x_init.state << -9, -9, -9, 0 , 0 ,0;
-    kamaz::hagen::PathNode x_goal;
-    x_goal.state << 9, 9, 9, 0 ,0 , 0;
-    // auto obstacles = rrtstart3d.get_obstacles();
-    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
-    // std::cout<< "-----1" << std::endl;
-    
-    std::atomic_bool planner_status;
-    planner_status = ATOMIC_VAR_INIT(true);
-    std::vector<Eigen::Vector2d> Q;
-    Eigen::Vector2d dim_in;
-    dim_in << 8, 4;
-    Q.push_back(dim_in);
-    // std::cout<< "-----1" << std::endl;
-    int r = 1;
-    int max_samples = 1000;
-    int rewrite_count = 32;
-    double proc = 0.1;
-    double obstacle_width = 0.5;
-    kamaz::hagen::SearchSpace X;
-    X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
-    X.update_obstacles_map(obstacles);
-    int save_data_index = 0;
-    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
-    std::vector<SearchSpace::Rect> current_desired_trajectory;
-    std::vector<Eigen::Vector3d> trajectory_online;
 
-    Eigen::Vector3d center = (x_goal.state.head(3) - x_init.state.head(3));
-    Eigen::MatrixXd covmat = Eigen::MatrixXd::Zero(3,3);
+  Eigen::MatrixXd x = Eigen::MatrixXd::Zero(12, 1);
+  x<< 2,2, 1,1,1,1,1.6,1.78,1.5,1,1,1;
+  
+  Eigen::MatrixXd u = Eigen::MatrixXd::Zero(4, 1);
+  Dynamics dynamics;
+  u<<dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4
+  , dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4;
+ 
+  for(int i =0; i< 5; i++){
+      x = dynamics.g(x, u);
+      std::cout<< x << std::endl;
+  }
 
-    covmat(0,0) = 3;
-    covmat(1,1) = 3;
-    covmat(2,2) = 3;
+    // kamaz::hagen::RRTStar3D rrtstart3d;
+    // kamaz::hagen::CommonUtils common_utils;
+    // Eigen::VectorXd x_dimentions(6);
+    // x_dimentions << -10, 10, -10, 10, -10, 10;
+    // kamaz::hagen::PathNode x_init;
+    // x_init.state << -9, -9, -9, 0 , 0 ,0;
+    // kamaz::hagen::PathNode x_goal;
+    // x_goal.state << 9, 9, 9, 0 ,0 , 0;
+    // // auto obstacles = rrtstart3d.get_obstacles();
+    // auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
+    // // std::cout<< "-----1" << std::endl;
     
-    center = (x_goal.state.head(3) + x_init.state.head(3))/2;
-    Eigen::Vector3d a(1,0,0);
-    Eigen::Vector3d b =  (x_goal.state.head(3) - x_init.state.head(3));
-    Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity(3,3);
-    int ndims = covmat.rows(); 
-    X.use_whole_search_sapce = true;
-    X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
-    std::ref(planner_status), save_data_index);
-    if(path.size()>0){
-      Curve* bspline_curve = new BSpline();
-      bspline_curve->set_steps(100);
-      bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
-      for(auto const way_point : path){
-        std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
-        bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
-                    , way_point.state.head(3)[2]));
-      }
-      bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
-      std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-      std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-      std::vector<kamaz::hagen::PathNode> new_path_bspline;
-      if(path.size()>0){
-        new_path_bspline.push_back(path[0]);
-      }
-      for (int i = 0; i < bspline_curve->node_count(); ++i) {
-        kamaz::hagen::PathNode pose;
-        auto node = bspline_curve->node(i);
-        pose.state << node.x, node.y, node.z, 0, 0, 0; 
-        new_path_bspline.push_back(pose);
-      }
-      std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-      rrtstart3d.save_path(new_path_bspline, path_ingg);
-    }
+    // std::atomic_bool planner_status;
+    // planner_status = ATOMIC_VAR_INIT(true);
+    // std::vector<Eigen::Vector2d> Q;
+    // Eigen::Vector2d dim_in;
+    // dim_in << 8, 4;
+    // Q.push_back(dim_in);
+    // std::cout<< "-----1" << std::endl;
+    // int r = 1;
+    // int max_samples = 1000;
+    // int rewrite_count = 32;
+    // double proc = 0.1;
+    // double obstacle_width = 0.5;
+    // kamaz::hagen::SearchSpace X;
+    // X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
+    // X.update_obstacles_map(obstacles);
+    // int save_data_index = 0;
+    // rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    // std::vector<SearchSpace::Rect> current_desired_trajectory;
+    // std::vector<Eigen::Vector3d> trajectory_online;
+
+    // Eigen::Vector3d center = (x_goal.state.head(3) - x_init.state.head(3));
+    // Eigen::MatrixXd covmat = Eigen::MatrixXd::Zero(3,3);
+
+    // covmat(0,0) = 3;
+    // covmat(1,1) = 3;
+    // covmat(2,2) = 3;
+    
+    // center = (x_goal.state.head(3) + x_init.state.head(3))/2;
+    // Eigen::Vector3d a(1,0,0);
+    // Eigen::Vector3d b =  (x_goal.state.head(3) - x_init.state.head(3));
+    // Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity(3,3);
+    // int ndims = covmat.rows(); 
+    // X.use_whole_search_sapce = true;
+    // X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
+    // auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
+    // std::ref(planner_status), save_data_index);
+    // if(path.size()>0){
+    //   Curve* bspline_curve = new BSpline();
+    //   bspline_curve->set_steps(100);
+    //   bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
+    //   for(auto const way_point : path){
+    //     std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
+    //     bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
+    //                 , way_point.state.head(3)[2]));
+    //   }
+    //   bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
+    //   std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+    //   std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+    //   std::vector<kamaz::hagen::PathNode> new_path_bspline;
+    //   if(path.size()>0){
+    //     new_path_bspline.push_back(path[0]);
+    //   }
+    //   for (int i = 0; i < bspline_curve->node_count(); ++i) {
+    //     kamaz::hagen::PathNode pose;
+    //     auto node = bspline_curve->node(i);
+    //     pose.state << node.x, node.y, node.z, 0, 0, 0; 
+    //     new_path_bspline.push_back(pose);
+    //   }
+    //   std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    //   rrtstart3d.save_path(new_path_bspline, path_ingg);
+    // }
+
+
   return 0;
 }
 // // // Generic functor

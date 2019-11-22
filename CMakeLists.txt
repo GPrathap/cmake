@@ -22,7 +22,6 @@ find_package(Boost COMPONENTS program_options log log_setup regex atomic date_ti
 set(Boost_USE_STATIC_LIBS OFF)
 include_directories(${BOOST_INCLUDE_DIRS})
 
-
 message( STATUS "Include sub-directories into build process:" )
 foreach( DIR rrt_star a_star apf common spline utils ground_removal projections local_maxima quadtree trajectory_planning)
     message( STATUS "  - include/" ${DIR} )
@@ -30,8 +29,6 @@ foreach( DIR rrt_star a_star apf common spline utils ground_removal projections 
     link_directories("${DIR}")
     add_subdirectory( "${DIR}" )
 endforeach()
-
-
 
 include_directories(/usr/local/include/)
 link_directories(/usr/local/lib/)
