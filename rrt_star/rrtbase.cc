@@ -278,5 +278,20 @@ namespace hagen {
         return (a.state.head(3)-b.state.head(3)).norm();
     }
 
+    double RRTBase::get_cost_of_path(std::vector<PathNode> path1){
+        int size_of_path = path1.size();
+        Eigen::Vector3d path1_dis(size_of_path);
+        for(int i=0; i< path1.size(); i++){
+            path1_dis[i] = path1[i].state.head(3).norm();
+        }
+        Eigen::MatrixXd smoothed_map  = Eigen::MatrixXd::Zero(size_of_path, size_of_path);
+        for(int i=0; i<size_of_path-1; i++){
+        smoothed_map(i,i) = 2;
+        smoothed_map(i,i+1) = smoothed_map(i+1,i) = -1;
+        }
+        smoothed_map(size_of_path-1, size_of_path-1) = 2;
+        return path1_dis.transpose()*smoothed_map*path1_dis;
+    }
+
 }
 }

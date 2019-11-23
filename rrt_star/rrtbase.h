@@ -111,6 +111,7 @@ namespace hagen {
                 double cost_to_go(PathNode a, PathNode b);
                 double path_cost(PathNode a, PathNode b, int tree);
                 double segment_cost(PathNode a, PathNode b);
+                double get_cost_of_path(std::vector<PathNode> path1);
         };
     }
 }
