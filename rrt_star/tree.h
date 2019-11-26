@@ -22,9 +22,9 @@ namespace hagen {
         {
             public:
                 Eigen::Vector3d index;
-                Eigen::Matrix<double, 6, 1> state;
+                Eigen::Matrix<double, 13, 1> state;
                 // Eigen::Matrix<double, 13, 1> state;
-                // Eigen::Matrix<double, 4, 1> control_input;
+                Eigen::VectorXd control_input;
                 std::vector<Eigen::Matrix<double, 13, 1>> state_seq;
                 std::vector<Eigen::Matrix<double, 4, 1>> input_seq;
                 double duration;

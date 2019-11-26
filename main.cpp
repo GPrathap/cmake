@@ -849,7 +849,7 @@ int main()
       for (int i = 0; i < bspline_curve->node_count(); ++i) {
         kamaz::hagen::PathNode pose;
         auto node = bspline_curve->node(i);
-        pose.state << node.x, node.y, node.z, 0, 0, 0; 
+        pose.state.head(3) << node.x, node.y, node.z; 
         new_path_bspline.push_back(pose);
       }
       std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";

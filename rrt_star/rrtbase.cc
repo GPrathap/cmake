@@ -82,7 +82,7 @@ namespace hagen {
         std::vector<PathNode> new_and_near_vec;
         auto x_ran = X.sample_free();
         PathNode x_rand;
-        x_rand.state<< x_ran[0], x_ran[1], x_ran[2], 0, 0, 0;
+        x_rand.state.head(3)<< x_ran[0], x_ran[1], x_ran[2];
         auto x_nearest = get_nearest(tree, x_rand);
         auto x_new = steer(x_nearest, x_rand, q[0]);
         // std::cout<<"RRTBase::new_and_near: x_rand: " << x_rand.transpose() << std::endl;
