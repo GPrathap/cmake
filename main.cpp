@@ -739,15 +739,14 @@ typedef Eigen::Spline<double, 3> Spline3d;
 
 int main()
 {
-
     kamaz::hagen::RRTStar3D rrtstart3d;
     kamaz::hagen::CommonUtils common_utils;
     Eigen::VectorXd x_dimentions(6);
     x_dimentions << -10, 10, -10, 10, -10, 10;
     kamaz::hagen::PathNode x_init;
-    x_init.state << -9, -9, -9, 0 , 0 ,0;
+    x_init.state.head(3) << -9, -9, -9;
     kamaz::hagen::PathNode x_goal;
-    x_goal.state << 9, 9, 9, 0 ,0 , 0;
+    x_goal.state.head(3) << 9, 9, 9;
     // auto obstacles = rrtstart3d.get_obstacles();
     auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
     // std::cout<< "-----1" << std::endl;
@@ -768,7 +767,8 @@ int main()
     X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
     X.update_obstacles_map(obstacles);
     int save_data_index = 0;
-    rrtstart3d.rrt_init(Q, max_samples, r, proc, rewrite_count);
+    std::cout<< "-----2" << std::endl;
+    rrtstart3d.rrt_init(rewrite_count);
     std::vector<SearchSpace::Rect> current_desired_trajectory;
     std::vector<Eigen::Vector3d> trajectory_online;
 
@@ -786,8 +786,50 @@ int main()
     int ndims = covmat.rows(); 
     X.use_whole_search_sapce = true;
     X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
-    auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
-    std::ref(planner_status), save_data_index);
+
+
+    kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
+    kamaz::hagen::RRTPlannerOptions rrt_planner_options;
+
+    kino_ops.init_max_tau = 0.5;
+    kino_ops.max_vel = 2;
+    kino_ops.max_acc = 2;
+    kino_ops.w_time = 0.5;
+    kino_ops.horizon = 1;
+    kino_ops.lambda_heu = 1;
+    kino_ops.time_resolution = 1;
+    kino_ops.margin = 1;
+    kino_ops.allocate_num = 1;
+    kino_ops.check_num = 1;
+    // kino_ops.start_vel_ = start_v;
+    // kino_ops.start_acc_ = start_a;
+    // kino_ops.max_tau = max_tau_;
+
+    // start_vel_ = start_v;
+    // start_acc_ = start_a;
+    
+    rrt_planner_options.search_space = X;
+    rrt_planner_options.x_init = x_init;
+    rrt_planner_options.x_goal = x_goal;
+    rrt_planner_options.start_position = x_init;
+    rrt_planner_options.obstacle_fail_safe_distance = 0.5;
+    rrt_planner_options.min_angle_allows_obs = 0.5;
+    rrt_planner_options.init_search = true;
+    rrt_planner_options.dynamic = true;
+    rrt_planner_options.dynamic = true;
+    rrt_planner_options.kino_options = kino_ops;
+    rrt_planner_options.lengths_of_edges = Q;
+    rrt_planner_options.max_samples = max_samples;
+    rrt_planner_options.resolution = r; 
+    rrt_planner_options.pro = proc;
+    // rrt_planner_options.origin_ = origin_;
+    // rrt_planner_options.map_size_3d_ = map_size_3d_;
+    std::cout<< "-----3" << std::endl;
+    auto path = rrtstart3d.rrt_planner_and_save(rrt_planner_options, common_utils
+                                                , std::ref(planner_status), save_data_index);
+
+    // auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
+    // std::ref(planner_status), save_data_index);
     if(path.size()>0){
       Curve* bspline_curve = new BSpline();
       bspline_curve->set_steps(100);
@@ -813,8 +855,6 @@ int main()
       std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
       rrtstart3d.save_path(new_path_bspline, path_ingg);
     }
-
-
   return 0;
 }
 // // // Generic functor

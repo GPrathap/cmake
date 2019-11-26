@@ -17,7 +17,7 @@ namespace hagen {
         std::vector<std::tuple<double, PathNode>> L_near;
         for(auto const x_near : X_near){
             PathNode x_near_node;
-            x_near_node.state<< x_near[0], x_near[1], x_near[2], 0, 0, 0;
+            x_near_node.state.head(3)<< x_near[0], x_near[1], x_near[2];
             auto new_s = segment_cost(x_near_node, x_new);
             auto cost = path_cost(x_init, x_near_node, tree) + new_s;
             auto pose = x_near_node;
@@ -69,30 +69,38 @@ namespace hagen {
     }
 
     std::vector<PathNode> RRTStar::rrt_star(){
+        std::cout<< "-----211" << std::endl;
         add_vertex(0, x_init);
+        std::cout<< "-----212" << std::endl;
         PathNode none_pose;
-        none_pose.state << -1, -1, -1, 0, 0, 0;
+        none_pose.state.head(3) << -1, -1, -1;
         add_edge(0, x_init, none_pose);
+        std::cout<< "-----21" << std::endl;
         std::vector<PathNode> path;
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){
+                    std::cout<< "---------------------------1" << std::endl;
                    if(!till_auto_mode){
                         BOOST_LOG_TRIVIAL(warning) << FYEL("Since drone is moved into manuval mode, stop finding trajectory");
                         return path;   
                    }
+                   std::cout<< "---------------------------2" << std::endl;
                    auto new_and_next = new_and_near(0, q);
-                //    std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
+                   // std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
                    if(new_and_next.size()==0){
                        continue;
                    }
+                   std::cout<< "---------------------------3" << std::endl;
                    auto x_new = new_and_next[0];
                 //    std::cout<< "rstar loop.... x_new" << x_new.transpose() << std::endl;
                 //    if(check_none_vector(x_new)){
                 //        continue;
                 //    }
                 //    std::cout<< "rstar loop...." << std::endl;
+                std::cout<< "---------------------------4" << std::endl;
                    auto l_near = get_nearby_vertices(0, x_init, x_new);
+                   std::cout<< "---------------------------5" << std::endl;
                    connect_shortest_valid(0, x_new, l_near);
                    if (isEdge(x_new, 0)){
                        rewrite(0, x_new, l_near);

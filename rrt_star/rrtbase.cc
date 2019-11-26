@@ -5,7 +5,6 @@ namespace hagen {
 
     RRTBase::RRTBase(RRTPlannerOptions options, CommonUtils& common_util
     , std::atomic_bool &is_allowed_to_run): till_auto_mode(is_allowed_to_run){
-            
             X = options.search_space;
             Q = options.lengths_of_edges;
             sample_taken = 0;
@@ -19,6 +18,10 @@ namespace hagen {
             add_tree();
             _obstacle_fail_safe_distance = options.obstacle_fail_safe_distance;
             common_utils = common_util;
+            dynamic = options.dynamic;
+            search_init = options.init_search;
+            opt = options;
+            phi_ = Eigen::MatrixXd::Identity(6, 6);
     }
 
     void RRTBase::add_tree(){
@@ -64,7 +67,7 @@ namespace hagen {
         if(veties.size()==0){
             BOOST_LOG_TRIVIAL(warning) << FYEL("There is no any neighbors");
             PathNode temp;
-            temp.state << -1, -1, -1, 0 , 0 ,0;
+            temp.state.head(3) << -1, -1, -1;
             return temp;
         }
         std::array<double, 3> _key = {veties[0][0], veties[0][1], veties[0][2]};
@@ -99,12 +102,12 @@ namespace hagen {
         return new_and_near_vec;
     }
 
-   PathNode RRTBase::steer(PathNode start, PathNode goal, double distance){
-        Eigen::Vector3d ab = goal.state.head(3) - start.state.head(3);
+   PathNode RRTBase::steer(PathNode cur_node, PathNode goal, double distance){
+        Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
         double ba_length = ab.norm();
         Eigen::Vector3d unit_vector = ab/ba_length;
         Eigen::Vector3d scaled_vector = unit_vector*distance;
-        Eigen::Vector3d steered_point = start.state.head(3) + scaled_vector.head(3);
+        Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
         int j = 0;
         for(int i=0; i<6; i+=2){
             if(steered_point[j] < X.dim_lengths[i]){
@@ -116,8 +119,20 @@ namespace hagen {
             j++;
         }
         PathNode steer_point;
-        steer_point.state<< steered_point[0], steered_point[1], steered_point[2], 0, 0, 0;
+        steer_point.state.head(3)<< steered_point[0], steered_point[1], steered_point[2];
         return steer_point;
+    }
+
+    void RRTBase::stateTransit(Eigen::Matrix<double, 6, 1>& state0, Eigen::Matrix<double, 6, 1>& state1,
+                                    Eigen::Vector3d um, double tau)
+    {
+        for (int i = 0; i < 3; ++i)
+            phi_(i, i + 3) = tau;
+
+        Eigen::Matrix<double, 6, 1> integral;
+        integral.head(3) = 0.5 * pow(tau, 2) * um;
+        integral.tail(3) = tau * um;
+        state1 = phi_ * state0 + integral;
     }
 
     bool RRTBase::connect_to_point(int tree, PathNode x_a, PathNode x_b){
