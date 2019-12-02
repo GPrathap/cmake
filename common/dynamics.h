@@ -32,7 +32,7 @@ namespace kamaz {
   namespace hagen{
     class Dynamics {
       public:
-        Dynamics(Eigen::MatrixXd xStartState, Eigen::MatrixXd xGoalState);
+        Dynamics();
         // Dynamics() = default;
         ~Dynamics() = default;
         Eigen::Matrix3d skewSymmetric(Eigen::Vector3d vector);
@@ -41,15 +41,17 @@ namespace kamaz {
         Eigen::MatrixXd gBar(const Eigen::MatrixXd x, const Eigen::MatrixXd u, double dt);
         Eigen::MatrixXd jacobian1( Eigen::MatrixXd& a,  Eigen::MatrixXd& b);
         Eigen::MatrixXd jacobian2(Eigen::MatrixXd& a, Eigen::MatrixXd& b);
-        double extendedLQR(const int ell, Eigen::MatrixXd& startState
-        , Eigen::MatrixXd& uNominal, std::vector<Eigen::MatrixXd>& L, std::vector<Eigen::MatrixXd>& l);
+        double extendedLQR(Eigen::MatrixXd startState
+        , Eigen::MatrixXd uNominal, std::vector<Eigen::MatrixXd>& L
+        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq);
         void quadratizeCost(Eigen::MatrixXd& x, Eigen::MatrixXd& u, const size_t& t
         , Eigen::MatrixXd& Pt, Eigen::MatrixXd& Qt, Eigen::MatrixXd& Rt, Eigen::MatrixXd& qt
         , Eigen::MatrixXd& rt, const size_t& iter);
+        void init(int max_ittr, double _dt);
         size_t ell;
         Eigen::MatrixXd Q;
         double rotCost;
-        Eigen::MatrixXd xGoal, xStart;
+        Eigen::MatrixXd uNominal;
         Eigen::MatrixXd R;
         
         double obstacleFactor;
@@ -77,11 +79,11 @@ namespace kamaz {
 
         // derivative constants
         Eigen::MatrixXd invInertia; // inverse of intertia matrix
-        Eigen::MatrixXd uNominal;
         
         double jStep;
-        const int xDim = 13;
+        int xDim;
         int uDim;
+        int sDim;
       };
   }  
 }

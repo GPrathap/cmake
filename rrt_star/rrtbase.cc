@@ -38,6 +38,16 @@ namespace hagen {
         V_indices[vertex_] = v;
     }
 
+    PathNode RRTBase::get_vertex(Eigen::Vector3d v){
+        std::array<double, 3> vertex_ = {v[0], v[1], v[2]};
+        if(V_indices.count(vertex_) > 0){
+             return  V_indices[vertex_];
+        }
+        PathNode tmp;
+        tmp.is_valid = false;
+        return tmp;
+    }
+
     void RRTBase::add_edge(int tree, PathNode child, PathNode parent){
         std::array<double, 3> child_ ={child.state[0], child.state[1], child.state[2]};
         trees[tree].E[child_] = parent;
@@ -52,9 +62,18 @@ namespace hagen {
         std::cout<<"RRTBase::printEdge===="<< std::endl;
     }
 
-    std::vector<Eigen::Vector3d> RRTBase::nearby_vertices(int tree, PathNode x
+    std::vector<PathNode> RRTBase::nearby_vertices(int tree, PathNode x
                                             , int max_neighbors){
-        return trees[tree].V.nearest_veties(x.state.head(3), max_neighbors);
+        std::vector<PathNode> vertices;                                        
+        std::vector<Eigen::Vector3d> vertices_keys 
+                                = trees[tree].V.nearest_veties(x.state.head(3), max_neighbors);
+        for(auto vertex : vertices_keys){
+            auto node = get_vertex(vertex);
+            if(node.is_valid){
+                vertices.push_back(node);
+            }
+        }
+        return vertices;
     }
 
     std::vector<Eigen::Vector3d> RRTBase::nearby_waypoints(int tree, PathNode x
@@ -83,21 +102,18 @@ namespace hagen {
         auto x_ran = X.sample_free();
         PathNode x_rand;
         x_rand.state.head(3)<< x_ran[0], x_ran[1], x_ran[2];
+        x_rand.control_input = drone_dynamics.uNominal;
         auto x_nearest = get_nearest(tree, x_rand);
         auto x_new = steer(x_nearest, x_rand, q[0]);
         // std::cout<<"RRTBase::new_and_near: x_rand: " << x_rand.transpose() << std::endl;
         // std::cout<<"RRTBase::new_and_near: x_nearest: " << x_nearest.transpose() << std::endl;
         // std::cout<<"RRTBase::new_and_near: x_new " << x_new.transpose() << std::endl;
         // printEdge(0);
-        auto g1 = trees[0].V.obstacle_free(x_new.state.head(3));
-        auto g2 = X.obstacle_free(x_new.state.head(3));
-        // std::cout<<"RRTBase::new_and_near: x_new g1 g2 " << g1 << "  "<< g2 << std::endl;
-        if((!g1) && (!g2)){
-            return new_and_near_vec;
+        if(x_new.is_valid){
+            sample_taken += 1;
+            new_and_near_vec.push_back(x_new);
+            new_and_near_vec.push_back(x_nearest);
         }
-        sample_taken += 1;
-        new_and_near_vec.push_back(x_new);
-        new_and_near_vec.push_back(x_nearest);
         // std::cout<<"RRTBase::new_and_near: new_and_near_vec "<< new_and_near_vec.size() <<std::endl;
         return new_and_near_vec;
     }
@@ -108,6 +124,13 @@ namespace hagen {
         Eigen::Vector3d unit_vector = ab/ba_length;
         Eigen::Vector3d scaled_vector = unit_vector*distance;
         Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
+        std::vector<Eigen::MatrixXd> L;
+        std::vector<Eigen::MatrixXd> l;
+        std::vector<Eigen::MatrixXd> xHit;
+
+        Eigen::Vector3d velocity = opt.kino_options.max_vel*unit_vector;
+        cur_node.state.block<3,1>(3,0) = velocity;
+        // drone_dynamics.extendedLQR(cur_node.state, cur_node.control_input, L, l, xHit);
         int j = 0;
         for(int i=0; i<6; i+=2){
             if(steered_point[j] < X.dim_lengths[i]){
@@ -118,8 +141,16 @@ namespace hagen {
             }
             j++;
         }
+
         PathNode steer_point;
         steer_point.state.head(3)<< steered_point[0], steered_point[1], steered_point[2];
+
+        auto g1 = trees[0].V.obstacle_free(steer_point.state.head(3));
+        auto g2 = X.obstacle_free(steer_point.state.head(3));
+        std::cout<<"RRTBase::steer: " <<  steered_point.transpose() << std::endl;
+        if((!g1) && (!g2)){
+            steer_point.is_valid = false;
+        }
         return steer_point;
     }
 

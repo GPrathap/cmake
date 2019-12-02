@@ -31,10 +31,11 @@ namespace hagen {
                 double time;  
                 int time_idx;
                 char node_state;
+                bool is_valid = true;
                 PathNode()
                 {
                     node_state = 0;
-                    // control_input = Eigen::MatrixXd::Zero(4, 1);
+                    control_input = Eigen::MatrixXd::Zero(4, 1);
                     // state = Eigen::MatrixXd::Zero(13, 1);
                 }
                 ~PathNode(){};

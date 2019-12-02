@@ -4,11 +4,11 @@ namespace kamaz {
 namespace hagen{
 
 
-    Dynamics::Dynamics(Eigen::MatrixXd xStartState, Eigen::MatrixXd xGoalState){
+    Dynamics::Dynamics(){
         gravity = 9.80665; // gravity,   m/s^2
-        dt = 0.5;
-        // xDim = 13;
         uDim  = 4;
+        xDim  = 13;
+        sDim  = 12;
         jStep = 0.0009765625;
         eX = Eigen::Vector3d::UnitX();
         eY = Eigen::Vector3d::UnitY();
@@ -23,8 +23,7 @@ namespace hagen{
         uNominal = Eigen::MatrixXd::Zero(4, 1);
         uNominal<< gravity*mass/4, gravity*mass/4, gravity*mass/4, gravity*mass/4;
         // Control parameters
-        double ell = 150;
-        double initdt = 0.05;
+        
         // timeFactor = 3;
         Q = 500*Eigen::MatrixXd::Identity(xDim, xDim);
         // Q(X_DIM-1,X_DIM-1) = 0;
@@ -34,10 +33,13 @@ namespace hagen{
         R = 20*Eigen::MatrixXd::Identity(uDim, uDim);
         // Environment parameters
         robotRadius = length + 0.1;
-        
-        Q = Eigen::MatrixXd::Zero(xDim, xDim);
-        xGoal = xGoalState;
-        xStart = xStartState;
+    }
+
+    void Dynamics::init(int max_ittr, double _dt){
+        ell = max_ittr;
+        dt = _dt;
+        uNominal = Eigen::MatrixXd::Zero(4, 1);
+        uNominal<< mass*gravity/4, mass*gravity/4, mass*gravity/4, mass*gravity/4;
     }
 
     Eigen::Matrix3d Dynamics::skewSymmetric(Eigen::Vector3d vector){
@@ -90,6 +92,7 @@ namespace hagen{
         // // \dot{w} = J^{-1}*([l*(f_2 - f_4), l*(f_3 - f_1), (f_1 - f_2 + f_3 - f_4)*k_M]^T - [w]*J*w)
         xDot.block<3,1>(9,0) = invInertia*( (length*(u(1) - u(3))*eX) + (length*(u(2) - u(0))*eY)
                     + ((u(0) - u(1) + u(2) - u(3))*momentConst*eZ) - (skewSymmetric(w)*inertia*w));
+        xDot(xDim-1) = 0;
         return xDot;
     }
 
@@ -109,7 +112,7 @@ namespace hagen{
         for (size_t i = 0; i < uDim; ++i) {
             br(i) += jStep;
             bl(i) -= jStep;
-            B.block<4, 1>(0,i) = (gBar(a, br, dt) - gBar(a, bl, dt)) / (2*jStep);
+            B.block<13, 1>(0,i) = (gBar(a, br, dt) - gBar(a, bl, dt)) / (2*jStep);
             br(i) = bl(i) = b(i);
         }
 	    return B;
@@ -130,161 +133,126 @@ namespace hagen{
         return A;
     }
 
-    double Dynamics::extendedLQR(const int ell, Eigen::MatrixXd& startState
-        , Eigen::MatrixXd& uNominal, std::vector<Eigen::MatrixXd>& L, std::vector<Eigen::MatrixXd>& l) {
+    double Dynamics::extendedLQR(Eigen::MatrixXd startState
+        , Eigen::MatrixXd uNominal, std::vector<Eigen::MatrixXd>& L
+        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq) {
 
         size_t maxIter = 10;
-        L.resize(ell, Eigen::MatrixXd::Zero(xDim, uDim));
-        l.resize(ell, Eigen::MatrixXd::Zero(ell, uDim));
+        L.resize(ell, Eigen::MatrixXd::Zero(uDim, xDim));
+        xHatSeq.resize(ell, Eigen::MatrixXd::Zero(xDim, 1));
+        l.resize(ell, uNominal);
         std::vector<Eigen::MatrixXd> lx_state;
         //TODO need to fix symmetric
-        std::vector<Eigen::MatrixXd> S(ell + 1, Eigen::MatrixXd::Zero(xDim, 1));
+        std::vector<Eigen::MatrixXd> S(ell + 1, Eigen::MatrixXd::Zero(xDim, xDim));
         std::vector<Eigen::MatrixXd> s(ell + 1, Eigen::MatrixXd::Zero(xDim, 1));
         std::vector<Eigen::MatrixXd> SBar(ell + 1);
         std::vector<Eigen::MatrixXd> sBar(ell + 1);
 
-	    double oldCost = -log(0.0);
 	    Eigen::MatrixXd xHat = startState;
-
-        SBar[0] = Eigen::MatrixXd::Zero(xDim, 1);
-        sBar[0] = Eigen::MatrixXd::Zero(xDim, 1);
-    
+        SBar[0] = 0*Eigen::MatrixXd::Identity(xDim, xDim);
+        sBar[0] =  Eigen::MatrixXd::Zero(xDim, 1);
 		for (size_t t = 0; t < ell; ++t) {
-		// 	// std::cout<< "==========L[t]====\n"<< L[t] << std::endl;
-			
-		// 	// std::cout<< "========l[t]======\n"<< l[t]  << std::endl;
-			Eigen::MatrixXd uHat = L[t]*xHat + l[t];
-		// 	std::cout<< "======l[t] "<< l[t] << std::endl;
-			Eigen::MatrixXd xHatPrime = g(xHat, uHat);
-			
-			Eigen::MatrixXd ABar = jacobian1(xHatPrime, uHat);
-			Eigen::MatrixXd BBar = jacobian2(xHatPrime, uHat);
-			Eigen::MatrixXd cBar = xHat - ABar*xHatPrime - BBar*uHat;
+			// std::cout<< "==========xHat====\n"<< xHat << std::endl;
+			// std::cout<< "========L[t]*xHat======\n"<< L[t]*xHat << std::endl;
+			// std::cout<< "========l[t]======\n"<< l[t] << std::endl;
 
-			Eigen::MatrixXd P;
+			// Eigen::MatrixXd uHat = L[t]*xHat + l[t];
+			Eigen::MatrixXd uHat = l[t];
+			// std::cout<< "===========1==========="<< uHat << std::endl;
+			Eigen::MatrixXd xHatPrime = g(xHat, uHat);
+			// std::cout<< "===========2===========\n" << xHatPrime << std::endl;
+			Eigen::MatrixXd ABar = jacobian1(xHatPrime, uHat);
+            // std::cout<< "===========3===========\n"<< ABar << std::endl;
+			Eigen::MatrixXd BBar = jacobian2(xHatPrime, uHat);
+            // std::cout<< "===========3===========\n"<< BBar << std::endl;
+            // std::cout<< "===========4===========\n" << std::endl;
+			Eigen::MatrixXd cBar = xHat - ABar*xHatPrime - BBar*uHat;
+            // std::cout<< cBar << std::endl;
+            // std::cout<< "===========5===========" << std::endl;
+			Eigen::MatrixXd P = Eigen::MatrixXd::Zero(uDim, xDim);
 			Eigen::MatrixXd Q(xDim, xDim);
 			Eigen::MatrixXd R(uDim, uDim);
 			Eigen::MatrixXd q(xDim, 1);
 			Eigen::MatrixXd r(xDim, 1);
-
 			quadratizeCost(xHat, uHat, t, P, Q, R, q, r, 0);
-
+            // std::cout<< "======P\n" << P << std::endl;
+            // std::cout<< "======Q\n" << Q << std::endl;
+            // std::cout<< "======R\n" << R << std::endl;
+            // std::cout<< "======q\n" << q << std::endl;
+            // std::cout<< "======r\n" << r << std::endl;
 			Eigen::MatrixXd SBarQ = SBar[t] + Q;
+            // std::cout<< "======SBarQ\n" << SBarQ << std::endl;
 			Eigen::MatrixXd sBarqSBarQcBar = sBar[t] + q + SBarQ*cBar;
-
+            // std::cout<< "======sBarqSBarQcBar\n" << sBarqSBarQcBar << std::endl;
+            // std::cout<< "======q\n" << q << std::endl;
+            // std::cout<< "======SBarQ\n" << SBarQ*cBar << std::endl;
+            // std::cout<< "======cBar\n" << cBar << std::endl;
+           
 			Eigen::MatrixXd CBar = BBar.transpose()*SBarQ*ABar + P*ABar;
+            // std::cout<< "======CBar\n" <<  CBar << std::endl;
+            // std::cout<< "======CBar\n" <<  ABar << std::endl;
 			Eigen::MatrixXd DBar = ABar.transpose()*(SBarQ*ABar);
-			// std::cout<< "--------->" << std::endl;
+			// std::cout<< DBar << std::endl;
             Eigen::MatrixXd Pbbr = P*BBar;
 			Eigen::MatrixXd EBar = BBar.transpose()*(SBarQ*BBar) + R + (Pbbr + Pbbr.transpose());
-			// std::cout<< "--------->" << std::endl;
+			// std::cout<< EBar << std::endl;
 			Eigen::MatrixXd dBar = ABar.transpose()*sBarqSBarQcBar;
+            // std::cout<< dBar << std::endl;
 			Eigen::MatrixXd eBar = BBar.transpose()*sBarqSBarQcBar + r + P*cBar;
+            // std::cout<< eBar << std::endl;
             Eigen::MatrixXd EBarInv = EBar.inverse();
 			L[t] = -1*EBarInv*CBar;
 			l[t] = -1*EBarInv*eBar;
+            // std::cout<< L[t]  << std::endl; 
+            // std::cout<< l[t]  << std::endl; 
 
             Eigen::MatrixXd CbarTrans = CBar.transpose();
 
 			SBar[t+1] = DBar + CbarTrans*L[t];
 			sBar[t+1] = dBar + CbarTrans*l[t];
+            // std::cout<< SBar[t+1]  << std::endl; 
+            // std::cout<< sBar[t+1] << std::endl; 
 
 			xHat = -((S[t+1] + SBar[t+1]).inverse()*(s[t+1] + sBar[t+1]));
-
+            // std::cout<< (s[t+1] + sBar[t+1]) << std::endl;
+            // std::cout<< (S[t+1] + SBar[t+1]) << std::endl;
+            // std::cout<< "===========\n" << xHat << std::endl;
 			// xHat = -((S[t+1] + SBar[t+1])%(s[t+1] + sBar[t+1]));
 		// 	// std::cout<< "======129"<< t << std::endl;
-		// 	lx_state.push_back(xHat);
-		// 	// std::cout<< "==========xHat====\n"<< xHat << std::endl;
+			lx_state.push_back(xHat);
+            xHatSeq[t]= xHat;
 		// 	// std::cout<< "========l[t] ======\n"<< l[t]  << std::endl;
-		// 	std::cout<< "======== xHat ======\n"<< xHat  << std::endl;
+            std::cout<< "======== xHat ======\n"<< xHat  << std::endl;
 		}
 
-		// std::vector<double> sates_sequeance; 
-		// int count = lx_state.size();
-		// for(auto item : lx_state){
-		// 	for(int i=0; i<xDim; i++){
-		// 		sates_sequeance.push_back(item[i]);
-		// 	}		
-		// }
+		std::vector<double> sates_sequeance; 
+		int count = lx_state.size();
+		for(auto item : lx_state){
+			for(int i=0; i<xDim; i++){
+				sates_sequeance.push_back(item(i));
+			}		
+		}
 
-		// std::vector<double> control_sequeance; 
-		// count = l.size();
-		// for(auto item : l){
-		// 	for(int i=0; i<uDim; i++){
-		// 		control_sequeance.push_back(item[i]);
-		// 	}		
-		// }
-
-        // cnpy::npy_save("/home/geesara/Desktop/ler/0_state_vector.npy", &sates_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)xDim},"w");
-        // cnpy::npy_save("/home/geesara/Desktop/ler/0_control_vector.npy", &control_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)uDim},"w");
-
-
-		// backward pass
-		// quadratizeFinalCost(xHat, S[ell], s[ell], iter);
-		// xHat = -((S[ell] + SBar[ell])%(s[ell] + sBar[ell]));
-        
-		// for (size_t t = ell - 1; t != -1; --t) {
-		// 	const Matrix<uDim> uHat = L[t]*xHat + l[t];
-		// 	const Matrix<xDim> xHatPrime = gBar(xHat, uHat);
-		// 	const Matrix<xDim, xDim> A = jacobian1(xHatPrime, uHat, g);
-		// 	const Matrix<xDim, uDim> B = jacobian2(xHatPrime, uHat, g);
-		// 	const Matrix<xDim> c = xHat - A*xHatPrime - B*uHat;
-		// 	Matrix<uDim, xDim> P;
-		// 	SymmetricMatrix<xDim> Q;
-		// 	SymmetricMatrix<uDim> R;
-		// 	Matrix<xDim> q;
-		// 	Matrix<uDim> r;
-		// 	quadratizeCost(xHatPrime, uHat, t, P, Q, R, q, r, iter);
-		// 	const Matrix<uDim,xDim> C = ~B*S[t+1]*A + P;
-		// 	const SymmetricMatrix<xDim> D = SymProd(~A,S[t+1]*A) + Q;
-		// 	const SymmetricMatrix<uDim> E = SymProd(~B,S[t+1]*B) + R;
-		// 	const Matrix<xDim> d = ~A*(s[t+1] + S[t+1]*c) + q;
-		// 	const Matrix<uDim> e = ~B*(s[t+1] + S[t+1]*c) + r;
-        //     std::cout<< "======123"<< E << std::endl;
-		// 	std::cout<< "======123"<< C << std::endl;
-		// 	L[t] = -(E%C);
-		// 	l[t] = -(E%e);
-		// 	S[t] = D + SymProd(~C, L[t]);
-		// 	s[t] = d + ~C*l[t];
-		// 	xHat = -((S[t] + SBar[t])%(s[t] + sBar[t]));
-		// }
-
-		// // std::cout<< "====" << xHat <<  "====" << std::endl;
-        
-		// // compute cost
-		// double newCost = 0;
-		// Matrix<xDim> x = xHat;
-		// for (size_t t = 0; t < ell; ++t) {
-		// 	Matrix<uDim> u = L[t]*x + l[t];
-		// 	newCost += ct(x, u, t);
-		// 	x = g(x, u);
-		// }
-		//         std::cout<< "======123" << std::endl;
-
-		// newCost += cell(x);
-
-		// // if (vis) {
-		// // 	std::cerr << "Iter: " << iter << " Rel. progress: " << (oldCost - newCost) / newCost << " Cost: " << newCost << " Time step: " << exp(xHat[xDim-1]) << std::endl;
-		// // }
-		// if (abs((oldCost - newCost) / newCost) < 1e-4) {
-		// 	++iter;
-		// 	return exp(xHat[xDim-1]);
-		// }
-		// oldCost = newCost;
-	// }
-
+		std::vector<double> control_sequeance; 
+		count = l.size();
+		for(auto item : l){
+			for(int i=0; i<uDim; i++){
+				control_sequeance.push_back(item(i));
+			}		
+		}
+        cnpy::npy_save("/dataset/rrt_old/1_state_vector.npy", &sates_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)xDim},"w");
+        cnpy::npy_save("/dataset/rrt_old/1_control_vector.npy", &control_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)uDim},"w");
 	    return 0.0;
     }
 
     void Dynamics::quadratizeCost(Eigen::MatrixXd& x, Eigen::MatrixXd& u, const size_t& t
         , Eigen::MatrixXd& Pt, Eigen::MatrixXd& Qt, Eigen::MatrixXd& Rt, Eigen::MatrixXd& qt
         , Eigen::MatrixXd& rt, const size_t& iter) {
-
+ 
         Qt = Q;
-        qt = -(Q*xStart);
+        qt = -(Q*x);
         Qt(xDim-1, xDim-1) = 100;
         qt(xDim-1) = -Qt(xDim-1,xDim-1)*x(xDim-1);
-
         Rt = R; 
         rt = -(R*uNominal);
         // Pt.reset();

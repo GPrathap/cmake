@@ -17,6 +17,7 @@
 #include "../common/search_space.h"
 #include "../utils/common_utils.h"
 #include "tree.h"
+#include "../common/dynamics.h"
 #include <unordered_map>
 #include <stddef.h>
 
@@ -29,6 +30,8 @@ namespace hagen {
             double max_vel;
             double max_acc;
             double w_time;
+            double dt;
+            int max_itter;
             double horizon;
             double lambda_heu;
             double time_resolution;
@@ -86,6 +89,7 @@ namespace hagen {
 
                 SearchSpace X;
                 CommonUtils common_utils;
+                Dynamics drone_dynamics;
                 int sample_taken;
                 int max_samples;
                 std::vector<Eigen::Vector2d> Q;
@@ -113,10 +117,11 @@ namespace hagen {
 
                 void add_tree();
                 void add_vertex(int tree, PathNode v);
+                PathNode get_vertex(Eigen::Vector3d v);
                 void stateTransit(Eigen::Matrix<double, 6, 1>& state0, Eigen::Matrix<double, 6, 1>& state1,
                                     Eigen::Vector3d um, double tau);
                 void add_edge(int tree, PathNode child, PathNode parent);
-                std::vector<Eigen::Vector3d> nearby_vertices(int tree, PathNode x
+                std::vector<PathNode> nearby_vertices(int tree, PathNode x
                                 , int max_neighbors);
                 std::vector<Eigen::Vector3d> nearby_waypoints(int tree, PathNode x
                                 , int max_neighbors);

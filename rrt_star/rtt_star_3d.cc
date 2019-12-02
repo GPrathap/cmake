@@ -17,7 +17,6 @@ namespace hagen {
                 , CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run, int index){
         
-        std::cout<< "-----21" << std::endl;
         auto rrtstar =  RRTStar(planner_options, _rewrite_count, common_utils, is_allowed_to_run);
         std::ofstream outfile;
         // std::cout<< " ========================4444444" << std::endl;
