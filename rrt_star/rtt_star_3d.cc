@@ -19,25 +19,25 @@ namespace hagen {
         
         auto rrtstar =  RRTStar(planner_options, _rewrite_count, common_utils, is_allowed_to_run);
         std::ofstream outfile;
-        // std::cout<< " ========================4444444" << std::endl;
+        // std::cout<< "========================" << std::endl;
         // outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
-        // std::cout<< " ========================4444444" << std::endl;
+        // std::cout<< "========================" << std::endl;
         // const clock_t begin_time = clock();
-        // std::cout<< " ========================4444444" << std::endl;
+        // std::cout<< "========================" << std::endl;
         auto path = rrtstar.rrt_star();
         // double time_diff =  double( clock () - begin_time ) /  CLOCKS_PER_SEC;
         // if(path.size()>1){
             //  outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
         // }
-        // std::cout<< " ========================4444444" << std::endl;
-        stotage_location = "/dataset/rrt_old/"+ std::to_string(index) + "_";
+        // std::cout<< "========================" << std::endl;
+        stotage_location = "/dataset/rrt_old/" + std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(planner_options.search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(planner_options.x_init, planner_options.x_goal, stotage_location + "start_and_end_pose.npy");
         if(path.size()>0){
             save_path(path, stotage_location + "rrt_star_path.npy");
+            save_long_path(path, stotage_location + "rrt_star_dynamics_path.npy");
         }
-        
         return path;
     }
 
@@ -176,6 +176,21 @@ namespace hagen {
            projected_path.push_back(way_point.state[2]);
        }
        cnpy::npy_save(file_name, &projected_path[0], {path.size(), 3}, "w");
+    }
+
+    void RRTStar3D::save_long_path(std::vector<PathNode> path, std::string file_name){
+       std::vector<double> projected_path;
+       int waypoints = 0;
+        BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
+       for(auto const& way_point : path){
+           waypoints += way_point.state_seq.size();
+           for(auto const& point : way_point.state_seq){
+                projected_path.push_back(point(0));
+                projected_path.push_back(point(1));
+                projected_path.push_back(point(2));
+           }
+       }
+       cnpy::npy_save(file_name, &projected_path[0], {waypoints, 3}, "w");
     }
 }
 }

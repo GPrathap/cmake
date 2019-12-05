@@ -48,9 +48,65 @@ namespace hagen {
         return tmp;
     }
 
+    bool RRTBase::set_seq(PathNode parent, std::vector<Eigen::MatrixXd> state_seq){
+        std::array<double, 3> vertex_ = {parent.state[0], parent.state[1], parent.state[2]};
+        if(V_indices.count(vertex_) > 0){
+            V_indices[vertex_].state_seq = state_seq;
+            return true;
+        }else{
+            std::cout<< "Vertex is not found: " << parent.state.head(3).transpose() << std::endl;
+        }
+        return false;
+    }
+
+    std::vector<Eigen::MatrixXd> RRTBase::get_seq(PathNode parent){
+        std::vector<Eigen::MatrixXd> seq_tmp;
+        std::array<double, 3> vertex_ = {parent.state[0], parent.state[1], parent.state[2]};
+        if(V_indices.count(vertex_) > 0){
+            return V_indices[vertex_].state_seq;
+        }
+        return seq_tmp;
+    }
+
     void RRTBase::add_edge(int tree, PathNode child, PathNode parent){
         std::array<double, 3> child_ ={child.state[0], child.state[1], child.state[2]};
         trees[tree].E[child_] = parent;
+        // if(parent.state_seq.size()>0){
+        //     set_seq(parent, parent.state_seq);
+        // }
+    }
+
+       bool RRTBase::isEdge(PathNode point, int tree){
+        std::array<double, 3> _key = {point.state[0], point.state[1], point.state[2]};
+        return (trees[tree].E.count(_key)) > 0 ? true : false;
+    }
+
+    PathNode RRTBase::getEdge(PathNode point, int tree){
+        std::array<double, 3> _key = {point.state[0], point.state[1], point.state[2]};
+        return trees[tree].E[_key];
+    }
+
+    void RRTBase::setEdge(PathNode key, PathNode value, int tree){
+        std::array<double, 3> _key = {key.state[0], key.state[1], key.state[2]};
+        trees[tree].E[_key] = value;
+        // std::cout<< "RRTBase::setEdge: "<< key.state.head(3).transpose() << std::endl;
+        // std::cout<< "RRTBase::setEdge: "<< key.state_seq.size() << std::endl;
+        // std::cout<< "RRTBase::setEdge: val "<< value.state.head(3).transpose() << std::endl;
+        // if(key.state_seq.size() <= 0){
+        //     set_seq(key, key.state_seq);
+        // }else{
+            //TODO fix this
+            
+            // std::vector<Eigen::MatrixXd> xHit;
+            // double distance = (value.state.head(3) - key.state.head(3)).norm();
+            // apply_dynamics(key, value, distance, xHit);
+            // set_seq(key, xHit);
+            // std::cout<< "------------------seting the edge..."<< key.state.head(3).transpose() << " " << key.state_seq.size() << std::endl;
+        // }
+    }
+
+    int RRTBase::sizeOfEdge(int tree){
+        return trees[tree].E.size();
     }
 
     void RRTBase::printEdge(int tree){
@@ -118,7 +174,7 @@ namespace hagen {
         return new_and_near_vec;
     }
 
-   PathNode RRTBase::steer(PathNode cur_node, PathNode goal, double distance){
+    void RRTBase::apply_dynamics(PathNode cur_node, PathNode goal, double distance, std::vector<Eigen::MatrixXd>& xHit){
         Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
         double ba_length = ab.norm();
         Eigen::Vector3d unit_vector = ab/ba_length;
@@ -126,28 +182,59 @@ namespace hagen {
         Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
         std::vector<Eigen::MatrixXd> L;
         std::vector<Eigen::MatrixXd> l;
-        std::vector<Eigen::MatrixXd> xHit;
-
+        // std::vector<Eigen::MatrixXd> xHit;
         Eigen::Vector3d velocity = opt.kino_options.max_vel*unit_vector;
         cur_node.state.block<3,1>(3,0) = velocity;
-        // drone_dynamics.extendedLQR(cur_node.state, cur_node.control_input, L, l, xHit);
+        cur_node.state.block<6,1>(6,0) = Eigen::MatrixXd::Zero(6,1);
+        cur_node.state(12) = log(drone_dynamics.dt);
+        drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
+    }
+    
+   PathNode RRTBase::steer(PathNode cur_node, PathNode goal, double distance){
+        // Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
+        // double ba_length = ab.norm();
+        // Eigen::Vector3d unit_vector = ab/ba_length;
+        // Eigen::Vector3d scaled_vector = unit_vector*distance;
+        // Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
+        // std::vector<Eigen::MatrixXd> L;
+        // std::vector<Eigen::MatrixXd> l;
+        // std::vector<Eigen::MatrixXd> xHit;
+
+        // Eigen::Vector3d velocity = opt.kino_options.max_vel*unit_vector;
+        // cur_node.state.block<3,1>(3,0) = velocity;
+        // cur_node.state.block<6,1>(6,0) = Eigen::MatrixXd::Zero(6,1);
+        // cur_node.state(12) = log(drone_dynamics.dt);
+        // drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
+        
+        // std::vector<Eigen::MatrixXd> xHit;
+        // apply_dynamics(cur_node, goal, distance, xHit);
+        Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
+        double ba_length = ab.norm();
+        Eigen::Vector3d unit_vector = ab/ba_length;
+        Eigen::Vector3d scaled_vector = unit_vector*distance;
+        Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
+        PathNode steer_point;
+        steer_point.state.head(3)<< steered_point[0], steered_point[1], steered_point[2];
+        // steer_point.state.head(3)<< (xHit.back())(0), (xHit.back())(1), (xHit.back())(2);
         int j = 0;
         for(int i=0; i<6; i+=2){
-            if(steered_point[j] < X.dim_lengths[i]){
-                steered_point[j] = X.dim_lengths[i];
+            if(steer_point.state(j) < X.dim_lengths[i]){
+                steer_point.state(j) = X.dim_lengths[i];
             }
-            if (steered_point[j] >= X.dim_lengths[i+1]){
-                steered_point[j] = X.dim_lengths[i+1];
+            if (steer_point.state(j) >= X.dim_lengths[i+1]){
+                steer_point.state(j) = X.dim_lengths[i+1];
             }
             j++;
         }
-
-        PathNode steer_point;
-        steer_point.state.head(3)<< steered_point[0], steered_point[1], steered_point[2];
-
+        // steer_point.state_seq = xHit;
+        // steer_point.input_seq = xHit;
+        // bool is_set = set_seq(cur_node, xHit);
+        // std::cout<< "state sequence is set for " << cur_node.state.head(3).transpose() << " " << cur_node.state_seq.size() << std::endl;
         auto g1 = trees[0].V.obstacle_free(steer_point.state.head(3));
         auto g2 = X.obstacle_free(steer_point.state.head(3));
-        std::cout<<"RRTBase::steer: " <<  steered_point.transpose() << std::endl;
+        // std::cout<<"RRTBase::steer: current " <<  cur_node.state.transpose() << std::endl;
+        // std::cout<<"RRTBase::steer: xHit " <<  xHit.size() << std::endl;
+        // std::cout<<"RRTBase::steer: steered " <<  steered_point.transpose() << std::endl;
         if((!g1) && (!g2)){
             steer_point.is_valid = false;
         }
@@ -190,14 +277,23 @@ namespace hagen {
         auto f2 = isEdge(x_nearest, tree);
 
         // std::cout<< "RRTBase::can_connect_to_goal: "<< f1 << " "<< f2 << " " << std::endl;
-       
+        // std::vector<Eigen::MatrixXd> xHit;
+        // double distance = (x_goal.state.head(3) - x_nearest.state.head(3)).norm();
+
         if( f1 && f2){
+            // apply_dynamics(x_nearest, x_goal, distance, xHit);
+            // set_seq(x_nearest, xHit);
             return true;
         }
         if(X.collision_free(x_nearest.state.head(3), x_goal.state.head(3), r)){
             //  std::cout<< "RRTBase::can_connect_to_goal: collision_free true"<< std::endl;
+            // apply_dynamics(x_nearest, x_goal, distance, xHit);
+            // set_seq(x_nearest, xHit);
             return true;
         }
+
+        
+        
         return false;
     }
 
@@ -219,24 +315,6 @@ namespace hagen {
         return path;
     }
 
-    bool RRTBase::isEdge(PathNode point, int tree){
-        std::array<double, 3> _key = {point.state[0], point.state[1], point.state[2]};
-        return (trees[tree].E.count(_key)) > 0 ? true : false;
-    }
-
-    PathNode RRTBase::getEdge(PathNode point, int tree){
-        std::array<double, 3> _key = {point.state[0], point.state[1], point.state[2]};
-        return trees[tree].E[_key];
-    }
-
-    void RRTBase::setEdge(PathNode key, PathNode value, int tree){
-        std::array<double, 3> _key = {key.state[0], key.state[1], key.state[2]};
-        trees[tree].E[_key] = value;
-    }
-
-    int RRTBase::sizeOfEdge(int tree){
-        return trees[tree].E.size();
-    }
 
     std::vector<PathNode> RRTBase::reconstruct_path(int tree, PathNode x_init, PathNode x_goal){
         std::vector<PathNode> path;
@@ -250,11 +328,13 @@ namespace hagen {
         // printEdge(tree);
         if(isEdge(current, tree)){
             auto current_parent = getEdge(current, tree);
+            
             // std::cout<< "RRTBase::reconstruct_path: current 1"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){
+                current_parent.state_seq = get_seq(current_parent);
                 path.push_back(current_parent);
-                // std::cout<< "RRTBase::reconstruct_path: current 2"<< current_parent.transpose() << std::endl;
-
+                // std::cout<< "RRTBase::reconstruct_path: "<< current_parent.state.head(3).transpose() << std::endl;
+                // std::cout<< "RRTBase::reconstruct_path: seq"<< seq.size() << std::endl;
                 if(isEdge(current_parent, tree)){
                     current_parent = getEdge(current_parent, tree);
                     // std::cout<< "RRTBase::reconstruct_path: current is edge 3"<< current_parent.transpose() << std::endl;
@@ -264,6 +344,10 @@ namespace hagen {
                     break;
                 }
             }
+            // auto seq = get_seq(x_init);
+            x_init.state_seq = get_seq(x_init);
+            // std::cout<< "RRTBase::reconstruct_path: "<< x_init.state.head(3).transpose() << std::endl;
+            // std::cout<< "RRTBase::reconstruct_path: seq"<< seq.size() << std::endl;
             path.push_back(x_init);
             std::reverse(path.begin(), path.end());
         }else{

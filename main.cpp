@@ -16,7 +16,7 @@
 #include "./spline/BSpline.h"
 // #include "./spline/CatmullRom.h"
 #include "./common/search_space.h"
-#include "./common/dynamics.h"
+#include "./common/ExtendedLQR.h"
 #include "../ground_removal/ssa.h"
 #include "quadtree/quadtree.h"
 #include <random>
@@ -36,6 +36,8 @@
 #include "spline/polynomial.h"
 #include <Eigen/Core>
 #include <unsupported/Eigen/Splines>
+
+
 
 using kamaz::hagen::SearchSpace;
 using kamaz::hagen::AStarImproved;
@@ -425,21 +427,6 @@ using kamaz::hagen::Dynamics;
 //     return 0;
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // #include <opencv2/opencv.hpp>
 // #include <iostream>
  
@@ -739,147 +726,176 @@ typedef Eigen::Spline<double, 3> Spline3d;
 
 int main()
 {
-
-    int ell = 15;
-    double dt = 0.25;
-    Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
-    x(0) = 4;
-    x(1)= 4;
-    x(2) = 0;
-    x(3) = 1.5;
-    x(4) = 0.0;
-    x(5) = 0;
-    x(12) = 0;
-
-    Eigen::MatrixXd u = Eigen::MatrixXd::Zero(4, 1);
-    Dynamics dynamics;
-    dynamics.init(ell, dt);
-    u<<dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4
-    , dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4;
-    
-    std::vector<Eigen::MatrixXd> L;
-    std::vector<Eigen::MatrixXd> l;
-    std::vector<Eigen::MatrixXd> xHit;
-    dynamics.extendedLQR(x, u, L, l, xHit);
-  
-
-    // kamaz::hagen::RRTStar3D rrtstart3d;
-    // kamaz::hagen::CommonUtils common_utils;
-    // Eigen::VectorXd x_dimentions(6);
-    // x_dimentions << -10, 10, -10, 10, -10, 10;
-    // kamaz::hagen::PathNode x_init;
-    // Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
-    // x_init.state << -9, -9, -9, 1.5, 0.0, 0, 0,0,0,0,0,0,0;
+    int ell = 30;
+    // loto::hagen::ExtendedLQR extendedLQR;
+    // std::vector<loto::hagen::Matrix<U_DIM, X_DIM> > L;
+    // std::vector<loto::hagen::Matrix<U_DIM>> l;
+    // double initdt = 0.05;
+    // size_t iterator = 30;
+    // extendedLQR.xGoal = loto::hagen::zero<X_DIM>();
+    // extendedLQR.xStart[0] = 4;
+    // extendedLQR.xStart[1] = 4;
+    // extendedLQR.xStart[2] = 4;
+    // extendedLQR.xStart[3] = 0;
+    // extendedLQR.xStart[4] = 0;
+    // extendedLQR.xStart[5] = 0;
+    // int number_of_tries = 300;
+    // loto::hagen::Matrix<X_DIM> xStartInit = extendedLQR.xStart;
+    // xStartInit[X_DIM-1] = log(initdt);
    
-    // kamaz::hagen::PathNode x_goal;
-    // x_goal.state.head(3) << 9, 9, 9;
-    // // auto obstacles = rrtstart3d.get_obstacles();
-    // auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
-    // // std::cout<< "-----1" << std::endl;
+    // extendedLQR.xGoal[0] = 6;
+    // extendedLQR.xGoal[1] = 6;
+    // extendedLQR.xGoal[2] = 2;
+    // extendedLQR.xGoal[3] = 0;
+    // extendedLQR.xGoal[4] = 0;
+    // extendedLQR.xGoal[5] = 0;
+    // clock_t beginTime = clock();
+
+    // std::cout<< "xStart" << extendedLQR.xStart << std::endl;
+    // std::cout<< "xGoal" << extendedLQR.xGoal << std::endl;
+	  // // extendedLQR.extendedLQRIterator(number_of_tries, xStartInit, extendedLQR.uNominal, L, l, initdt);
+
+    // double dt = extendedLQR.extendedLQRItr(ell, xStartInit, extendedLQR.uNominal, L, l, iterator);
+    // loto::hagen::Matrix<X_DIM> x = extendedLQR.xStart;
+    // x[X_DIM-1] = log(dt);
+		// for (size_t t = 0; t < ell; ++t) {
+		// 		std::cout << x << std::endl;
+		// 		x = extendedLQR.g(x, L[t]*x + l[t]);
+		// }
+    // Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
+    // x(0) = 4;
+    // x(1)= 4;
+    // x(2) = 4;
+    // x(3) = 0;
+    // x(4) = 2.5;
+    // x(5) = 0;
+    // x(12) = log(dt);
+
+    // Eigen::MatrixXd u = Eigen::MatrixXd::Zero(4, 1);
+    // Dynamics dynamics;
+    // dynamics.init(ell, dt);
+    // u<<dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4
+    // , dynamics.mass*dynamics.gravity/4, dynamics.mass*dynamics.gravity/4;
     
-    // std::atomic_bool planner_status;
-    // planner_status = ATOMIC_VAR_INIT(true);
-    // std::vector<Eigen::Vector2d> Q;
-    // Eigen::Vector2d dim_in;
-    // dim_in << 8, 4;
-    // Q.push_back(dim_in);
-    // int r = 1;
-    // int max_samples = 1000;
-    // int rewrite_count = 32;
-    // double proc = 0.1;
-    // double obstacle_width = 0.5;
-    // kamaz::hagen::SearchSpace X;
-    // X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
-    // X.update_obstacles_map(obstacles);
-    // int save_data_index = 0;
-    // rrtstart3d.rrt_init(rewrite_count);
-    // std::vector<SearchSpace::Rect> current_desired_trajectory;
-    // std::vector<Eigen::Vector3d> trajectory_online;
+    // std::vector<Eigen::MatrixXd> L;
+    // std::vector<Eigen::MatrixXd> l;
+    // std::vector<Eigen::MatrixXd> xHit;
+    // dynamics.extendedLQR(x, u, L, l, xHit);
 
-    // Eigen::Vector3d center = (x_goal.state.head(3) - x_init.state.head(3));
-    // Eigen::MatrixXd covmat = Eigen::MatrixXd::Zero(3,3);
-
-    // covmat(0,0) = 3;
-    // covmat(1,1) = 3;
-    // covmat(2,2) = 3;
+    kamaz::hagen::RRTStar3D rrtstart3d;
+    kamaz::hagen::CommonUtils common_utils;
+    Eigen::VectorXd x_dimentions(6);
+    x_dimentions << -10, 10, -10, 10, -10, 10;
+    kamaz::hagen::PathNode x_init;
+    Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
+    x_init.state.head(3) << -9, -9, -9;
+   
+    kamaz::hagen::PathNode x_goal;
+    x_goal.state.head(3) << 9, 9, 9;
+    // auto obstacles = rrtstart3d.get_obstacles();
+    auto obstacles = rrtstart3d.get_random_obstacles(100, x_dimentions, x_init, x_goal);
+    // std::cout<< "-----1" << std::endl;
     
-    // center = (x_goal.state.head(3) + x_init.state.head(3))/2;
-    // Eigen::Vector3d a(1,0,0);
-    // Eigen::Vector3d b =  (x_goal.state.head(3) - x_init.state.head(3));
-    // Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity(3,3);
-    // int ndims = covmat.rows(); 
-    // X.use_whole_search_sapce = true;
-    // X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
+    std::atomic_bool planner_status;
+    planner_status = ATOMIC_VAR_INIT(true);
+    std::vector<Eigen::Vector2d> Q;
+    Eigen::Vector2d dim_in;
+    dim_in << 8, 4;
+    Q.push_back(dim_in);
+    int r = 1;
+    int max_samples = 1000;
+    int rewrite_count = 32;
+    double proc = 0.1;
+    double obstacle_width = 2.0;
+    kamaz::hagen::SearchSpace X;
+    X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
+    X.update_obstacles_map(obstacles);
+    int save_data_index = 0;
+    rrtstart3d.rrt_init(rewrite_count);
+    std::vector<SearchSpace::Rect> current_desired_trajectory;
+    std::vector<Eigen::Vector3d> trajectory_online;
 
+    Eigen::Vector3d center = (x_goal.state.head(3) - x_init.state.head(3));
+    Eigen::MatrixXd covmat = Eigen::MatrixXd::Zero(3,3);
 
-    // kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
-    // kamaz::hagen::RRTPlannerOptions rrt_planner_options;
-
-    // kino_ops.init_max_tau = 0.5;
-    // kino_ops.max_vel = 2;
-    // kino_ops.max_acc = 2;
-    // kino_ops.w_time = 0.5;
-    // kino_ops.horizon = 1;
-    // kino_ops.lambda_heu = 1;
-    // kino_ops.time_resolution = 1;
-    // kino_ops.margin = 1;
-    // kino_ops.allocate_num = 1;
-    // kino_ops.check_num = 1;
-    // kino_ops.dt = 0.2;
-    // kino_ops.max_itter = 30;
-    // // kino_ops.start_vel_ = start_v;
-    // // kino_ops.start_acc_ = start_a;
-    // // kino_ops.max_tau = max_tau_;
-
-    // // start_vel_ = start_v;
-    // // start_acc_ = start_a;
+    covmat(0,0) = 3;
+    covmat(1,1) = 3;
+    covmat(2,2) = 3;
     
-    // rrt_planner_options.search_space = X;
-    // rrt_planner_options.x_init = x_init;
-    // rrt_planner_options.x_goal = x_goal;
-    // rrt_planner_options.start_position = x_init;
-    // rrt_planner_options.obstacle_fail_safe_distance = 0.5;
-    // rrt_planner_options.min_angle_allows_obs = 0.5;
-    // rrt_planner_options.init_search = true;
-    // rrt_planner_options.dynamic = true;
-    // rrt_planner_options.dynamic = true;
-    // rrt_planner_options.kino_options = kino_ops;
-    // rrt_planner_options.lengths_of_edges = Q;
-    // rrt_planner_options.max_samples = max_samples;
-    // rrt_planner_options.resolution = r; 
-    // rrt_planner_options.pro = proc;
-    // // rrt_planner_options.origin_ = origin_;
-    // // rrt_planner_options.map_size_3d_ = map_size_3d_;
-    // auto path = rrtstart3d.rrt_planner_and_save(rrt_planner_options, common_utils
-    //                                             , std::ref(planner_status), save_data_index);
+    center = (x_goal.state.head(3) + x_init.state.head(3))/2;
+    Eigen::Vector3d a(1,0,0);
+    Eigen::Vector3d b =  (x_goal.state.head(3) - x_init.state.head(3));
+    Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity(3,3);
+    int ndims = covmat.rows(); 
+    X.use_whole_search_sapce = true;
+    X.generate_search_sapce(covmat, rotation_matrix, center, max_samples);
 
-    // // auto path = rrtstart3d.rrt_planner_and_save(X, x_init, x_goal, x_init, 0.5, 0.5, common_utils, 
-    // // std::ref(planner_status), save_data_index);
-    // if(path.size()>0){
-    //   Curve* bspline_curve = new BSpline();
-    //   bspline_curve->set_steps(100);
-    //   bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
-    //   for(auto const way_point : path){
-    //     std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
-    //     bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
-    //                 , way_point.state.head(3)[2]));
-    //   }
-    //   bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
-    //   std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-    //   std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-    //   std::vector<kamaz::hagen::PathNode> new_path_bspline;
-    //   if(path.size()>0){
-    //     new_path_bspline.push_back(path[0]);
-    //   }
-    //   for (int i = 0; i < bspline_curve->node_count(); ++i) {
-    //     kamaz::hagen::PathNode pose;
-    //     auto node = bspline_curve->node(i);
-    //     pose.state.head(3) << node.x, node.y, node.z; 
-    //     new_path_bspline.push_back(pose);
-    //   }
-    //   std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-    //   rrtstart3d.save_path(new_path_bspline, path_ingg);
-    // }
+    kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
+    kamaz::hagen::RRTPlannerOptions rrt_planner_options;
+
+    kino_ops.init_max_tau = 0.5;
+    kino_ops.max_vel = 3.0;
+    kino_ops.max_acc = 2;
+    kino_ops.w_time = 0.5;
+    kino_ops.horizon = 1;
+    kino_ops.lambda_heu = 1;
+    kino_ops.time_resolution = 1;
+    kino_ops.margin = 1;
+    kino_ops.allocate_num = 1;
+    kino_ops.check_num = 1;
+    // kino_ops.dt = dt;
+    kino_ops.max_itter = ell;
+    // kino_ops.start_vel_ = start_v;
+    // kino_ops.start_acc_ = start_a;
+    // kino_ops.max_tau = max_tau_;
+
+    // start_vel_ = start_v;
+    // start_acc_ = start_a;
+    
+    rrt_planner_options.search_space = X;
+    rrt_planner_options.x_init = x_init;
+    rrt_planner_options.x_goal = x_goal;
+    rrt_planner_options.start_position = x_init;
+    rrt_planner_options.obstacle_fail_safe_distance = 0.5;
+    rrt_planner_options.min_angle_allows_obs = 0.5;
+    rrt_planner_options.init_search = true;
+    rrt_planner_options.dynamic = true;
+    rrt_planner_options.dynamic = true;
+    rrt_planner_options.kino_options = kino_ops;
+    rrt_planner_options.lengths_of_edges = Q;
+    rrt_planner_options.max_samples = max_samples;
+    rrt_planner_options.resolution = r; 
+    rrt_planner_options.pro = proc;
+    // rrt_planner_options.origin_ = origin_;
+    // rrt_planner_options.map_size_3d_ = map_size_3d_;
+    auto path = rrtstart3d.rrt_planner_and_save(rrt_planner_options, common_utils
+                                                , std::ref(planner_status), save_data_index);
+
+    if(path.size()>0){
+          Curve* bspline_curve = new BSpline();
+          bspline_curve->set_steps(100);
+          bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
+          for(auto const way_point : path){
+            std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
+            bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
+                        , way_point.state.head(3)[2]));
+          }
+          bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
+          std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+          std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+          std::vector<kamaz::hagen::PathNode> new_path_bspline;
+          if(path.size()>0){
+            new_path_bspline.push_back(path[0]);
+          }
+          for (int i = 0; i < bspline_curve->node_count(); ++i) {
+            kamaz::hagen::PathNode pose;
+            auto node = bspline_curve->node(i);
+            pose.state.head(3) << node.x, node.y, node.z; 
+            new_path_bspline.push_back(pose);
+          }
+          std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+          rrtstart3d.save_path(new_path_bspline, path_ingg);
+    }
   return 0;
 }
 // // // Generic functor

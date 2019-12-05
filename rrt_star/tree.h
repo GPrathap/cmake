@@ -25,7 +25,7 @@ namespace hagen {
                 Eigen::Matrix<double, 13, 1> state;
                 // Eigen::Matrix<double, 13, 1> state;
                 Eigen::VectorXd control_input;
-                std::vector<Eigen::Matrix<double, 13, 1>> state_seq;
+                std::vector<Eigen::MatrixXd> state_seq;
                 std::vector<Eigen::Matrix<double, 4, 1>> input_seq;
                 double duration;
                 double time;  

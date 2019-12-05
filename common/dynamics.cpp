@@ -24,7 +24,7 @@ namespace hagen{
         uNominal<< gravity*mass/4, gravity*mass/4, gravity*mass/4, gravity*mass/4;
         // Control parameters
         
-        // timeFactor = 3;
+        timeFactor = 3;
         Q = 500*Eigen::MatrixXd::Identity(xDim, xDim);
         // Q(X_DIM-1,X_DIM-1) = 0;
         rotCost = 0.3; 
@@ -50,8 +50,7 @@ namespace hagen{
 
     Eigen::MatrixXd Dynamics::g(const Eigen::MatrixXd x, const Eigen::MatrixXd u) {
         Eigen::MatrixXd k1 = f(x, u);
-        auto fff = 0.5*dt*k1;
-        Eigen::MatrixXd k2 = f(x + fff, u);
+        Eigen::MatrixXd k2 = f(x + 0.5*dt*k1, u);
         Eigen::MatrixXd k3 = f(x + 0.5*dt*k2, u);
         Eigen::MatrixXd k4 = f(x + dt*k3, u);
         return x + (dt/6.0)*(k1 + 2.0*k2 + 2.0*k3 + k4);
@@ -98,11 +97,12 @@ namespace hagen{
 
     Eigen::MatrixXd Dynamics::gBar(const Eigen::MatrixXd x, const Eigen::MatrixXd u, double dt)
     {
+        double dt_ = std::exp(x(xDim-1));
         Eigen::MatrixXd k1 = f(x, u);
-        Eigen::MatrixXd k2 = f(x - 0.5*dt*k1, u);
-        Eigen::MatrixXd k3 = f(x - 0.5*dt*k2, u);
-        Eigen::MatrixXd k4 = f(x - dt*k3, u);
-        return x - (dt/6.0)*(k1 + 2.0*k2 + 2.0*k3 + k4);
+        Eigen::MatrixXd k2 = f(x - 0.5*dt_*k1, u);
+        Eigen::MatrixXd k3 = f(x - 0.5*dt_*k2, u);
+        Eigen::MatrixXd k4 = f(x - dt_*k3, u);
+        return x - (dt_/6.0)*(k1 + 2.0*k2 + 2.0*k3 + k4);
     }
 
     Eigen::MatrixXd Dynamics::jacobian2(Eigen::MatrixXd& a, Eigen::MatrixXd& b) {
@@ -135,19 +135,19 @@ namespace hagen{
 
     double Dynamics::extendedLQR(Eigen::MatrixXd startState
         , Eigen::MatrixXd uNominal, std::vector<Eigen::MatrixXd>& L
-        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq) {
+        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq, Eigen::Vector3d goal) {
 
         size_t maxIter = 10;
         L.resize(ell, Eigen::MatrixXd::Zero(uDim, xDim));
         xHatSeq.resize(ell, Eigen::MatrixXd::Zero(xDim, 1));
         l.resize(ell, uNominal);
+        xStart = startState;
         std::vector<Eigen::MatrixXd> lx_state;
         //TODO need to fix symmetric
         std::vector<Eigen::MatrixXd> S(ell + 1, Eigen::MatrixXd::Zero(xDim, xDim));
         std::vector<Eigen::MatrixXd> s(ell + 1, Eigen::MatrixXd::Zero(xDim, 1));
         std::vector<Eigen::MatrixXd> SBar(ell + 1);
         std::vector<Eigen::MatrixXd> sBar(ell + 1);
-
 	    Eigen::MatrixXd xHat = startState;
         SBar[0] = 0*Eigen::MatrixXd::Identity(xDim, xDim);
         sBar[0] =  Eigen::MatrixXd::Zero(xDim, 1);
@@ -218,30 +218,35 @@ namespace hagen{
             // std::cout<< (S[t+1] + SBar[t+1]) << std::endl;
             // std::cout<< "===========\n" << xHat << std::endl;
 			// xHat = -((S[t+1] + SBar[t+1])%(s[t+1] + sBar[t+1]));
-		// 	// std::cout<< "======129"<< t << std::endl;
+		    // std::cout<< "======129"<< t << std::endl;
+            //  std::cout<< "========221" << std::endl;
 			lx_state.push_back(xHat);
-            xHatSeq[t]= xHat;
-		// 	// std::cout<< "========l[t] ======\n"<< l[t]  << std::endl;
-            std::cout<< "======== xHat ======\n"<< xHat  << std::endl;
+            //  std::cout<< "========221" << std::endl;
+            xHatSeq[t] = xHat;
+            //  std::cout<< "========221" << std::endl;
+		    	// std::cout<< "========l[t]======\n"<< l[t]  << std::endl;
+            // Eigen::Vector3d curren;
+            // curren << xHat(0), xHat(1), xHat(2);
+            // std::cout<< "======== xHat ======\n"<< (goal-curren).norm()  << std::endl;
 		}
+        // std::cout<< "========2345" << std::endl;
+		// std::vector<double> sates_sequeance; 
+		// int count = lx_state.size();
+		// for(auto item : lx_state){
+		// 	for(int i=0; i<xDim; i++){
+		// 		sates_sequeance.push_back(item(i));
+		// 	}		
+		// }
 
-		std::vector<double> sates_sequeance; 
-		int count = lx_state.size();
-		for(auto item : lx_state){
-			for(int i=0; i<xDim; i++){
-				sates_sequeance.push_back(item(i));
-			}		
-		}
-
-		std::vector<double> control_sequeance; 
-		count = l.size();
-		for(auto item : l){
-			for(int i=0; i<uDim; i++){
-				control_sequeance.push_back(item(i));
-			}		
-		}
-        cnpy::npy_save("/dataset/rrt_old/1_state_vector.npy", &sates_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)xDim},"w");
-        cnpy::npy_save("/dataset/rrt_old/1_control_vector.npy", &control_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)uDim},"w");
+		// std::vector<double> control_sequeance; 
+		// count = l.size();
+		// for(auto item : l){
+		// 	for(int i=0; i<uDim; i++){
+		// 		control_sequeance.push_back(item(i));
+		// 	}		
+		// }
+        // cnpy::npy_save("/dataset/rrt_old/1_state_vector.npy", &sates_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)xDim},"w");
+        // cnpy::npy_save("/dataset/rrt_old/1_control_vector.npy", &control_sequeance[0],{(unsigned int)1, (unsigned int)count, (unsigned int)uDim},"w");
 	    return 0.0;
     }
 
@@ -250,9 +255,10 @@ namespace hagen{
         , Eigen::MatrixXd& rt, const size_t& iter) {
  
         Qt = Q;
-        qt = -(Q*x);
+        qt = -(Q*xStart);
         Qt(xDim-1, xDim-1) = 100;
         qt(xDim-1) = -Qt(xDim-1,xDim-1)*x(xDim-1);
+        // qt(xDim-1) = timeFactor*std::exp(x(xDim-1)) - Qt(xDim-1, xDim-1)*x(xDim-1);
         Rt = R; 
         rt = -(R*uNominal);
         // Pt.reset();

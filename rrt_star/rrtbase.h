@@ -117,6 +117,8 @@ namespace hagen {
 
                 void add_tree();
                 void add_vertex(int tree, PathNode v);
+                bool set_seq(PathNode parent, std::vector<Eigen::MatrixXd> state_sveq);
+                std::vector<Eigen::MatrixXd> get_seq(PathNode parent);
                 PathNode get_vertex(Eigen::Vector3d v);
                 void stateTransit(Eigen::Matrix<double, 6, 1>& state0, Eigen::Matrix<double, 6, 1>& state1,
                                     Eigen::Vector3d um, double tau);
@@ -146,6 +148,8 @@ namespace hagen {
                 double path_cost(PathNode a, PathNode b, int tree);
                 double segment_cost(PathNode a, PathNode b);
                 double get_cost_of_path(std::vector<PathNode> path1);
+                void apply_dynamics(PathNode cur_node, PathNode goal, double distance
+                                                                                , std::vector<Eigen::MatrixXd>& xHit);
         };
     }
 }

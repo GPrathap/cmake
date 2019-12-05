@@ -43,7 +43,7 @@ namespace kamaz {
         Eigen::MatrixXd jacobian2(Eigen::MatrixXd& a, Eigen::MatrixXd& b);
         double extendedLQR(Eigen::MatrixXd startState
         , Eigen::MatrixXd uNominal, std::vector<Eigen::MatrixXd>& L
-        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq);
+        , std::vector<Eigen::MatrixXd>& l, std::vector<Eigen::MatrixXd>& xHatSeq, Eigen::Vector3d goal);
         void quadratizeCost(Eigen::MatrixXd& x, Eigen::MatrixXd& u, const size_t& t
         , Eigen::MatrixXd& Pt, Eigen::MatrixXd& Qt, Eigen::MatrixXd& Rt, Eigen::MatrixXd& qt
         , Eigen::MatrixXd& rt, const size_t& iter);
@@ -51,7 +51,7 @@ namespace kamaz {
         size_t ell;
         Eigen::MatrixXd Q;
         double rotCost;
-        Eigen::MatrixXd uNominal;
+        Eigen::MatrixXd xStart, uNominal;
         Eigen::MatrixXd R;
         
         double obstacleFactor;
@@ -76,6 +76,7 @@ namespace kamaz {
         Eigen::Vector3d eX;
         Eigen::Vector3d eY;
         Eigen::Vector3d eZ;
+        double timeFactor;
 
         // derivative constants
         Eigen::MatrixXd invInertia; // inverse of intertia matrix

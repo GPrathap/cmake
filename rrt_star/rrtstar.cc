@@ -13,7 +13,7 @@ namespace hagen {
     std::vector<std::tuple<double, PathNode>> RRTStar::get_nearby_vertices(int tree, PathNode x_init
                                             , PathNode x_new){
         auto X_near = nearby_vertices(tree, x_new, current_rewrite_count(tree));
-        std::cout<< "RRTStar::get_nearby_vertices" << X_near.size() << std::endl;
+        // std::cout<< "RRTStar::get_nearby_vertices" << X_near.size() << std::endl;
         std::vector<std::tuple<double, PathNode>> L_near;
         for(auto const x_near : X_near){
             // PathNode x_near_node;
@@ -72,10 +72,10 @@ namespace hagen {
 
     std::vector<PathNode> RRTStar::rrt_star(){
         
-        drone_dynamics.init(opt.kino_options.max_itter, opt.kino_options.dt);
+        // drone_dynamics.init(opt.kino_options.max_itter, opt.kino_options.dt);
         // std::cout<< "-----211" << std::endl;
-        x_init.control_input = drone_dynamics.uNominal;
-        x_goal.control_input = Eigen::MatrixXd::Zero(4,1);
+        // x_init.control_input = drone_dynamics.uNominal;
+        // x_goal.control_input = Eigen::MatrixXd::Zero(4,1);
         
         add_vertex(0, x_init);
         // std::cout<< "-----212" << std::endl;

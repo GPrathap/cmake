@@ -373,7 +373,7 @@ namespace hagen {
             auto x = sample();
             // std::cout<< "sample--->" << x <<std::endl;
             if(obstacle_free(x)){
-                std::cout<< "free sample--->" << x.transpose() <<std::endl;
+                // std::cout<< "free sample--->" << x.transpose() <<std::endl;
                 number_of_attempts = 0;
                 return x;
             }
@@ -392,7 +392,7 @@ namespace hagen {
         , [](const int s1, const int s2) -> bool{
                 return s1 < s2;
         });
-        std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
+        // std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
         for(int i=0; i<len; i++){
             Eigen::Vector3d search_rect(3);
             search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
