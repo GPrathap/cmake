@@ -59,7 +59,7 @@
 #include <assert.h>
 #include <limits>
 #include <iomanip>
-
+#include <stdexcept>
 
 
 namespace loto {
@@ -190,6 +190,8 @@ public:
 		}
 		return *this; 
 	}
+
+	
 
 	// Matrix subtraction
 	inline const Matrix<_numRows, _numColumns>& operator-=(const Matrix<_numRows, _numColumns>& q) { 
@@ -330,6 +332,10 @@ public:
 	}
 };
 
+inline void error(const std::string& s)
+{
+    throw std::runtime_error(s);
+}
 // Unary minus
 template <size_t _numRows, size_t _numColumns>
 inline Matrix<_numRows, _numColumns> operator-(const Matrix<_numRows, _numColumns>& M) {
@@ -570,6 +576,10 @@ inline double det(const SymmetricMatrix<_size>& q) {
 }
 
 
+// inline void error(const std::string& s)
+// {
+//     throw std::runtime_error(s);
+// }
 // P%Q solves PX = Q for X
 template <size_t _size, size_t _numColumns>
 inline Matrix<_size, _numColumns> operator%(const Matrix<_size, _size>& p, const Matrix<_size, _numColumns>& q) {
@@ -593,8 +603,11 @@ inline Matrix<_size, _numColumns> operator%(const Matrix<_size, _size>& p, const
 				}
 			}
 		}
-
-		assert(maximum != double(0));
+		
+		if(maximum == double(0)){
+			error("Gaussian elimination, maximum can not be less than zero");
+		}
+		// assert(maximum != double(0));
 
 		// swap rows and columns
 		std::swap(row_p[k], row_p[max_row]);
@@ -653,7 +666,10 @@ inline Matrix<_size, _numColumns> operator%(const SymmetricMatrix<_size>& p, con
 				sum -= L(j,k)*L(i,k);
 			}
 			if (i == j) {
-				assert(sum > 0.0);
+				// assert(sum > 0.0);
+				if(sum < 0.0){
+					error("Inverse matrix, control matrix should be less than 1.0");
+				}
 				L(i,i) = sqrt(sum);
 			} else {
 				L(j,i) = sum / L(i,i);
@@ -697,7 +713,10 @@ inline Matrix<_size, _size> operator%(const SymmetricMatrix<_size>& p, const Sym
 				sum -= L(j,k)*L(i,k);
 			}
 			if (i == j) {
-				assert(sum > 0.0);
+				// assert(sum > 0.0);
+				if(sum < 0.0){
+					error("Inverse matrix, control matrix should be less than 1.0");
+				}
 				L(i,i) = sqrt(sum);
 			} else {
 				L(j,i) = sum / L(i,i);
@@ -822,7 +841,10 @@ inline Matrix<_size, _size> operator!(const Matrix<_size, _size>& q) {
 		swap = col_p[k]; col_p[k] = col_p[max_col]; col_p[max_col] = swap;
 
 		// eliminate column
-		assert(maximum != double(0));
+		// assert(maximum != double(0));
+		if(maximum == double(0)){
+			error("Gaussian elimination, maximum can not be less than zero");
+		}
 		for (size_t i = k + 1; i < _size; ++i) {
 			double factor = m(row_p[i], col_p[k]) / m(row_p[k], col_p[k]);
 
@@ -943,7 +965,10 @@ inline Matrix<_size, _size> chol(const SymmetricMatrix<_size>& p)
 				sum -= L(j,k)*L(i,k);
 			}
 			if (i == j) {
-				assert(sum > 0.0);
+				// assert(sum > 0.0);
+				if(sum < 0.0){
+					error("Inverse matrix, control matrix should be less than 1.0");
+				}
 				L(i,i) = sqrt(sum);
 			} else {
 				L(j,i) = sum / L(i,i);

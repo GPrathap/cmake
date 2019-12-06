@@ -12,31 +12,36 @@ namespace hagen {
         return rrtstar.rrt_star();
     }
 
-
     std::vector<PathNode> RRTStar3D::rrt_planner_and_save(RRTPlannerOptions planner_options
                 , CommonUtils& common_utils
                 , std::atomic_bool &is_allowed_to_run, int index){
         
         auto rrtstar =  RRTStar(planner_options, _rewrite_count, common_utils, is_allowed_to_run);
         std::ofstream outfile;
+        planner_opts = planner_options;
         // std::cout<< "========================" << std::endl;
         // outfile.open("/dataset/rrt_old/time_stamps.txt", std::ios_base::app);
         // std::cout<< "========================" << std::endl;
         // const clock_t begin_time = clock();
         // std::cout<< "========================" << std::endl;
         auto path = rrtstar.rrt_star();
+        std::vector<PathNode> smoothed_path;
+        get_smoothed_waypoints(path, smoothed_path);
         // double time_diff =  double( clock () - begin_time ) /  CLOCKS_PER_SEC;
         // if(path.size()>1){
             //  outfile << "rrt,"<<  time_diff <<","<< path.size() << "," << get_distance(path) << "," <<  common_utils.get_cost_of_path(path) << "\n";
         // }
-        // std::cout<< "========================" << std::endl;
+        std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
         stotage_location = "/dataset/rrt_old/" + std::to_string(index) + "_";
         save_edges(rrtstar.trees, stotage_location + "edges.npy");
         save_obstacle(planner_options.search_space.random_objects, stotage_location + "obstacles.npy");
         save_poses(planner_options.x_init, planner_options.x_goal, stotage_location + "start_and_end_pose.npy");
         if(path.size()>0){
+           
+            std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
+            save_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
             save_path(path, stotage_location + "rrt_star_path.npy");
-            save_long_path(path, stotage_location + "rrt_star_dynamics_path.npy");
+            // save_long_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
         }
         return path;
     }
@@ -53,6 +58,126 @@ namespace hagen {
             distance += dis;
         }
         return distance;
+    }
+
+    void RRTStar3D::get_smoothed_waypoints(std::vector<PathNode> path
+                                                    , std::vector<PathNode>& smoothed_path){
+        auto opts = planner_opts.kino_options;
+        if(path.size() >= 3){
+            Eigen::VectorXd previous_node = path[0].state.head(3);
+            Eigen::VectorXd current_node = path[1].state.head(3);
+            Eigen::VectorXd next_node = path[2].state.head(3);
+
+            PathNode next_pose_node;
+            next_pose_node.state.head(3) << previous_node[0], previous_node[1], previous_node[2];
+            smoothed_path.push_back(next_pose_node);
+
+            if(path.size() == 3){
+                Eigen::VectorXd expected_preceding = next_position(previous_node, current_node
+                            , opts.min_dis);
+                Eigen::VectorXd expected_next = proceding_position(current_node, next_node
+                            , opts.min_dis);
+                apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
+                PathNode next_pose_;
+                next_pose_.state.head(3) << next_node[0], next_node[1], next_node[2];
+                smoothed_path.push_back(next_pose_);
+            }
+            for(int i=3; i <= path.size(); i++){
+                std::cout<< "previous: " << previous_node.transpose() << std::endl;
+                std::cout<< "current_node: " << current_node.transpose() << std::endl;
+                std::cout<< "next_node: " << next_node.transpose() << std::endl;
+                Eigen::VectorXd expected_preceding = next_position(previous_node, current_node
+                            , opts.min_dis);
+                Eigen::VectorXd expected_next = proceding_position(current_node, next_node
+                            , opts.min_dis);
+                std::cout<< "expected_next: " << expected_next.transpose() << std::endl;
+                std::cout<< "expected_preceding: " << expected_preceding.transpose() << std::endl;
+                apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
+                previous_node = expected_next;
+                current_node = next_node;
+                if(i == path.size()){
+                    break;
+                }
+                next_node = path[i].state.head(3);
+            }
+            PathNode last_node = path.back();
+            smoothed_path.push_back(last_node);
+        }else{
+            smoothed_path = path;
+        }
+    }
+
+    void RRTStar3D::apply_dynamics_smoothing(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
+                                                            , std::vector<PathNode>& smoothed_path){
+        auto opts = planner_opts.kino_options;
+        auto search_space = planner_opts.search_space;
+        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, 0.5);
+        loto::hagen::ExtendedLQR extendedLQR;
+        for(auto pose : poses){
+            std::vector<Eigen::Vector3d> obs_poses;
+            search_space.get_free_space(pose, obs_poses, 10);
+            for(auto obs : obs_poses){
+                loto::hagen::Obstacle obs_pose;
+                obs_pose.pos[0] = obs[0];
+                obs_pose.pos[1] = obs[1];
+                obs_pose.pos[2] = obs[2];
+                obs_pose.radius = 0.4; 
+                obs_pose.dim = 2;
+                extendedLQR.obstacles.push_back(obs_pose);
+            }
+        }
+        std::cout<< "Number of obstacles in the space: " << extendedLQR.obstacles.size() << std::endl;
+        std::vector<loto::hagen::Matrix<U_DIM, X_DIM>> L;
+        std::vector<loto::hagen::Matrix<U_DIM>> l;
+
+        // std::vector<loto::hagen::Matrix<U_DIM, X_DIM>> L;
+        // std::vector<loto::hagen::Matrix<U_DIM>> l;
+
+        extendedLQR.xGoal = loto::hagen::zero<X_DIM>();
+        extendedLQR.xGoal[0] = x_goal[0];
+        extendedLQR.xGoal[1] = x_goal[1];
+        extendedLQR.xGoal[2] = x_goal[2];
+
+        extendedLQR.xGoal[3] = 0;
+        extendedLQR.xGoal[4] = 0;
+        extendedLQR.xGoal[5] = 0;
+
+        Eigen::Vector3d ab = x_goal.head(3) - x_start.head(3);
+        double ba_length = ab.norm();
+        Eigen::Vector3d unit_vector = ab/ba_length;
+        Eigen::Vector3d velocity = unit_vector*opts.max_vel;
+
+        extendedLQR.xStart[0] = x_start[0];
+        extendedLQR.xStart[1] = x_start[1];
+        extendedLQR.xStart[2] = x_start[2];
+        extendedLQR.xStart[3] = velocity[0];
+        extendedLQR.xStart[4] = velocity[1];
+        extendedLQR.xStart[5] = velocity[2];
+
+        loto::hagen::Matrix<X_DIM> xStartInit = extendedLQR.xStart;
+        xStartInit[X_DIM-1] = log(opts.initdt);
+        double dt;
+        bool dynamics_present = true;
+        try{
+            dt = extendedLQR.extendedLQRItr(opts.ell, xStartInit, extendedLQR.uNominal, L, l
+                            , opts.max_itter);
+        }catch(const std::runtime_error& error){
+            dynamics_present = false;
+            std::cout<< "Using same waypoints..." << std::endl;
+        }
+        if(dynamics_present){
+            loto::hagen::Matrix<X_DIM> x = extendedLQR.xStart;
+            x[X_DIM-1] = log(dt);
+            for (size_t t = 0; t < opts.ell; ++t) {
+                // std::cout << x << std::endl;
+                x = extendedLQR.g(x, L[t]*x + l[t]);
+                PathNode next_pose;
+                next_pose.state.head(3) << x[0], x[1], x[2];
+                smoothed_path.push_back(next_pose);
+            }
+        }else{
+            // TODO list...
+        }
     }
 
     void RRTStar3D::save_trajectory(std::vector<PathNode> trajectory_of_drone){
@@ -179,18 +304,106 @@ namespace hagen {
     }
 
     void RRTStar3D::save_long_path(std::vector<PathNode> path, std::string file_name){
-       std::vector<double> projected_path;
-       int waypoints = 0;
-        BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
-       for(auto const& way_point : path){
-           waypoints += way_point.state_seq.size();
-           for(auto const& point : way_point.state_seq){
-                projected_path.push_back(point(0));
-                projected_path.push_back(point(1));
-                projected_path.push_back(point(2));
-           }
-       }
-       cnpy::npy_save(file_name, &projected_path[0], {waypoints, 3}, "w");
+    //    std::vector<double> projected_path;
+    //    int waypoints = 0;
+    //  BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: smoothed path") << path.size();
+    //    for(auto const& way_point : path){
+    //             projected_path.push_back(point(0));
+    //             projected_path.push_back(point(1));
+    //             projected_path.push_back(point(2));
+           
+    //    }
+    //    cnpy::npy_save(file_name, &projected_path[0], {waypoints, 3}, "w");
+    }
+
+    Eigen::VectorXd RRTStar3D::proceding_position(Eigen::VectorXd start_position, Eigen::VectorXd end_position
+        , double distance)
+    {
+        Eigen::VectorXd next_pose(3);
+        auto position_vector = end_position - start_position;
+        auto x = position_vector[0];
+        auto y = position_vector[1];
+        auto z = position_vector[2];
+        double diff = position_vector.norm();
+        if( diff <= 0.0){
+            BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+        }
+        if( diff < distance){
+            return start_position;
+        }
+        auto theta = std::atan2(y, x);
+        auto phi = std::atan2(std::sqrt(x*x + y*y), z);
+        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl; 
+        // double projected_dis = (diff - distance);
+        auto target_z = distance*std::cos(phi) + start_position[2];
+        auto target_x = distance*std::sin(phi)*std::cos(theta) + start_position[0];
+        auto target_y = distance*std::sin(phi)*std::sin(theta) + start_position[1];
+        next_pose<<target_x, target_y, target_z;
+        // std::cout<< "Next pose:: inside:: not"<< next_pose << std::endl;
+        return next_pose;
+    }
+
+    Eigen::VectorXd RRTStar3D::next_position(Eigen::VectorXd start_position, Eigen::VectorXd end_position
+      , double distance)
+    {
+        Eigen::VectorXd next_pose(3);
+        auto position_vector = end_position - start_position;
+        auto x = position_vector[0];
+        auto y = position_vector[1];
+        auto z = position_vector[2];
+        double diff = position_vector.norm();
+        if( diff <= 0.0){
+          BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+        }
+        if( diff < distance){
+         return end_position;
+        }
+        auto theta = std::atan2(y, x);
+        auto phi = std::atan2(std::sqrt(x*x + y*y), z);
+        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl; 
+        double projected_dis = (diff - distance);
+        auto target_z = projected_dis*std::cos(phi) + start_position[2];
+        auto target_x = projected_dis*std::sin(phi)*std::cos(theta) + start_position[0];
+        auto target_y = projected_dis*std::sin(phi)*std::sin(theta) + start_position[1];
+        next_pose<<target_x, target_y, target_z;
+        // std::cout<< "Next pose:: inside:: not"<< next_pose << std::endl;
+        return next_pose;
+    }
+
+    std::vector<Eigen::Vector3d> RRTStar3D::next_poses(Eigen::VectorXd start_position, Eigen::VectorXd end_position
+      , double distance)
+    {
+        std::vector<Eigen::Vector3d> poses;
+        Eigen::VectorXd next_pose(3);
+        auto position_vector = end_position - start_position;
+        auto x = position_vector[0];
+        auto y = position_vector[1];
+        auto z = position_vector[2];
+        double diff = position_vector.norm();
+        if( diff <= 0.0){
+          BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+        }
+        if(diff < distance){
+            poses.push_back(end_position);
+            return poses;
+        }
+        auto theta = std::atan2(y, x);
+        auto phi = std::atan2(std::sqrt(x*x + y*y), z);
+        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl;
+        while(true){
+            auto target_z = distance*std::cos(phi) + start_position[2];
+            auto target_x = distance*std::sin(phi)*std::cos(theta) + start_position[0];
+            auto target_y = distance*std::sin(phi)*std::sin(theta) + start_position[1];
+            next_pose<<target_x, target_y, target_z;
+            poses.push_back(next_pose);
+            distance += distance;
+            if((next_pose.head(3)-end_position.head(3)).norm() <= distance){
+                break;
+            }
+            // std::cout<< "Next pose:: inside:: not"<< next_pose << std::endl;
+            // return next_pose;
+        } 
+        return poses;
     }
 }
 }

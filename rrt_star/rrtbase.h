@@ -31,7 +31,7 @@ namespace hagen {
             double max_acc;
             double w_time;
             double dt;
-            int max_itter;
+            size_t max_itter;
             double horizon;
             double lambda_heu;
             double time_resolution;
@@ -40,6 +40,9 @@ namespace hagen {
             int check_num;
             Eigen::Vector3d start_vel_;
             Eigen::Vector3d start_acc_;
+            int ell;
+            double initdt;
+            double min_dis;
         };
 
         struct RRTPlannerOptions {

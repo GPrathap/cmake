@@ -92,8 +92,8 @@ namespace hagen{
 		// Environment parameters
 		robotRadius = length + 0.1;
 
-		bottomLeft[0] = -8.0; bottomLeft[1] = -8.0; bottomLeft[2] = -8.0;
-		topRight[0] = 8.0; topRight[1] = 8.0; topRight[2] = 8.0;
+		bottomLeft[0] = -15.0; bottomLeft[1] = -15.0; bottomLeft[2] = -15.0;
+		topRight[0] = 15.0; topRight[1] = 15.0; topRight[2] = 15.0;
 	}	
 
 	void ExtendedLQR::extendedLQRIterator(const size_t& ell, const Matrix<X_DIM>& startState,
@@ -225,13 +225,15 @@ double ExtendedLQR::extendedLQRItr(const size_t& ell, const Matrix<X_DIM>& start
 
 	SBar[0] = zeros<X_DIM>();
 	sBar[0] = zero<X_DIM>();
-
+    // std::cout<< "=======1=======" << std::endl;
 	for (iter = 0; iter < maxIter; ++iter) {
 		// forward pass
 		for (size_t t = 0; t < ell; ++t) {
+			// std::cout<< "=======11=======" << std::endl;
 			const Matrix<U_DIM> uHat = L[t]*xHat + l[t];
+			//  std::cout<< "=======121=======" << std::endl;
 			const Matrix<X_DIM> xHatPrime = g(xHat, uHat);
-
+            // std::cout<< "=======12=======" << std::endl;
 			const Matrix<X_DIM, X_DIM> ABar = jacobian1Forward(xHatPrime, uHat, DEFAULTSTEPSIZE);
 			const Matrix<X_DIM, U_DIM> BBar = jacobian2Forward(xHatPrime, uHat, DEFAULTSTEPSIZE);
 			const Matrix<X_DIM> cBar = xHat - ABar*xHatPrime - BBar*uHat;
@@ -241,9 +243,9 @@ double ExtendedLQR::extendedLQRItr(const size_t& ell, const Matrix<X_DIM>& start
 			SymmetricMatrix<U_DIM> R;
 			Matrix<X_DIM> q;
 			Matrix<U_DIM> r;
-
+            //  std::cout<< "=======123=======" << std::endl;
 			quadratizeCost(xHat, uHat, t, P, Q, R, q, r, iter);
-
+			// std::cout<< "=======14=======" << std::endl;
 			const SymmetricMatrix<X_DIM> SBarQ = SBar[t] + Q;
 			const Matrix<X_DIM> sBarqSBarQcBar = sBar[t] + q + SBarQ*cBar;
 			const Matrix<U_DIM,X_DIM> CBar = ~BBar*SBarQ*ABar + P*ABar;
@@ -262,10 +264,12 @@ double ExtendedLQR::extendedLQRItr(const size_t& ell, const Matrix<X_DIM>& start
 
 			xHat = -((S[t+1] + SBar[t+1])%(s[t+1] + sBar[t+1]));
 		}
+		// std::cout<< "=======2=======" << std::endl;
 		// backward pass
 		quadratizeFinalCost(xHat, S[ell], s[ell], iter);
+		// std::cout<< "=======3=======" << std::endl;
 		xHat = -((S[ell] + SBar[ell])%(s[ell] + sBar[ell]));
-
+		// std::cout<< "=======4=======" << std::endl;
 		for (size_t t = ell - 1; t != -1; --t) {
 			const Matrix<U_DIM> uHat = L[t]*xHat + l[t];
 			const Matrix<X_DIM> xHatPrime = gBar(xHat, uHat);
@@ -296,7 +300,7 @@ double ExtendedLQR::extendedLQRItr(const size_t& ell, const Matrix<X_DIM>& start
 
 			xHat = -((S[t] + SBar[t])%(s[t] + sBar[t]));
 		}
-
+		// std::cout<< "=======5=======" << std::endl;
 		// compute cost
 		double newCost = 0;
 		Matrix<X_DIM> x = xHat;
@@ -305,6 +309,7 @@ double ExtendedLQR::extendedLQRItr(const size_t& ell, const Matrix<X_DIM>& start
 			newCost += ct(x, u, t);
 			x = g(x, u);
 		}
+		// std::cout<< "=======6=======" << std::endl;
 		newCost += cell(x);
 
 		// if (vis) {

@@ -165,7 +165,7 @@ namespace hagen{
 					br[i] = bl[i] = b[i];
 				}
 				return B;
-			}
+		}
 
 		inline Matrix<X_DIM,X_DIM> jacobian1Backward(const Matrix<X_DIM>& a, const Matrix<U_DIM>& b, double jStep) {
 				Matrix<X_DIM,X_DIM> A;
@@ -181,7 +181,7 @@ namespace hagen{
 				}
 				// std::cout<< "====after====" << (f(ar, b) - f(al, b)) / (2*jStep) << std::endl;
 				return A;
-			}
+		}
 
 		inline Matrix<X_DIM,U_DIM> jacobian2Backward(const Matrix<X_DIM>& a, const Matrix<U_DIM>& b, double jStep) {
 				Matrix<X_DIM,U_DIM> B;
@@ -193,7 +193,7 @@ namespace hagen{
 					br[i] = bl[i] = b[i];
 				}
 				return B;
-			}
+		}
 
 		// inline Matrix<X_DIM,X_DIM> jacobian1(const Matrix<X_DIM>& a, const Matrix<U_DIM>& b, double jStep) {
 		// 	Matrix<X_DIM,X_DIM> A;
@@ -401,7 +401,8 @@ namespace hagen{
 		// Discrete-time dynamics x_{t+1} = g(x_t, u_t)
 		inline Matrix<X_DIM> g(const Matrix<X_DIM>& x, const Matrix<U_DIM>& u) {
 			double dt = std::exp(x[X_DIM-1]);
-
+			// TODO try to find why dt goes higher than 1.0
+			// std::cout<< "=======12======="<< dt << std::endl;
 			Matrix<X_DIM> k1 = f(x, u);
 			Matrix<X_DIM> k2 = f(x + 0.5*dt*k1, u);
 			Matrix<X_DIM> k3 = f(x + 0.5*dt*k2, u);

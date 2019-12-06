@@ -2,6 +2,7 @@
 
 namespace kamaz {
 namespace hagen {
+    
             void TrajectorySmoother::set_smoother(std::string name){
                 if(name == "bspline"){
                     _curve = new BSpline();

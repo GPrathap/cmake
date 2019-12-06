@@ -16,7 +16,7 @@
 #include "./spline/BSpline.h"
 // #include "./spline/CatmullRom.h"
 #include "./common/search_space.h"
-#include "./common/ExtendedLQR.h"
+
 #include "../ground_removal/ssa.h"
 #include "quadtree/quadtree.h"
 #include <random>
@@ -36,7 +36,7 @@
 #include "spline/polynomial.h"
 #include <Eigen/Core>
 #include <unsupported/Eigen/Splines>
-
+#include <stdexcept>
 
 
 using kamaz::hagen::SearchSpace;
@@ -726,12 +726,7 @@ typedef Eigen::Spline<double, 3> Spline3d;
 
 int main()
 {
-    int ell = 30;
-    // loto::hagen::ExtendedLQR extendedLQR;
-    // std::vector<loto::hagen::Matrix<U_DIM, X_DIM> > L;
-    // std::vector<loto::hagen::Matrix<U_DIM>> l;
-    // double initdt = 0.05;
-    // size_t iterator = 30;
+    
     // extendedLQR.xGoal = loto::hagen::zero<X_DIM>();
     // extendedLQR.xStart[0] = 4;
     // extendedLQR.xStart[1] = 4;
@@ -834,8 +829,7 @@ int main()
     kamaz::hagen::RRTPlannerOptions rrt_planner_options;
 
     kino_ops.init_max_tau = 0.5;
-    kino_ops.max_vel = 3.0;
-    kino_ops.max_acc = 2;
+    kino_ops.max_vel = 0.5;
     kino_ops.w_time = 0.5;
     kino_ops.horizon = 1;
     kino_ops.lambda_heu = 1;
@@ -844,13 +838,14 @@ int main()
     kino_ops.allocate_num = 1;
     kino_ops.check_num = 1;
     // kino_ops.dt = dt;
-    kino_ops.max_itter = ell;
+    kino_ops.max_itter = 30;
+    kino_ops.ell = 15;
+    kino_ops.initdt = 0.05;
+    kino_ops.min_dis = 2;
+
     // kino_ops.start_vel_ = start_v;
-    // kino_ops.start_acc_ = start_a;
     // kino_ops.max_tau = max_tau_;
 
-    // start_vel_ = start_v;
-    // start_acc_ = start_a;
     
     rrt_planner_options.search_space = X;
     rrt_planner_options.x_init = x_init;
@@ -868,34 +863,36 @@ int main()
     rrt_planner_options.pro = proc;
     // rrt_planner_options.origin_ = origin_;
     // rrt_planner_options.map_size_3d_ = map_size_3d_;
-    auto path = rrtstart3d.rrt_planner_and_save(rrt_planner_options, common_utils
+    std::vector<kamaz::hagen::PathNode> path = rrtstart3d.rrt_planner_and_save(rrt_planner_options, common_utils
                                                 , std::ref(planner_status), save_data_index);
 
-    if(path.size()>0){
-          Curve* bspline_curve = new BSpline();
-          bspline_curve->set_steps(100);
-          bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
-          for(auto const way_point : path){
-            std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
-            bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
-                        , way_point.state.head(3)[2]));
-          }
-          bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
-          std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
-          std::cout << "total length: " << bspline_curve->total_length() << std::endl;
-          std::vector<kamaz::hagen::PathNode> new_path_bspline;
-          if(path.size()>0){
-            new_path_bspline.push_back(path[0]);
-          }
-          for (int i = 0; i < bspline_curve->node_count(); ++i) {
-            kamaz::hagen::PathNode pose;
-            auto node = bspline_curve->node(i);
-            pose.state.head(3) << node.x, node.y, node.z; 
-            new_path_bspline.push_back(pose);
-          }
-          std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
-          rrtstart3d.save_path(new_path_bspline, path_ingg);
-    }
+    std::cout<< "Size of path " << path.size() << std::endl;
+    
+    // if(path.size()>0){
+    //     Curve* bspline_curve = new BSpline();
+    //     bspline_curve->set_steps(100);
+    //     bspline_curve->add_way_point(Vector(path[0].state[0], path[0].state[1], path[0].state[2]));
+    //     for(auto const way_point : path){
+    //       std::cout<<"Main: "<< way_point.state.head(3).transpose() << std::endl;
+    //       bspline_curve->add_way_point(Vector(way_point.state.head(3)[0], way_point.state.head(3)[1]
+    //                   , way_point.state.head(3)[2]));
+    //     }
+    //     bspline_curve->add_way_point(Vector(path.back().state.head(3)[0], path.back().state.head(3)[0], path.back().state.head(3)[0]));
+    //     std::cout << "nodes: " << bspline_curve->node_count() << std::endl;
+    //     std::cout << "total length: " << bspline_curve->total_length() << std::endl;
+    //     std::vector<kamaz::hagen::PathNode> new_path_bspline;
+    //     if(path.size()>0){
+    //       new_path_bspline.push_back(path[0]);
+    //     }
+    //     for (int i = 0; i < bspline_curve->node_count(); ++i) {
+    //       kamaz::hagen::PathNode pose;
+    //       auto node = bspline_curve->node(i);
+    //       pose.state.head(3) << node.x, node.y, node.z; 
+    //       new_path_bspline.push_back(pose);
+    //     }
+    //     std::string path_ingg = "/dataset/rrt_old/" + std::to_string(save_data_index) + "_rrt_path_modified.npy";
+    //     rrtstart3d.save_path(new_path_bspline, path_ingg);
+    // }
   return 0;
 }
 // // // Generic functor
