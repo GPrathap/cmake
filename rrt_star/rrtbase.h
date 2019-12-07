@@ -28,6 +28,7 @@ namespace hagen {
             double max_tau;
             double init_max_tau;
             double max_vel;
+            double max_fes_vel;
             double max_acc;
             double w_time;
             double dt;

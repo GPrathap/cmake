@@ -71,39 +71,52 @@ namespace hagen {
             PathNode next_pose_node;
             next_pose_node.state.head(3) << previous_node[0], previous_node[1], previous_node[2];
             smoothed_path.push_back(next_pose_node);
-
+            Eigen::VectorXd expected_preceding = next_position(previous_node, current_node
+                            , opts.min_dis);
+             Eigen::VectorXd expected_next = proceding_position(current_node, next_node
+                            , opts.min_dis);
             if(path.size() == 3){
-                Eigen::VectorXd expected_preceding = next_position(previous_node, current_node
-                            , opts.min_dis);
-                Eigen::VectorXd expected_next = proceding_position(current_node, next_node
-                            , opts.min_dis);
+                add_waypoints_on_straight_line(previous_node, expected_preceding, smoothed_path);
                 apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
-                PathNode next_pose_;
-                next_pose_.state.head(3) << next_node[0], next_node[1], next_node[2];
-                smoothed_path.push_back(next_pose_);
-            }
-            for(int i=3; i <= path.size(); i++){
-                std::cout<< "previous: " << previous_node.transpose() << std::endl;
-                std::cout<< "current_node: " << current_node.transpose() << std::endl;
-                std::cout<< "next_node: " << next_node.transpose() << std::endl;
-                Eigen::VectorXd expected_preceding = next_position(previous_node, current_node
-                            , opts.min_dis);
-                Eigen::VectorXd expected_next = proceding_position(current_node, next_node
-                            , opts.min_dis);
-                std::cout<< "expected_next: " << expected_next.transpose() << std::endl;
-                std::cout<< "expected_preceding: " << expected_preceding.transpose() << std::endl;
-                apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
-                previous_node = expected_next;
-                current_node = next_node;
-                if(i == path.size()){
-                    break;
+                add_waypoints_on_straight_line(expected_next, next_node, smoothed_path);
+            }else{
+                for(int i=3; i <= path.size(); i++){
+                    std::cout<< "previous: " << previous_node.transpose() << std::endl;
+                    std::cout<< "current_node: " << current_node.transpose() << std::endl;
+                    std::cout<< "next_node: " << next_node.transpose() << std::endl;
+                    add_waypoints_on_straight_line(previous_node, expected_preceding, smoothed_path);
+                    std::cout<< "expected_next: " << expected_next.transpose() << std::endl;
+                    std::cout<< "expected_preceding: " << expected_preceding.transpose() << std::endl;
+                    apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
+                    previous_node = expected_next;
+                    current_node = next_node;
+                    if(i == path.size()){
+                        add_waypoints_on_straight_line(expected_next, path.back().state.head(3), smoothed_path);
+                        break;
+                    }
+                    next_node = path[i].state.head(3);
+                    expected_preceding = next_position(previous_node, current_node
+                                , opts.min_dis);
+                    expected_next = proceding_position(current_node, next_node
+                                , opts.min_dis);
                 }
-                next_node = path[i].state.head(3);
             }
             PathNode last_node = path.back();
             smoothed_path.push_back(last_node);
         }else{
             smoothed_path = path;
+        }
+    }
+
+
+    void RRTStar3D::add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
+                                                            , std::vector<PathNode>& smoothed_path){
+        auto opts = planner_opts.kino_options;                                                        
+        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, opts.dt*opts.max_vel);
+        for(auto po : poses){
+            PathNode next_pose_node;
+            next_pose_node.state.head(3) << po[0], po[1], po[2];
+            smoothed_path.push_back(next_pose_node);
         }
     }
 
@@ -145,7 +158,7 @@ namespace hagen {
         Eigen::Vector3d ab = x_goal.head(3) - x_start.head(3);
         double ba_length = ab.norm();
         Eigen::Vector3d unit_vector = ab/ba_length;
-        Eigen::Vector3d velocity = unit_vector*opts.max_vel;
+        Eigen::Vector3d velocity = unit_vector*opts.max_fes_vel;
 
         extendedLQR.xStart[0] = x_start[0];
         extendedLQR.xStart[1] = x_start[1];

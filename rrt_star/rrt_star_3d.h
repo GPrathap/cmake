@@ -61,8 +61,11 @@ namespace hagen {
                                                             , std::vector<PathNode>& smoothed_path);
                void get_smoothed_waypoints(std::vector<PathNode> path
                                                     , std::vector<PathNode>& smoothed_path);
-                std::vector<Eigen::Vector3d> next_poses(Eigen::VectorXd start_position, Eigen::VectorXd end_position
+               std::vector<Eigen::Vector3d> next_poses(Eigen::VectorXd start_position, Eigen::VectorXd end_position
                         , double distance);
+               
+               void add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
+                                                            , std::vector<PathNode>& smoothed_path);
 
 
             private:

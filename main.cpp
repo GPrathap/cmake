@@ -829,7 +829,8 @@ int main()
     kamaz::hagen::RRTPlannerOptions rrt_planner_options;
 
     kino_ops.init_max_tau = 0.5;
-    kino_ops.max_vel = 0.5;
+    kino_ops.max_vel = 2.5;
+    kino_ops.max_fes_vel = 0.5;
     kino_ops.w_time = 0.5;
     kino_ops.horizon = 1;
     kino_ops.lambda_heu = 1;
@@ -837,11 +838,11 @@ int main()
     kino_ops.margin = 1;
     kino_ops.allocate_num = 1;
     kino_ops.check_num = 1;
-    // kino_ops.dt = dt;
+    kino_ops.dt = 0.25;
     kino_ops.max_itter = 30;
-    kino_ops.ell = 15;
+    kino_ops.ell = 20;
     kino_ops.initdt = 0.05;
-    kino_ops.min_dis = 2;
+    kino_ops.min_dis = 1.5;
 
     // kino_ops.start_vel_ = start_v;
     // kino_ops.max_tau = max_tau_;
