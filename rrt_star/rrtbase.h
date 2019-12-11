@@ -20,11 +20,13 @@
 #include "../common/dynamics.h"
 #include <unordered_map>
 #include <stddef.h>
+#include<Eigen/StdVector>
 
 namespace kamaz {
 namespace hagen {
 
         struct RRTKinoDynamicsOptions{
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             double max_tau;
             double init_max_tau;
             double max_vel;
@@ -47,6 +49,7 @@ namespace hagen {
         };
 
         struct RRTPlannerOptions {
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             SearchSpace search_space;
             int sample_taken;
             int max_samples;

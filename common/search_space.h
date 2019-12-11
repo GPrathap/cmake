@@ -27,6 +27,7 @@
 #include <boost/foreach.hpp>
 #include "../utils/common_utils.h"
 #include <random>
+#include<Eigen/StdVector>
 
 namespace kamaz {
 namespace hagen {
@@ -40,6 +41,7 @@ namespace hagen {
             typedef bgi::rtree<value_t, bgi::quadratic<8, 4>> RTree;
 
             public:
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 SearchSpace();
                 ~SearchSpace() = default;
 
@@ -102,6 +104,8 @@ namespace hagen {
 
                 void generate_search_sapce(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat
                         , Eigen::Vector3d cent, int npts);
+                std::vector<SearchSpace::Rect> get_random_obstacles(int number_of_obstacles
+                     , Eigen::VectorXd x_dimentions);
                 std::vector<double> arange(double start, double stop, double step);
                 void save_samples(int index);
                 void save_search_space(int index);
@@ -116,8 +120,8 @@ namespace hagen {
                 
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
-                std::vector<uint64_t> res;
-                std::shared_ptr<Eigen::MatrixXd> random_points_tank;
+                // std::vector<uint64_t> res;
+                // std::shared_ptr<Eigen::MatrixXd> random_points_tank;
                 double cube_length = 2;
                 double avoidance_width = 1.5;
                 int number_of_rand_points;
@@ -125,18 +129,29 @@ namespace hagen {
                 bool use_whole_search_sapce = false;
                 double voxel_side_length = 0.1f;
 
+                // struct GeometryRTreeSearchCallback
+                // {
+                //     // EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                //     GeometryRTreeSearchCallback(SearchSpace* search_space): parent(search_space){
+
+                //     }
+                //     template <typename Value> void operator()(Value const& v)
+                //     {
+                //         // std::cout<< v.frist << std::endl;
+                //         // std::cout<< v.second << std::endl;
+                //         parent->res.push_back(v.second);
+                //     }
+                //     SearchSpace* parent;
+                // };
+
                 struct GeometryRTreeSearchCallback
                 {
-                    GeometryRTreeSearchCallback(SearchSpace* search_space): parent(search_space){
-
-                    }
-                    template <typename Value> void operator()(Value const& v)
+                    template <typename Value>
+                    void operator()(Value const& v)
                     {
-                        // std::cout<< v.frist << std::endl;
+                        // return v.is_red();
                         // std::cout<< v.second << std::endl;
-                        parent->res.push_back(v.second);
                     }
-                    SearchSpace* parent;
                 };
 
                 GeometryRTreeSearchCallback geometry_rtree_callback;

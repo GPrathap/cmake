@@ -4,7 +4,7 @@ project (trajectory_estimator)
 SET(CMAKE_C_FLAGS_DEBUG "-D_DEBUG")
 add_definitions(-std=c++11)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -fPIC -fopenmp -DBOOST_LOG_DYN_LINK")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O2 -ggdb")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Eigen3 REQUIRED)

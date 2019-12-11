@@ -21,7 +21,9 @@ namespace hagen {
                 //        continue;
                 //    }
                    connect_to_point(0, new_and_next[1], new_and_next[0]);
-                   auto solution = check_solution(path);
+                   std::cout<< "before check solution" <<std::endl;
+                   bool solution = check_solution(path);
+                   std::cout<< "after check solution" <<std::endl;
                    if(solution){
                        return path;
                    }
