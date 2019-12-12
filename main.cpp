@@ -44,8 +44,17 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/move/move.hpp>
+#include <boost/make_unique.hpp>
 #include <iostream>
 #include <unistd.h>
+#include <iostream>
+#include <memory>
+#include <thread>
+#include <vector>
+#include <future>
+#include <iostream>
+#include <memory>
+#include <boost/thread/future.hpp>
 
 using kamaz::hagen::SearchSpace;
 using kamaz::hagen::AStarImproved;
@@ -103,7 +112,8 @@ using kamaz::hagen::Dynamics;
 //     std::cout<< "---" << time_stamp << std::endl;
 //   }
 
-//   std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;
+//   std::cout<< "Total time: " << trajectory_planning.total_time << std::endl;#include <boost/thread.hpp>
+#include <boost/thread/future.hpp>
 //   trajectory_planning.traj_opt7();
 
 //   double cstep = 0.05;
@@ -733,7 +743,6 @@ typedef Eigen::Spline<double, 3> Spline3d;
 // }
 
 namespace asio = boost::asio; 
-// typedef boost::packaged_task<std::vector<kamaz::hagen::PathNode>> task_t;
 typedef boost::packaged_task<std::vector<kamaz::hagen::PathNode>> task_t;
 typedef boost::shared_ptr<task_t> ptask_t;
 
@@ -842,7 +851,8 @@ int main()
 
     boost::asio::io_service io_service;
     boost::thread_group threads;
-    boost::asio::io_service::work work(io_service);
+    std::unique_ptr<boost::asio::io_service::work> service_work;
+    service_work = boost::make_unique<boost::asio::io_service::work>(io_service);
     std::cout<< "Max_trads: " << boost::thread::hardware_concurrency() << std::endl;
     for (int i = 0; i < boost::thread::hardware_concurrency(); ++i)
     {
@@ -850,109 +860,87 @@ int main()
         &io_service));
     }
 
-    kamaz::hagen::SearchSpace temp_search;
-    Eigen::VectorXd x_dimentions_(6);
-    x_dimentions_ << -10, 10, -10, 10, -10, 10;
-    temp_search.init_search_space(x_dimentions_, 100, 0.5, 200);
-    auto obstacles = temp_search.get_random_obstacles(100, x_dimentions_);
-    
-     // vector of futures
-    // std::shared_ptr<std::vector<boost::shared_future<std::vector<kamaz::hagen::PathNode>>>> pending_data;
-    // pending_data = std::make_shared<std::vector<boost::shared_future<std::vector<kamaz::hagen::PathNode>>>>();
-    
     std::vector<boost::shared_future<std::vector<kamaz::hagen::PathNode>>> pending_data;
-    // pending_data = std::make_shared<std::vector<boost::shared_future<int>>>();
-    
-    std::vector<kamaz::hagen::RRTStar3D*> nodes_paths;
-    for (int i = 0; i < 4; i++) {
-
-        // kamaz::hagen::SearchSpace* X;
-        // X = new kamaz::hagen::SearchSpace();
-        // X->init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
-        // X->update_obstacles_map(obstacles);
-        // X->use_whole_search_sapce = true;
-        kamaz::hagen::CommonUtils common_utils;
-        Eigen::VectorXd x_dimentions(6);
-        x_dimentions << -10, 10, -10, 10, -10, 10;
-        kamaz::hagen::PathNode x_init;
-        Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
-        x_init.state.head(3) << -9, -9, -9;
+    for(int p=0; p< 4; p++){
+      kamaz::hagen::SearchSpace temp_search;
+      Eigen::VectorXd x_dimentions_(6);
+      x_dimentions_ << -10, 10, -10, 10, -10, 10;
+      temp_search.init_search_space(x_dimentions_, 100, 0.5, 200);
+      auto obstacles = temp_search.get_random_obstacles(100, x_dimentions_);
+      pending_data.clear();
       
-        kamaz::hagen::PathNode x_goal;
-        x_goal.state.head(3) << 9, 9, 9;
-        // auto obstacles = rrtstart3d.get_obstacles();
-        std::vector<Eigen::Vector2d> Q;
-        Eigen::Vector2d dim_in;
-        dim_in << 8, 4;
-        Q.push_back(dim_in);
-        int r = 1;
-        int max_samples = 1000;
-        int rewrite_count = 32;
-        double proc = 0.1;
-        double obstacle_width = 2.0;
-        int save_data_index = 0;
-        kamaz::hagen::SearchSpace X;
-        X.init_search_space(x_dimentions, max_samples, obstacle_width, 200);
-        X.update_obstacles_map(obstacles);
-        X.use_whole_search_sapce = true;
+      for (int i = 0; i < 4; i++) {
+          kamaz::hagen::CommonUtils common_utils;
+          Eigen::VectorXd x_dimentions(6);
+          x_dimentions << -10, 10, -10, 10, -10, 10;
+          kamaz::hagen::PathNode x_init;
+          Eigen::MatrixXd x = Eigen::MatrixXd::Zero(13, 1);
+          x_init.state.head(3) << -9, -9, -9;
+        
+          kamaz::hagen::PathNode x_goal;
+          x_goal.state.head(3) << 9, 9, 9;
+          // auto obstacles = rrtstart3d.get_obstacles();
+          std::vector<Eigen::Vector2d> Q;
+          Eigen::Vector2d dim_in;
+          dim_in << 8, 4;
+          Q.push_back(dim_in);
+          int r = 1;
+          int max_samples = 1000;
+          int rewrite_count = 32;
+          double proc = 0.1;
+          double obstacle_width = 2.0;
+          int save_data_index = 0;
+          kamaz::hagen::SearchSpace X;
+          X.init_search_space(x_dimentions, max_samples, obstacle_width, 200);
+          X.update_obstacles_map(obstacles);
+          X.use_whole_search_sapce = true;
 
-        kamaz::hagen::RRTStar3D* rrtstart3d;
+          kamaz::hagen::RRTStar3D* rrtstart3d;
 
-        kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
-        kamaz::hagen::RRTPlannerOptions rrt_planner_options;
+          kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
+          kamaz::hagen::RRTPlannerOptions rrt_planner_options;
 
-        kino_ops.init_max_tau = 0.5;
-        kino_ops.max_vel = 2.5;
-        kino_ops.max_fes_vel = 0.5;
-        kino_ops.w_time = 0.5;
-        kino_ops.horizon = 1;
-        kino_ops.lambda_heu = 1;
-        kino_ops.time_resolution = 1;
-        kino_ops.margin = 1;
-        kino_ops.allocate_num = 1;
-        kino_ops.check_num = 1;
-        kino_ops.dt = 0.25;
-        kino_ops.max_itter = 30;
-        kino_ops.ell = 20;
-        kino_ops.initdt = 0.20;
-        kino_ops.min_dis = 1.5;
+          kino_ops.init_max_tau = 0.5;
+          kino_ops.max_vel = 2.5;
+          kino_ops.max_fes_vel = 0.5;
+          kino_ops.w_time = 0.5;
+          kino_ops.horizon = 1;
+          kino_ops.lambda_heu = 1;
+          kino_ops.time_resolution = 1;
+          kino_ops.margin = 1;
+          kino_ops.allocate_num = 1;
+          kino_ops.check_num = 1;
+          kino_ops.dt = 0.25;
+          kino_ops.max_itter = 30;
+          kino_ops.ell = 20;
+          kino_ops.initdt = 0.20;
+          kino_ops.min_dis = 1.5;
 
-        // kino_ops.start_vel_ = start_v;
-        // kino_ops.max_tau = max_tau_;
-
+          rrt_planner_options.search_space = X;
+          rrt_planner_options.x_init = x_init;
+          rrt_planner_options.x_goal = x_goal;
+          rrt_planner_options.start_position = x_init;
+          rrt_planner_options.obstacle_fail_safe_distance = 0.5;
+          rrt_planner_options.min_angle_allows_obs = 0.5;
+          rrt_planner_options.init_search = true;
+          rrt_planner_options.dynamic = true;
+          rrt_planner_options.dynamic = true;
+          rrt_planner_options.kino_options = kino_ops;
+          rrt_planner_options.lengths_of_edges = Q;
+          rrt_planner_options.max_samples = max_samples;
+          rrt_planner_options.resolution = r; 
+          rrt_planner_options.pro = proc;
+          rrtstart3d = new kamaz::hagen::RRTStar3D();
+          rrtstart3d->rrt_init(rewrite_count, rrt_planner_options, common_utils, save_data_index);
+          push_job(rrtstart3d, io_service, pending_data);
+      }
+      boost::wait_for_all((pending_data).begin(), (pending_data).end());
+      for(auto result : pending_data){
+        auto values = result.get();
+      }
+    }
     
-        rrt_planner_options.search_space = X;
-        rrt_planner_options.x_init = x_init;
-        rrt_planner_options.x_goal = x_goal;
-        rrt_planner_options.start_position = x_init;
-        rrt_planner_options.obstacle_fail_safe_distance = 0.5;
-        rrt_planner_options.min_angle_allows_obs = 0.5;
-        rrt_planner_options.init_search = true;
-        rrt_planner_options.dynamic = true;
-        rrt_planner_options.dynamic = true;
-        rrt_planner_options.kino_options = kino_ops;
-        rrt_planner_options.lengths_of_edges = Q;
-        rrt_planner_options.max_samples = max_samples;
-        rrt_planner_options.resolution = r; 
-        rrt_planner_options.pro = proc;
-
-
-        rrtstart3d = new kamaz::hagen::RRTStar3D();
-        rrtstart3d->rrt_init(rewrite_count, rrt_planner_options, common_utils, save_data_index);
-        nodes_paths.push_back(rrtstart3d);
-       
-    }
-
-    for(int j=0; j<4; j++){
-      push_job(nodes_paths[j], io_service, pending_data);
-    }
-
-    boost::wait_for_all((pending_data).begin(), (pending_data).end());
-
-    // for(int j=0; j<3; j++){
-    //    push_job(nodes_paths[j], io_service, pending_data);
-    // }
-    // std::vector<std::thread> workers_older;
+    // // std::vector<std::thread> workers_older;
     // for (auto taskPtr : nodes_paths) {
     //     workers_older.push_back(std::thread(&kamaz::hagen::RRTStar3D::rrt_planner_and_save, taskPtr));
     // }
