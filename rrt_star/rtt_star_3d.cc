@@ -101,14 +101,16 @@ namespace hagen {
             PathNode last_node = path.back();
             smoothed_path.push_back(last_node);
         }else{
-            smoothed_path = path;
+            smoothed_path.push_back(path[0]);
+            add_waypoints_on_straight_line(path[0].state.head(3), path[1].state.head(3), smoothed_path);
+            smoothed_path.push_back(path[1]);
         }
     }
 
 
     void RRTStar3D::add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
                                                             , std::vector<PathNode>& smoothed_path){
-        auto opts = planner_opts.kino_options;                                                        
+        auto opts = planner_opts.kino_options;
         std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, opts.dt*opts.max_vel);
         for(auto po : poses){
             PathNode next_pose_node;
@@ -121,7 +123,7 @@ namespace hagen {
                                                             , std::vector<PathNode>& smoothed_path){
         auto opts = planner_opts.kino_options;
         auto search_space = planner_opts.search_space;
-        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, 0.5);
+        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, 0.2);
         loto::hagen::ExtendedLQR extendedLQR;
         for(auto pose : poses){
             std::vector<Eigen::Vector3d> obs_poses;
@@ -292,7 +294,7 @@ namespace hagen {
     //             projected_path.push_back(point(0));
     //             projected_path.push_back(point(1));
     //             projected_path.push_back(point(2));
-           
+
     //    }
     //    cnpy::npy_save(file_name, &projected_path[0], {waypoints, 3}, "w");
     }
@@ -314,7 +316,7 @@ namespace hagen {
         }
         auto theta = std::atan2(y, x);
         auto phi = std::atan2(std::sqrt(x*x + y*y), z);
-        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl; 
+        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl;
         // double projected_dis = (diff - distance);
         auto target_z = distance*std::cos(phi) + start_position[2];
         auto target_x = distance*std::sin(phi)*std::cos(theta) + start_position[0];
@@ -341,7 +343,7 @@ namespace hagen {
         }
         auto theta = std::atan2(y, x);
         auto phi = std::atan2(std::sqrt(x*x + y*y), z);
-        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl; 
+        // std::cout<< "theta: "<< theta << " phi: " << phi << std::endl;
         double projected_dis = (diff - distance);
         auto target_z = projected_dis*std::cos(phi) + start_position[2];
         auto target_x = projected_dis*std::sin(phi)*std::cos(theta) + start_position[0];
@@ -383,7 +385,7 @@ namespace hagen {
             }
             // std::cout<< "Next pose:: inside:: not"<< next_pose << std::endl;
             // return next_pose;
-        } 
+        }
         return poses;
     }
 }

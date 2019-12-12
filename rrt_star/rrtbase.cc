@@ -96,7 +96,7 @@ namespace hagen {
         //     set_seq(key, key.state_seq);
         // }else{
             //TODO fix this
-            
+
             // std::vector<Eigen::MatrixXd> xHit;
             // double distance = (value.state.head(3) - key.state.head(3)).norm();
             // apply_dynamics(key, value, distance, xHit);
@@ -120,8 +120,8 @@ namespace hagen {
 
     std::vector<PathNode> RRTBase::nearby_vertices(int tree, PathNode x
                                             , int max_neighbors){
-        std::vector<PathNode> vertices;                                        
-        std::vector<Eigen::Vector3d> vertices_keys 
+        std::vector<PathNode> vertices;
+        std::vector<Eigen::Vector3d> vertices_keys
                                 = trees[tree].V.nearest_veties(x.state.head(3), max_neighbors);
         for(auto vertex : vertices_keys){
             auto node = get_vertex(vertex);
@@ -189,7 +189,7 @@ namespace hagen {
         cur_node.state(12) = log(drone_dynamics.dt);
         drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
     }
-    
+
    PathNode RRTBase::steer(PathNode cur_node, PathNode goal, double distance){
         // Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
         // double ba_length = ab.norm();
@@ -205,7 +205,7 @@ namespace hagen {
         // cur_node.state.block<6,1>(6,0) = Eigen::MatrixXd::Zero(6,1);
         // cur_node.state(12) = log(drone_dynamics.dt);
         // drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
-        
+
         // std::vector<Eigen::MatrixXd> xHit;
         // apply_dynamics(cur_node, goal, distance, xHit);
         Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
@@ -287,13 +287,8 @@ namespace hagen {
         }
         if(X.collision_free(x_nearest.state.head(3), x_goal.state.head(3), r)){
             //  std::cout<< "RRTBase::can_connect_to_goal: collision_free true"<< std::endl;
-            // apply_dynamics(x_nearest, x_goal, distance, xHit);
-            // set_seq(x_nearest, xHit);
             return true;
         }
-
-        
-        
         return false;
     }
 
@@ -307,7 +302,7 @@ namespace hagen {
     std::vector<PathNode> RRTBase::get_path(){
         std::vector<PathNode> path;
         if(can_connect_to_goal(0)){
-             BOOST_LOG_TRIVIAL(info) << FCYN("Can connect to goal");
+            BOOST_LOG_TRIVIAL(info) << FCYN("Can connect to goal");
             connect_to_the_goal(0);
             return reconstruct_path(0, x_init, x_goal);
         }
@@ -328,7 +323,6 @@ namespace hagen {
         // printEdge(tree);
         if(isEdge(current, tree)){
             auto current_parent = getEdge(current, tree);
-            
             // std::cout<< "RRTBase::reconstruct_path: current 1"<< current_parent.transpose() << std::endl;
             while(!is_equal_vectors(current_parent, x_init)){
                 // current_parent.state_seq = get_seq(current_parent);

@@ -8,10 +8,9 @@ namespace hagen {
     }
 
     void SearchSpace::init_search_space(Eigen::VectorXd dimension_lengths
-                , int num_of_rand_points, double cube_size, double _avoidance_width
-                , int number_of_tries_at_time, double _voxel_side_length){
+                , int num_of_rand_points, double _avoidance_width
+                , int number_of_tries_at_time){
         dim_lengths = dimension_lengths;
-        cube_length = cube_size;
         std::uniform_real_distribution<> distribution_x(dimension_lengths[0], dimension_lengths[1]);
         std::uniform_real_distribution<> distribution_y(dimension_lengths[2], dimension_lengths[3]);
         std::uniform_real_distribution<> distribution_z(dimension_lengths[4], dimension_lengths[5]);
@@ -287,7 +286,7 @@ namespace hagen {
         // std::cout << search_rect.min[0] << " " << search_rect.min[1] << " " << search_rect.min[2] << std::endl;
         // std::cout << search_rect.max[0] << " " << search_rect.max[1] << " " << search_rect.max[2] << std::endl;
 
-        std::cout << "sum up..." << sum << std::endl;
+        // std::cout << "sum up..." << sum << std::endl;
         return sum > 0 ? false : true;
     }
 
@@ -343,7 +342,7 @@ namespace hagen {
     bool SearchSpace::obstacle_free(Eigen::Vector3d search_rect){
         box_t search_box(
         point_t(search_rect[0], search_rect[1], search_rect[2]),
-        point_t(search_rect[0]+cube_length, search_rect[1]+cube_length, search_rect[2]+cube_length));
+        point_t(search_rect[0]+avoidance_width, search_rect[1]+avoidance_width, search_rect[2]+avoidance_width));
         size_t sum = 0;
         // boost::timer t;
         // res.clear();

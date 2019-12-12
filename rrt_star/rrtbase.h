@@ -20,7 +20,6 @@
 #include "../common/dynamics.h"
 #include <unordered_map>
 #include <stddef.h>
-#include<Eigen/StdVector>
 
 namespace kamaz {
 namespace hagen {

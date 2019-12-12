@@ -853,7 +853,7 @@ int main()
     kamaz::hagen::SearchSpace temp_search;
     Eigen::VectorXd x_dimentions_(6);
     x_dimentions_ << -10, 10, -10, 10, -10, 10;
-    temp_search.init_search_space(x_dimentions_, 100, 0.5, 0.0, 200, 0.1);
+    temp_search.init_search_space(x_dimentions_, 100, 0.5, 200);
     auto obstacles = temp_search.get_random_obstacles(100, x_dimentions_);
     
      // vector of futures
@@ -881,10 +881,6 @@ int main()
         kamaz::hagen::PathNode x_goal;
         x_goal.state.head(3) << 9, 9, 9;
         // auto obstacles = rrtstart3d.get_obstacles();
-        
-        // std::cout<< "-----1" << std::endl;
-        
-        
         std::vector<Eigen::Vector2d> Q;
         Eigen::Vector2d dim_in;
         dim_in << 8, 4;
@@ -896,7 +892,7 @@ int main()
         double obstacle_width = 2.0;
         int save_data_index = 0;
         kamaz::hagen::SearchSpace X;
-        X.init_search_space(x_dimentions, max_samples, obstacle_width, 0.0, 200, 0.1);
+        X.init_search_space(x_dimentions, max_samples, obstacle_width, 200);
         X.update_obstacles_map(obstacles);
         X.use_whole_search_sapce = true;
 
@@ -950,11 +946,9 @@ int main()
     for(int j=0; j<4; j++){
       push_job(nodes_paths[j], io_service, pending_data);
     }
-    
 
     boost::wait_for_all((pending_data).begin(), (pending_data).end());
 
-   
     // for(int j=0; j<3; j++){
     //    push_job(nodes_paths[j], io_service, pending_data);
     // }

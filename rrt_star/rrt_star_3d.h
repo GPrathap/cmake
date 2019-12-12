@@ -20,21 +20,10 @@
 #include<iostream>
 #include<map>
 #include<string>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <boost/move/move.hpp>
-#include <iostream>
-#include <unistd.h>
-
 #include "../utils/common_utils.h"
 #include "rrtstar.h"
 #include "rrtbase.h"
 #include "../common/ExtendedLQR.h"
-
 
 namespace kamaz {
 namespace hagen {
@@ -71,10 +60,10 @@ namespace hagen {
                                                     , std::vector<PathNode>& smoothed_path);
                std::vector<Eigen::Vector3d> next_poses(Eigen::VectorXd start_position, Eigen::VectorXd end_position
                         , double distance);
-               
+
                void add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
                                                             , std::vector<PathNode>& smoothed_path);
-                                                            
+
             private:
                std::vector<Eigen::Vector2d> lengths_of_edges;
                int _max_samples;
