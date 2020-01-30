@@ -110,14 +110,14 @@ namespace hagen {
                                 , int max_neighbours);
                 double get_free_space(Eigen::Vector3d pose, std::vector<Eigen::Vector3d>& obs_poses
                                                     , int num_of_obs);
-                double get_free_space(Eigen::Vector3d pose);
+                double get_free_space(Eigen::Vector3d search_rect);
                 void insert_vertex(Eigen::Vector3d index);
                 std::vector<Eigen::Vector3d> nearest_veties(Eigen::Vector3d x, int max_neighbours);
                 
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
                 // std::vector<uint64_t> res;
-                // std::shared_ptr<Eigen::MatrixXd> random_points_tank;
+                std::shared_ptr<Eigen::MatrixXd> random_points_tank;
                 int number_of_rand_points;
                 Random_call* random_call;
                 bool use_whole_search_sapce = false;
@@ -133,6 +133,17 @@ namespace hagen {
                     }
                 };
 
+                double *ellipsoid_grid(int n, int ng );
+                int ellipsoid_grid_count(int n, Eigen::Vector3d radios,
+                                 Eigen::Vector3d center);
+                int i4_ceiling (double x);
+                void r83vec_print_part(int n, double a[], Eigen::Vector3d center_pose, Eigen::Matrix3d rotation_matrix, std::string file_name);
+                void r8mat_write(std::string output_filename, int m, int n, double table[] );
+                double r8vec_min(int n, double r8vec[]);
+                void generate_points( int n, Eigen::Vector3d radios, Eigen::Vector3d center_pose
+                    , Eigen::Matrix3d rotation_matrix);
+                void timestamp();
+
                 GeometryRTreeSearchCallback geometry_rtree_callback;
                 RTree bg_tree;
                 RTree current_trajectory;
@@ -144,6 +155,9 @@ namespace hagen {
                 bool is_random_tank_is_ready = false;
                 int obstacle_counter = 0;
                 double avoidance_width = 0.5;
+            private:
+                double r[3];
+                double c[3];
         };
     }
 }

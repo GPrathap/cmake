@@ -14,9 +14,7 @@ namespace hagen {
             x_init = options.x_init;
             x_goal = options.x_goal;
             start_position = options.start_position;
-            min_angle_allows_obs = options.min_angle_allows_obs;
             add_tree();
-            _obstacle_fail_safe_distance = options.obstacle_fail_safe_distance;
             common_utils = common_util;
             dynamic = options.dynamic;
             search_init = options.init_search;
@@ -76,7 +74,7 @@ namespace hagen {
         // }
     }
 
-       bool RRTBase::isEdge(PathNode point, int tree){
+    bool RRTBase::isEdge(PathNode point, int tree){
         std::array<double, 3> _key = {point.state[0], point.state[1], point.state[2]};
         return (trees[tree].E.count(_key)) > 0 ? true : false;
     }
@@ -161,9 +159,9 @@ namespace hagen {
         // x_rand.control_input = drone_dynamics.uNominal;
         auto x_nearest = get_nearest(tree, x_rand);
         auto x_new = steer(x_nearest, x_rand, q[0]);
-        // std::cout<<"RRTBase::new_and_near: x_rand: " << x_rand.transpose() << std::endl;
-        // std::cout<<"RRTBase::new_and_near: x_nearest: " << x_nearest.transpose() << std::endl;
-        // std::cout<<"RRTBase::new_and_near: x_new " << x_new.transpose() << std::endl;
+        // std::cout<<"RRTBase::new_and_near: x_rand: " << x_rand.state.head(3).transpose() << std::endl;
+        // std::cout<<"RRTBase::new_and_near: x_nearest: " << x_nearest.state.head(3).transpose() << std::endl;
+        // std::cout<<"RRTBase::new_and_near: x_new " << x_new.state.head(3).transpose() << std::endl;
         // printEdge(0);
         if(x_new.is_valid){
             sample_taken += 1;
@@ -174,21 +172,21 @@ namespace hagen {
         return new_and_near_vec;
     }
 
-    void RRTBase::apply_dynamics(PathNode cur_node, PathNode goal, double distance, std::vector<Eigen::MatrixXd>& xHit){
-        Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
-        double ba_length = ab.norm();
-        Eigen::Vector3d unit_vector = ab/ba_length;
-        Eigen::Vector3d scaled_vector = unit_vector*distance;
-        Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
-        std::vector<Eigen::MatrixXd> L;
-        std::vector<Eigen::MatrixXd> l;
-        // std::vector<Eigen::MatrixXd> xHit;
-        Eigen::Vector3d velocity = opt.kino_options.max_vel*unit_vector;
-        cur_node.state.block<3,1>(3,0) = velocity;
-        cur_node.state.block<6,1>(6,0) = Eigen::MatrixXd::Zero(6,1);
-        cur_node.state(12) = log(drone_dynamics.dt);
-        drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
-    }
+    // void RRTBase::apply_dynamics(PathNode cur_node, PathNode goal, double distance, std::vector<Eigen::MatrixXd>& xHit){
+    //     Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
+    //     double ba_length = ab.norm();
+    //     Eigen::Vector3d unit_vector = ab/ba_length;
+    //     Eigen::Vector3d scaled_vector = unit_vector*distance;
+    //     Eigen::Vector3d steered_point = cur_node.state.head(3) + scaled_vector.head(3);
+    //     std::vector<Eigen::MatrixXd> L;
+    //     std::vector<Eigen::MatrixXd> l;
+    //     // std::vector<Eigen::MatrixXd> xHit;
+    //     Eigen::Vector3d velocity = opt.kino_options.max_fes_vel*unit_vector;
+    //     cur_node.state.block<3,1>(3,0) = velocity;
+    //     cur_node.state.block<6,1>(6,0) = Eigen::MatrixXd::Zero(6,1);
+    //     cur_node.state(12) = log(drone_dynamics.dt);
+    //     drone_dynamics.extendedLQR(cur_node.state, drone_dynamics.uNominal, L, l, xHit, steered_point);
+    // }
 
    PathNode RRTBase::steer(PathNode cur_node, PathNode goal, double distance){
         // Eigen::Vector3d ab = goal.state.head(3) - cur_node.state.head(3);
@@ -255,11 +253,23 @@ namespace hagen {
 
     bool RRTBase::connect_to_point(int tree, PathNode x_a, PathNode x_b){
         // std::cout<< "RRTBase::connect_to_point: "<< x_b.transpose() << std::endl;
-        // std::cout<< "RRTBase::connect_to_point: "<< x_a.transpose() << std::endl;
+        // std::cout<< "RRTBase::connect_to_point: "<< x_a.state.head(3).transpose() << std::endl;
+        auto dis = (x_a.state.head(3)-x_b.state.head(3)).norm();
+        // std::cout<< "RRTBase::connect_to_point distance: " <<  dis << std::endl;
+        if(isEdge(x_b, 0)){
+            // BOOST_LOG_TRIVIAL(info) << FRED("RRTBase::connect_to_point: acrylic is not allowed");
+            return false;
+        }
+        if(dis < 0.05){
+            // BOOST_LOG_TRIVIAL(info) << FRED("RRTBase::connect_to_point: two points are in the same location");
+            return false;
+        }
+
         auto g1 = trees[tree].V.obstacle_free(x_b.state.head(3));
         auto g2 = X.collision_free(x_a.state.head(3), x_b.state.head(3), r);
         // std::cout<< "RRTBase::connect_to_point: "<< g1 << " " << g2 << std::endl;
-        if(( g1 == 1) && ( g2 == 1)){
+
+        if((g1 == 1) && (g2 == 1)){
             add_vertex(tree, x_b);
             add_edge(tree, x_b, x_a);
             return true;
@@ -287,6 +297,12 @@ namespace hagen {
         }
         if(X.collision_free(x_nearest.state.head(3), x_goal.state.head(3), r)){
             //  std::cout<< "RRTBase::can_connect_to_goal: collision_free true"<< std::endl;
+            return true;
+        }
+        if((x_init.state.head(3)-x_nearest.state.head(3)).norm() > opt.horizon){
+            BOOST_LOG_TRIVIAL(info) << FRED("Horizon is met, not going to plan rest of it");
+            x_goal.is_horizon = true;
+            connect_to_the_goal(0);
             return true;
         }
         return false;
@@ -389,9 +405,15 @@ namespace hagen {
                 break;
             }
             auto p = edges[_key];
-            // std::cout<< "-----423:"<< p.transpose() << std::endl;
-            cost += (b.state.head(3)-p.state.head(3)).norm();
-            // std::cout<< "-----424"<< a << "  "<< b << std::endl;
+
+            // std::cout<< "-----423:"<< p.state.head(3).transpose() << std::endl;
+            auto current_cost = (b.state.head(3)-p.state.head(3)).norm();
+            // std::cout<< "-----423:current_cost: "<< current_cost << std::endl;
+            if(current_cost < 0.05){
+                // std::cout<< "Two edges are on the same location"<< std::endl;
+                break;
+            }
+            cost += current_cost;
             b = p;
         }
         // std::cout<< "RRTBase::path_cost: cost: " << cost << std::endl;

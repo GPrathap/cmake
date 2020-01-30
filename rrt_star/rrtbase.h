@@ -45,6 +45,9 @@ namespace hagen {
             int ell;
             double initdt;
             double min_dis;
+            double obstacle_radios;
+            bool consider_obs;
+            int number_of_closest_obs;
         };
 
         struct RRTPlannerOptions {
@@ -60,11 +63,10 @@ namespace hagen {
             PathNode x_init;
             PathNode x_goal;
             PathNode start_position;
-            double obstacle_fail_safe_distance;
             double min_acceptable;
-            double min_angle_allows_obs;
             bool init_search;
             bool dynamic;
+            double horizon;
             Eigen::Vector3d origin_;
             Eigen::Vector3d map_size_3d_;
             RRTKinoDynamicsOptions kino_options;
@@ -112,7 +114,6 @@ namespace hagen {
                 Eigen::Vector3d center_sub_search;
                 double _obstacle_fail_safe_distance = 0.5f;
                 double min_acceptable = 0.01;
-                double min_angle_allows_obs = 5.0f;
                 bool dynamic = false;
                 bool search_init = false;
                 RRTPlannerOptions opt;
@@ -154,8 +155,8 @@ namespace hagen {
                 double path_cost(PathNode a, PathNode b, int tree);
                 double segment_cost(PathNode a, PathNode b);
                 double get_cost_of_path(std::vector<PathNode> path1);
-                void apply_dynamics(PathNode cur_node, PathNode goal, double distance
-                                                                                , std::vector<Eigen::MatrixXd>& xHit);
+                // void apply_dynamics(PathNode cur_node, PathNode goal, double distance
+                                                                                // , std::vector<Eigen::MatrixXd>& xHit);
         };
     }
 }

@@ -3,8 +3,7 @@
 namespace kamaz {
 namespace hagen {
     SearchSpace::SearchSpace() {
-        //  random_points_tank = std::make_shared<Eigen::MatrixXd>();
-        
+         random_points_tank = std::make_shared<Eigen::MatrixXd>();
     }
 
     void SearchSpace::init_search_space(Eigen::VectorXd dimension_lengths
@@ -197,7 +196,7 @@ namespace hagen {
         return neighbour_points;        
     }
 
-     std::vector<double> SearchSpace::arange(double start, double stop, double step) {
+    std::vector<double> SearchSpace::arange(double start, double stop, double step) {
         std::vector<double> values;
         for (double value = start; value < stop; value += step)
             values.push_back(value);
@@ -219,7 +218,7 @@ namespace hagen {
         std::vector<SearchSpace::Rect> _objects;
         srand(time(NULL));
         for(int i=0; i< number_of_obstacles; i++){
-            
+
             double x_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[1];
             double y_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[3];
             double z_plus = static_cast <double> (rand()) / static_cast <double> (RAND_MAX) *x_dimentions[5];
@@ -241,7 +240,7 @@ namespace hagen {
             if(x <= x_dimentions[0]  || y <= x_dimentions[2]  || z <= x_dimentions[4] ){
                 continue;
             }
-            
+
             _objects.push_back(SearchSpace::Rect(x, y, z, width_x, width_y, width_z));
         }
         std::cout<< "RRTStar3D::get_random_obstacles: Size of the objects "<< _objects.size() << std::endl;
@@ -273,6 +272,7 @@ namespace hagen {
         // cnpy::npy_save(file_name, &sample_pose[0],{(unsigned int)1, (unsigned int)(*random_points_tank).rows(), (unsigned int)(*random_points_tank).cols()},"w");
     }
 
+
     bool SearchSpace::obstacle_free(Rect search_rect){
         box_t search_box(
         point_t(search_rect.min[0], search_rect.min[1], search_rect.min[2]),
@@ -291,50 +291,65 @@ namespace hagen {
     }
 
     void SearchSpace::generate_samples_from_ellipsoid(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat, Eigen::Vector3d cent){
-        // int ndims = (*random_points_tank).cols();
-        // int npts = (*random_points_tank).rows();
-        // Eigen::EigenSolver<Eigen::MatrixXd> eigensolver;
-        // eigensolver.compute(covmat);
-        // Eigen::Vector3d eigen_values = eigensolver.eigenvalues().real();
-        // Eigen::MatrixXd eigen_vectors = eigensolver.eigenvectors().real();
-        // std::vector<std::tuple<double, Eigen::Vector3d>> eigen_vectors_and_values; 
+        // std::cout<< "======11" << std::endl;
 
-        // for(int i=0; i<eigen_values.size(); i++){
-        //     std::tuple<double, Eigen::Vector3d> vec_and_val(eigen_values[i], eigen_vectors.row(i));
-        //     eigen_vectors_and_values.push_back(vec_and_val);
-        // }
-        // std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(), 
-        //     [&](const std::tuple<double, Eigen::Vector3d>& a, const std::tuple<double, Eigen::Vector3d>& b) -> bool{ 
-        //         return std::get<0>(a) <= std::get<0>(b); 
-        // });
-        // int index = 0;
-        // for(auto const vect : eigen_vectors_and_values){
-        //     eigen_values(index) = std::get<0>(vect);
-        //     eigen_vectors.row(index) = std::get<1>(vect);
-        //     index++;
-        // }
+        int ndims = (*random_points_tank).cols();
+        int npts = (*random_points_tank).rows();
+        Eigen::EigenSolver<Eigen::MatrixXd> eigensolver;
+        // std::cout<< "======12" << std::endl;
+        eigensolver.compute(covmat);
+        // std::cout<< "======13" << std::endl;
+        Eigen::Vector3d eigen_values = eigensolver.eigenvalues().real();
+        Eigen::MatrixXd eigen_vectors = eigensolver.eigenvectors().real();
+        std::vector<std::tuple<double, Eigen::Vector3d>> eigen_vectors_and_values;
+        // std::cout<< "======14" << std::endl;
+        for(int i=0; i<eigen_values.size(); i++){
+            std::tuple<double, Eigen::Vector3d> vec_and_val(eigen_values[i], eigen_vectors.row(i));
+            eigen_vectors_and_values.push_back(vec_and_val);
+        }
+        std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(),
+            [&](const std::tuple<double, Eigen::Vector3d>& a, const std::tuple<double, Eigen::Vector3d>& b) -> bool{
+                return std::get<0>(a) <= std::get<0>(b);
+        });
+        int index = 0;
+        for(auto const vect : eigen_vectors_and_values){
+            eigen_values(index) = std::get<0>(vect);
+            eigen_vectors.row(index) = std::get<1>(vect);
+            index++;
+        }
+        //  std::cout<< "======15" << std::endl;
+        Eigen::MatrixXd eigen_values_as_matrix = eigen_values.asDiagonal();
 
-        // Eigen::MatrixXd eigen_values_as_matrix = eigen_values.asDiagonal();
-
-        // std::random_device rd{};
-        // std::mt19937 gen{rd()};  
-        // std::uniform_real_distribution<double> dis(0, 1);
-        // std::normal_distribution<double> normal_dis{0.0f, 1.0f};
- 
-        // Eigen::MatrixXd pt = Eigen::MatrixXd::Zero(npts, ndims).unaryExpr([&](double dummy){return (double)normal_dis(gen);});
-        // Eigen::VectorXd rs = Eigen::VectorXd::Zero(npts).unaryExpr([&](double dummy){return dis(gen);});
-        // Eigen::VectorXd fac = pt.array().pow(2).rowwise().sum();
-        // Eigen::VectorXd fac_sqrt = fac.array().sqrt();
-        // Eigen::VectorXd rs_pow = rs.array().pow(1.0/ndims);
-        // fac = rs_pow.array()/fac_sqrt.array();
-        // Eigen::VectorXd d = eigen_values_as_matrix.diagonal().array().sqrt();
-        // // std::cout << "============================================>>>>>>" << npts << std::endl;
-        // for(auto i(0); i<npts; i++){
-        //     (*random_points_tank).row(i) = fac(i)*pt.row(i).array();
-        //     Eigen::MatrixXd  fff = ((*random_points_tank).row(i).array()*d.transpose().array());
-        //     Eigen::VectorXd bn = rotation_mat*fff.transpose();
-        //     (*random_points_tank).row(i) = bn.array() + cent.head(3).array();
-        // }
+        std::random_device rd{};
+        std::mt19937 gen{rd()};
+        std::uniform_real_distribution<double> dis(0, 1);
+        std::normal_distribution<double> normal_dis{0.0f, 1.0f};
+        // std::cout<< "======16" << std::endl;
+        Eigen::MatrixXd pt = Eigen::MatrixXd::Zero(npts, ndims).unaryExpr([&](double dummy){return (double)normal_dis(gen);});
+        // std::cout<< "======17" << std::endl;
+        Eigen::VectorXd rs = Eigen::VectorXd::Zero(npts).unaryExpr([&](double dummy){return dis(gen);});
+        // std::cout<< "======18" << std::endl;
+        Eigen::VectorXd fac = pt.array().pow(2).rowwise().sum();
+        // std::cout<< "======19" << std::endl;
+        Eigen::VectorXd fac_sqrt = fac.array().sqrt();
+        // std::cout<< "======211" << std::endl;
+        Eigen::VectorXd rs_pow = rs.array().pow(1.0/ndims);
+        // std::cout<< "======221" << std::endl;
+        fac = rs_pow.array()/fac_sqrt.array();
+        // std::cout<< "======221" << std::endl;
+        Eigen::VectorXd d = eigen_values_as_matrix.diagonal().array().sqrt();
+        // std::cout << "============================================start" << npts << std::endl;
+        for(auto i(0); i<npts; i++){
+            // std::cout << "============================================>>>>>>"<< i << std::endl;
+            (*random_points_tank).row(i) = fac(i)*pt.row(i).array();
+            // std::cout << "=======4====" << std::endl;
+            Eigen::MatrixXd  fff = ((*random_points_tank).row(i).array()*d.transpose().array());
+            // std::cout << "=======4====" << std::endl;
+            Eigen::VectorXd bn = rotation_mat*fff.transpose();
+            // std::cout << "=======12====" << std::endl;
+            (*random_points_tank).row(i) = bn.array() + cent.head(3).array();
+        }
+        // std::cout << "============================================end" << npts << std::endl;
         // std::cout << "points: " << (*random_points_tank) << std::endl;
     }
 
@@ -360,7 +375,16 @@ namespace hagen {
 
     Eigen::Vector3d SearchSpace::sample(){
         Eigen::Vector3d random_pose(3);
-        // if(use_whole_search_sapce){
+        // std::default_random_engine generator_on_x;
+        // generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        // auto x_on = uni_dis_vector[0](generator_on_x);
+        // generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        // auto y_on = uni_dis_vector[1](generator_on_x);
+        // generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+        // auto z_on = uni_dis_vector[2](generator_on_x);
+        // random_pose << x_on, y_on, z_on ;
+
+        if(use_whole_search_sapce){
             std::default_random_engine generator_on_x;
             generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
             auto x_on = uni_dis_vector[0](generator_on_x);
@@ -369,38 +393,35 @@ namespace hagen {
             generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
             auto z_on = uni_dis_vector[2](generator_on_x);
             random_pose << x_on, y_on, z_on ;
-            // std::cout<< "========================" << random_pose << std::endl;
-        // }
-        // else{
-        //     auto index = *(random_call);
-        //     // std::cout<< "========================1113" << std::endl;
-        //     while(true){
-        //         // std::cout<< "===="<< index << "   " << (*random_points_tank).rows() << std::endl;
-        //         if((index < (*random_points_tank).rows()) && (index>0)){
-        //             // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).rows() << std::endl;
-        //             // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
-        //             // if(is_random_tank_is_ready){
-        //                 random_pose = (*random_points_tank).row(index);
-        //                 // std::cout<< "========================1115" << std::endl;
-        //             // }
-        //             break;
-        //         }
-        //     }   
-        // }
-        // std::cout<< "==========||||||||>>>" << random_pose << std::endl;
+        }
+        else{
+            while(true){
+                int index = *(random_call);
+                // std::cout<< "index: " << index << std::endl;
+                if((index < (*random_points_tank).rows()) && (index>0)){
+                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).rows() << std::endl;
+                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
+                    if(is_random_tank_is_ready){
+                        random_pose = (*random_points_tank).row(index);
+                        // std::cout<< "========================1115" << std::endl;
+                    }
+                    break;
+                }
+            }
+        }
         return random_pose;
     }
 
     Eigen::Vector3d SearchSpace::sample_free(){
-        int number_of_attempts = 0;
+        static int number_of_attempts = 0;
         while(true){
             number_of_attempts++;
             if(number_of_attempts>number_of_max_attempts){
-                std::cout<< "Giving whole space for searching..." << std::endl;
+                BOOST_LOG_TRIVIAL(info) << FRED("Giving whole space for searching...");
                 use_whole_search_sapce = true;
             }
             auto x = sample();
-            // std::cout<< "sample--->" << x <<std::endl;
+            // std::cout<< "==========number_of_attempts=======" << number_of_attempts <<std::endl;
             if(obstacle_free(x)){
                 // std::cout<< "free sample--->" << x.transpose() <<std::endl;
                 number_of_attempts = 0;
@@ -421,7 +442,7 @@ namespace hagen {
         , [](const int s1, const int s2) -> bool{
                 return s1 < s2;
         });
-        // std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
+        std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
         for(int i=0; i<len; i++){
             Eigen::Vector3d search_rect(3);
             search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
@@ -433,25 +454,349 @@ namespace hagen {
         return true;
     }
 
-    std::vector<double> SearchSpace::linspace(double start_in, double end_in, double step_size)
-    {
-        std::vector<double> linspaced;
-        double start = start_in;
-        double end = end_in;
-        double num = step_size;
-        if (num == 0) { return linspaced; }
-        if (num == 1)
+
+    // bool SearchSpace::collision_free(Eigen::Vector3d start, Eigen::Vector3d end, int r, double optimal_time){
+    //     auto dist = (start - end).norm();
+    //     double resolution = std::ceil(dist/r);
+    //     std::vector<double> res_on_x = linspace(start[0], end[0], resolution);
+    //     std::vector<double> res_on_y = linspace(start[1], end[1], resolution);
+    //     std::vector<double> res_on_z = linspace(start[2], end[2], resolution);
+    //     // std::cout<< "+===================:collision_free" << std::endl;
+    //     // std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
+    //     int len = std::min({res_on_x.size(), res_on_y.size(), res_on_z.size()}
+    //     , [](const int s1, const int s2) -> bool{
+    //             return s1 < s2;
+    //     });
+    //     // std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
+    //     for(int i=0; i<len; i++){
+    //         Eigen::Vector3d search_rect(3);
+    //         search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
+    //         // std::cout<<" collision_free  " << search_rect.transpose() << std::endl;
+    //         if(!obstacle_free(search_rect)){
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+
+        std::vector<double> SearchSpace::linspace(double start_in, double end_in, double step_size)
         {
-            linspaced.push_back(start);
+            std::vector<double> linspaced;
+            double start = start_in;
+            double end = end_in;
+            double num = step_size;
+            if (num == 0) {
+                 return linspaced;
+            }
+            if (num == 1)
+            {
+                linspaced.push_back(start);
+                return linspaced;
+            }
+            double delta = (end - start) / (num - 1);
+            for(int i=0; i < num-1; ++i)
+            {
+                linspaced.push_back(start + delta * i);
+            }
+            linspaced.push_back(end);
             return linspaced;
         }
-        double delta = (end - start) / (num - 1);
-        for(int i=0; i < num-1; ++i)
+
+        double*  SearchSpace::ellipsoid_grid ( int n, int ng ){
+            double h;
+            int ii;
+            int i;
+            int j;
+            int k;
+            int m;
+            int ng2;
+            int ni;
+            int nj;
+            int nk;
+            int np;
+            double p[3*8];
+            double rmin;
+            double x;
+            double *xyz;
+            double y;
+            double z;
+            ng2 = 0;
+            xyz = new double[3*ng];
+            rmin = r8vec_min ( 3, r );
+            if ( r[0] == rmin )
             {
-            linspaced.push_back(start + delta * i);
+                h = 2.0 * r[0] / ( double ) ( 2 * n + 1 );
+                ni = n;
+                nj = i4_ceiling ( r[1] / r[0] ) * ( double ) ( n );
+                nk = i4_ceiling ( r[2] / r[0] ) * ( double ) ( n );
             }
-        linspaced.push_back(end);
-        return linspaced;
+            else if ( r[1] == rmin )
+            {
+                h = 2.0 * r[1] / ( double ) ( 2 * n + 1 );
+                nj = n;
+                ni = i4_ceiling ( r[0] / r[1] ) * ( double ) ( n );
+                nk = i4_ceiling ( r[2] / r[1] ) * ( double ) ( n );
+            }
+            else
+            {
+                h = 2.0 * r[2] / ( double ) ( 2 * n + 1 );
+                nk = n;
+                ni = i4_ceiling ( r[0] / r[2] ) * ( double ) ( n );
+                nj = i4_ceiling ( r[1] / r[2] ) * ( double ) ( n );
+            }
+
+            for ( k = 0; k <= nk; k++ )
+            {
+                z = c[2] + ( double ) ( k ) * h;
+                for ( j = 0; j <= nj; j++ )
+                {
+                y = c[1] + ( double ) ( j ) * h;
+                for ( i = 0; i <= ni; i++ )
+                {
+                    x = c[0] + ( double ) ( i ) * h;
+                    if ( 1.0 < pow ( ( x - c[0] ) / r[0], 2 )
+                            + pow ( ( y - c[1] ) / r[1], 2 )
+                            + pow ( ( z - c[2] ) / r[2], 2 ) )
+                    {
+                    break;
+                    }
+                    np = 0;
+                    p[0+np*3] = x;
+                    p[1+np*3] = y;
+                    p[2+np*3] = z;
+                    np = 1;
+
+                    if ( 0 < i )
+                    {
+                    for ( m = 0; m < np; m++ )
+                    {
+                        p[0+(np+m)*3] = 2.0 * c[0] - p[0+m*3];
+                        p[1+(np+m)*3] = p[1+m*3];
+                        p[2+(np+m)*3] = p[2+m*3];
+                    }
+                    np = 2 * np;
+                    }
+
+                    if ( 0 < j )
+                    {
+                    for ( m = 0; m < np; m++ )
+                    {
+                        p[0+(np+m)*3] = p[0+m*3];
+                        p[1+(np+m)*3] = 2.0 * c[1] - p[1+m*3];
+                        p[2+(np+m)*3] = p[2+m*3];
+                    }
+                    np = 2 * np;
+                    }
+
+                    if ( 0 < k )
+                    {
+                    for ( m = 0; m < np; m++ )
+                    {
+                        p[0+(np+m)*3] = p[0+m*3];
+                        p[1+(np+m)*3] = p[1+m*3];
+                        p[2+(np+m)*3] = 2.0 * c[2] - p[2+m*3];
+                    }
+                    np = 2 * np;
+                    }
+
+                    for ( m = 0; m < np; m++ )
+                    {
+                    for ( ii = 0; ii < 3; ii++ )
+                    {
+                        xyz[ii+(ng2+m)*3] = p[ii+m*3];
+                    }
+                    }
+                    ng2 = ng2 + np;
+                }
+            }
+        }
+        return xyz;
+    }
+
+    int SearchSpace::ellipsoid_grid_count( int n, Eigen::Vector3d radios, Eigen::Vector3d center){
+
+            r[0] = radios[0];
+            r[1] = radios[1];
+            r[2] = radios[2];
+            c[0] = center[0];
+            c[1] = center[1];
+            c[2] = center[2];
+            double h;
+            int i;
+            int j;
+            int k;
+            int m;
+            int ng;
+            int ni;
+            int nj;
+            int nk;
+            int np;
+            double rmin;
+            double x;
+            double y;
+            double z;
+
+            ng = 0;
+
+            rmin = r8vec_min ( 3, r );
+
+            if ( r[0] == rmin )
+            {
+                h = 2.0 * r[0] / ( double ) ( 2 * n + 1 );
+                ni = n;
+                nj = i4_ceiling ( r[1] / r[0] ) * ( double ) ( n );
+                nk = i4_ceiling ( r[2] / r[0] ) * ( double ) ( n );
+            }
+            else if ( r[1] == rmin )
+            {
+                h = 2.0 * r[1] / ( double ) ( 2 * n + 1 );
+                nj = n;
+                ni = i4_ceiling ( r[0] / r[1] ) * ( double ) ( n );
+                nk = i4_ceiling ( r[2] / r[1] ) * ( double ) ( n );
+            }
+            else
+            {
+                h = 2.0 * r[2] / ( double ) ( 2 * n + 1 );
+                nk = n;
+                ni = i4_ceiling ( r[0] / r[2] ) * ( double ) ( n );
+                nj = i4_ceiling ( r[1] / r[2] ) * ( double ) ( n );
+            }
+
+            for ( k = 0; k <= nk; k++ )
+            {
+                z = c[2] + ( double ) ( k ) * h;
+                for ( j = 0; j <= nj; j++ )
+                {
+                y = c[1] + ( double ) ( j ) * h;
+                for ( i = 0; i <= ni; i++ )
+                {
+                    x = c[0] + ( double ) ( i ) * h;
+                    if ( 1.0 < pow ( ( x - c[0] ) / r[0], 2 )
+                            + pow ( ( y - c[1] ) / r[1], 2 )
+                            + pow ( ( z - c[2] ) / r[2], 2 ) )
+                    {
+                    break;
+                    }
+
+                    np = 1;
+                    if ( 0 < i )
+                    {
+                    np = 2 * np;
+                    }
+                    if ( 0 < j )
+                    {
+                    np = 2 * np;
+                    }
+                    if ( 0 < k )
+                    {
+                    np = 2 * np;
+                    }
+                    ng = ng + np;
+                }
+                }
+            }
+            return ng;
+    }
+
+    int SearchSpace::i4_ceiling( double x )
+    {
+        int value;
+
+        value = ( int ) x;
+
+        if ( value < x )
+        {
+            value = value + 1;
+        }
+
+        return value;
+    }
+
+    void SearchSpace::r83vec_print_part( int n, double a[], Eigen::Vector3d center_pose, Eigen::Matrix3d rotation_matrix, std::string file_name )
+    {
+        int i;
+        if ( n <= 0 )
+        {
+            return;
+        }
+        std::vector<double> edges;
+        int count = 0;
+        for ( i = 0; i < n - 2; i++ )
+        {
+            Eigen::Vector3d point;
+            point<< a[0+i*3], a[1+i*3], a[2+i*3];
+            Eigen::Vector3d ff = point.transpose()*rotation_matrix;
+            std::cout<< center_pose << std::endl;
+            std::cout<< ff << std::endl;
+            ff = ff + center_pose;
+            std::cout<< ff << std::endl;
+            edges.push_back(ff[0]);
+            edges.push_back(ff[1]);
+            edges.push_back(ff[2]);
+            count +=1;
+        }
+        cnpy::npy_save(file_name, &edges[0],{(unsigned int)1, (unsigned int)count, (unsigned int)3},"w");
+    return;
+    }
+
+    void SearchSpace::generate_points( int n, Eigen::Vector3d radios, Eigen::Vector3d center_pose
+            , Eigen::Matrix3d rotation_matrix)
+    {
+        Eigen::Vector3d c(0,0,0);
+        int ng = ellipsoid_grid_count(n, radios, c);
+        number_of_points_in_random_tank = ng-2;
+        // std::cout << "\n";
+        // std::cout << "  Number of grid points will be " << ng << "\n";
+        double* a = ellipsoid_grid(n, ng);
+        *random_points_tank = Eigen::MatrixXd::Zero(ng-2, 3);
+        int i;
+        if ( n <= 0 )
+        {
+            return;
+        }
+
+        int count = 0;
+        for ( i = 0; i < ng - 2; i++ )
+        {
+            Eigen::Vector3d point;
+            point<< a[0+i*3], a[1+i*3], a[2+i*3];
+            Eigen::Vector3d ff = point.transpose()*rotation_matrix;
+            ff = ff + center_pose;
+            (*random_points_tank).row(i) = ff;
+            count +=1;
+        }
+        is_random_tank_is_ready = true;
+        return;
+    }
+
+    double SearchSpace::r8vec_min( int n, double r8vec[] ){
+        int i;
+        double value;
+
+        value = r8vec[0];
+
+        for ( i = 1; i < n; i++ )
+        {
+            if ( r8vec[i] < value )
+            {
+            value = r8vec[i];
+            }
+        }
+        return value;
+    }
+
+    void SearchSpace::timestamp ( ){
+        # define TIME_SIZE 40
+        static char time_buffer[TIME_SIZE];
+        const struct std::tm *tm_ptr;
+        size_t len;
+        std::time_t now;
+        now = std::time ( NULL );
+        tm_ptr = std::localtime ( &now );
+        len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
+        std::cout << time_buffer << "\n";
+        return;
+        # undef TIME_SIZE
     }
 }
 }

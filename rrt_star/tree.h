@@ -29,15 +29,18 @@ namespace hagen {
                 // std::vector<Eigen::MatrixXd> state_seq;
                 // std::vector<Eigen::Matrix<double, 4, 1>> input_seq;
                 double duration;
-                double time;  
+                double time;
+                double distance;
                 int time_idx;
                 char node_state;
                 bool is_valid = true;
+                bool is_horizon = false;
                 PathNode()
                 {
                     node_state = 0;
                     // control_input = Eigen::MatrixXd::Zero(4, 1);
                     state = Eigen::MatrixXd::Zero(13, 1);
+                    distance = 0;
                 }
                 ~PathNode(){};
         };

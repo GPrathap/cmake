@@ -21,7 +21,6 @@ namespace hagen {
         // std::cout<< "========================" << std::endl;
         // const clock_t begin_time = clock();
         std::vector<PathNode> path = rrtstar.rrt_star();
-
         if(path.size()<2){
             std::cout<< "Path can not be found" << std::endl;
             return path;
@@ -29,20 +28,20 @@ namespace hagen {
         std::vector<PathNode> smoothed_path;
         get_smoothed_waypoints(path, smoothed_path);
         // double time_diff =  double( clock () - begin_time ) /  CLOCKS_PER_SEC;
-        
-        // std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
-        // stotage_location = "/dataset/rrt_old/" + std::to_string(index) + "_";
-        // save_edges(rrtstar.trees, stotage_location + "edges.npy");
-        // save_obstacle(planner_opts.search_space.random_objects, stotage_location + "obstacles.npy");
-        // save_poses(planner_opts.x_init, planner_opts.x_goal, stotage_location + "start_and_end_pose.npy");
-        // std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
-        // save_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
-        // save_path(path, stotage_location + "rrt_star_path.npy");
-            // save_long_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
+
+        std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
+        stotage_location = "/dataset/rrt_old/" + std::to_string(index) + "_";
+        save_edges(rrtstar.trees, stotage_location + "edges.npy");
+        save_obstacle(planner_opts.search_space.random_objects, stotage_location + "obstacles.npy");
+        save_poses(planner_opts.x_init, planner_opts.x_goal, stotage_location + "start_and_end_pose.npy");
+        std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
+        save_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
+        save_path(path, stotage_location + "rrt_star_path.npy");
+        save_long_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
         return smoothed_path;
     }
 
-    
+
     double  RRTStar3D::get_distance(std::vector<PathNode> trajectory_){
 			double distance = 0.0f;
         if(trajectory_.size() < 1){
@@ -78,12 +77,12 @@ namespace hagen {
                 add_waypoints_on_straight_line(expected_next, next_node, smoothed_path);
             }else{
                 for(int i=3; i <= path.size(); i++){
-                    std::cout<< "previous: " << previous_node.transpose() << std::endl;
-                    std::cout<< "current_node: " << current_node.transpose() << std::endl;
-                    std::cout<< "next_node: " << next_node.transpose() << std::endl;
+                    // std::cout<< "previous: " << previous_node.transpose() << std::endl;
+                    // std::cout<< "current_node: " << current_node.transpose() << std::endl;
+                    // std::cout<< "next_node: " << next_node.transpose() << std::endl;
                     add_waypoints_on_straight_line(previous_node, expected_preceding, smoothed_path);
-                    std::cout<< "expected_next: " << expected_next.transpose() << std::endl;
-                    std::cout<< "expected_preceding: " << expected_preceding.transpose() << std::endl;
+                    // std::cout<< "expected_next: " << expected_next.transpose() << std::endl;
+                    // std::cout<< "expected_preceding: " << expected_preceding.transpose() << std::endl;
                     apply_dynamics_smoothing(expected_preceding, expected_next, smoothed_path);
                     previous_node = expected_next;
                     current_node = next_node;
@@ -111,7 +110,7 @@ namespace hagen {
     void RRTStar3D::add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
                                                             , std::vector<PathNode>& smoothed_path){
         auto opts = planner_opts.kino_options;
-        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, opts.dt*opts.max_vel);
+        std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, opts.dt*opts.max_fes_vel);
         for(auto po : poses){
             PathNode next_pose_node;
             next_pose_node.state.head(3) << po[0], po[1], po[2];
@@ -125,25 +124,30 @@ namespace hagen {
         auto search_space = planner_opts.search_space;
         std::vector<Eigen::Vector3d> poses = next_poses(x_start, x_goal, 0.2);
         loto::hagen::ExtendedLQR extendedLQR;
-        for(auto pose : poses){
-            std::vector<Eigen::Vector3d> obs_poses;
-            search_space.get_free_space(pose, obs_poses, 10);
-            for(auto obs : obs_poses){
-                loto::hagen::Obstacle obs_pose;
-                obs_pose.pos[0] = obs[0];
-                obs_pose.pos[1] = obs[1];
-                obs_pose.pos[2] = obs[2];
-                obs_pose.radius = 0.4; 
-                obs_pose.dim = 2;
-                extendedLQR.obstacles.push_back(obs_pose);
+        if(opts.consider_obs){
+            for(auto pose : poses){
+                std::vector<Eigen::Vector3d> obs_poses;
+                search_space.get_free_space(pose, obs_poses, opts.number_of_closest_obs);
+                for(auto obs : obs_poses){
+                    loto::hagen::Obstacle obs_pose;
+                    double dis_to_obs = obs.norm();
+                    if(dis_to_obs < 0.03){
+                        continue;
+                    }
+                    obs = (obs/dis_to_obs)*(dis_to_obs + opts.obstacle_radios);
+                    obs_pose.pos[0] = obs[0];
+                    obs_pose.pos[1] = obs[1];
+                    obs_pose.pos[2] = obs[2];
+                    obs_pose.radius = 0.4;
+                    obs_pose.dim = 2;
+                    extendedLQR.obstacles.push_back(obs_pose);
+                }
             }
         }
+
         std::cout<< "Number of obstacles in the space: " << extendedLQR.obstacles.size() << std::endl;
         std::vector<loto::hagen::Matrix<U_DIM, X_DIM>> L;
         std::vector<loto::hagen::Matrix<U_DIM>> l;
-
-        // std::vector<loto::hagen::Matrix<U_DIM, X_DIM>> L;
-        // std::vector<loto::hagen::Matrix<U_DIM>> l;
 
         extendedLQR.xGoal = loto::hagen::zero<X_DIM>();
         extendedLQR.xGoal[0] = x_goal[0];
@@ -168,27 +172,43 @@ namespace hagen {
 
         loto::hagen::Matrix<X_DIM> xStartInit = extendedLQR.xStart;
         xStartInit[X_DIM-1] = log(opts.initdt);
-        double dt;
+        double dt_lqr;
         bool dynamics_present = true;
         try{
-            dt = extendedLQR.extendedLQRItr(opts.ell, xStartInit, extendedLQR.uNominal, L, l
+            dt_lqr = extendedLQR.extendedLQRItr(opts.ell, xStartInit, extendedLQR.uNominal, L, l
                             , opts.max_itter);
         }catch(const std::runtime_error& error){
             dynamics_present = false;
-            std::cout<< "Using same waypoints..." << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << FYEL("Using same waypoints...");
+
         }
         if(dynamics_present){
             loto::hagen::Matrix<X_DIM> x = extendedLQR.xStart;
-            x[X_DIM-1] = log(dt);
+            x[X_DIM-1] = log(dt_lqr);
+            std::cout << "========================================" << std::endl;
             for (size_t t = 0; t < opts.ell; ++t) {
-                // std::cout << x << std::endl;
                 x = extendedLQR.g(x, L[t]*x + l[t]);
+                // std::cout << x << std::endl;
                 PathNode next_pose;
                 next_pose.state.head(3) << x[0], x[1], x[2];
+                if(ba_length*1.2 < (next_pose.state.head(3)-x_start.head(3)).norm()){
+                    // For stopping the overshoot
+                    PathNode next_pose;
+                    next_pose.state.head(3) = x_goal;
+                    smoothed_path.push_back(next_pose);
+                    std::cout<< "Stoping the overshotting .....==============>" << std::endl;
+                    break;
+                }
                 smoothed_path.push_back(next_pose);
             }
         }else{
             // TODO list...
+            PathNode next_pose;
+            next_pose.state.head(3) = x_start;
+            smoothed_path.push_back(next_pose);
+
+            next_pose.state.head(3) = x_goal;
+            smoothed_path.push_back(next_pose);
         }
     }
 
