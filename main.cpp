@@ -828,11 +828,12 @@ int main()
   // std::cout<< *random_points_tank << std::endl;
 
   Eigen::VectorXd x_dimentions(6);
-  x_dimentions << -10, -10, 0, 10, 10, 10;
+  x_dimentions << -10, 10, -10, 10, 0, 10;
   kamaz::hagen::PathNode start_pt_;
   start_pt_.state.head(3) << -9, -9, 1;
   kamaz::hagen::PathNode end_pt_;
   end_pt_.state.head(3) << 9, 9, 9;
+  int number_of_obs = 100;
 
   kamaz::hagen::CommonUtils common_utils;
   kamaz::hagen::SearchSpace X;
@@ -843,13 +844,13 @@ int main()
   kino_ops.max_itter = 30;
   kino_ops.ell = 30;
   kino_ops.initdt = 0.05;
-  kino_ops.min_dis = 0.5;
+  kino_ops.min_dis = 3.0;
   kino_ops.obstacle_radios = 0.3;
   kino_ops.consider_obs = true;
   kino_ops.number_of_closest_obs = 10;
   std::vector<Eigen::Vector2d> Q;
   Eigen::Vector2d dim_in;
-  dim_in << 4, 6;
+  dim_in << 3, 4;
   Q.push_back(dim_in);
 
   
@@ -864,7 +865,7 @@ int main()
   rrt_planner_options.max_samples = 200;
   rrt_planner_options.resolution = 1; 
   rrt_planner_options.pro = 0.1;
-  rrt_planner_options.horizon = 10;
+  rrt_planner_options.horizon = 20;
   // rrt_planner_options.origin_ = origin_;
   // rrt_planner_options.map_size_3d_ = map_size_3d_;
 
@@ -877,9 +878,13 @@ int main()
   bool is_using_whole_space = false;
   int number_of_random_points_in_search_space = 1000;
   double rrt_avoidance_dist_mod = 0.5;
+
+  
   X.init_search_space(x_dimentions, number_of_random_points_in_search_space
                         , rrt_avoidance_dist_mod, 10);
+  auto obstacles = X.get_random_obstacles(number_of_obs, x_dimentions);
   X.use_whole_search_sapce = is_using_whole_space;
+  X.update_obstacles_map(obstacles);
   if(!X.use_whole_search_sapce){
         center = (end_pt_.state.head(3) - start_pt_.state.head(3));
         // Eigen::Vector3d new_center_point(4);
@@ -890,13 +895,13 @@ int main()
         radious[2] = (std::abs(center[2]) < 4.0) ? 4.0 : std::abs(center[2]);
         // std::cout<< "======3" << std::endl;
         center = (end_pt_.state.head(3) + start_pt_.state.head(3))/2.0;
-        Eigen::Vector3d a(0,0,1);
+        // Eigen::Vector3d a(1,0,0);
         Eigen::Vector3d b = end_pt_.state.head(3) - start_pt_.state.head(3);
         // rotation_matrix = Eigen::MatrixXd::Identity(3,3);
-        common_utils.get_roration_matrix(a, b, rotation_matrix);
+        common_utils.get_roration_matrix(start_pt_.state.head(3), end_pt_.state.head(3), rotation_matrix);
         // // int max_tries = 3;
         // // int try_index = 0;
-        X.generate_points(4, radious, center, rotation_matrix);
+        X.generate_points(4, radious, center, rotation_matrix, x_dimentions[4], x_dimentions[5]);
         // X.generate_search_sapce(covmat, rotation_matrix, center, number_of_random_points_in_search_space);
   }
   kamaz::hagen::RRTStar3D* rrtstart3d;

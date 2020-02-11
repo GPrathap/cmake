@@ -37,6 +37,7 @@ namespace hagen {
         std::cout<< "Size of smoothed path..."<< smoothed_path.size() << std::endl;
         save_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
         save_path(path, stotage_location + "rrt_star_path.npy");
+        save_path(planner_opts.search_space, stotage_location + "rrt_search_space.npy");
         save_long_path(smoothed_path, stotage_location + "rrt_star_dynamics_path.npy");
         return smoothed_path;
     }
@@ -191,7 +192,7 @@ namespace hagen {
                 // std::cout << x << std::endl;
                 PathNode next_pose;
                 next_pose.state.head(3) << x[0], x[1], x[2];
-                if(ba_length*1.2 < (next_pose.state.head(3)-x_start.head(3)).norm()){
+                if(ba_length*2.0 < (next_pose.state.head(3)-x_start.head(3)).norm()){
                     // For stopping the overshoot
                     PathNode next_pose;
                     next_pose.state.head(3) = x_goal;
@@ -306,6 +307,18 @@ namespace hagen {
        cnpy::npy_save(file_name, &projected_path[0], {path.size(), 3}, "w");
     }
 
+    void RRTStar3D::save_path(SearchSpace search_space, std::string file_name){
+
+       std::vector<double> projected_path;
+       BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save search space trajectory size: ") << search_space.number_of_rand_points;
+        for(int i=0; i<search_space.number_of_rand_points; i++){
+           projected_path.push_back((*search_space.random_points_tank).row(i)[0]);
+           projected_path.push_back((*search_space.random_points_tank).row(i)[1]);
+           projected_path.push_back((*search_space.random_points_tank).row(i)[2]);
+       }
+       cnpy::npy_save(file_name, &projected_path[0], {search_space.number_of_rand_points, 3}, "w");
+    }
+
     void RRTStar3D::save_long_path(std::vector<PathNode> path, std::string file_name){
     //    std::vector<double> projected_path;
     //    int waypoints = 0;
@@ -329,7 +342,7 @@ namespace hagen {
         auto z = position_vector[2];
         double diff = position_vector.norm();
         if( diff <= 0.0){
-            BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+            BOOST_LOG_TRIVIAL(warning) << FYEL("Next pose of the cant be equal or less than zero...") << next_pose;
         }
         if( diff < distance){
             return start_position;
@@ -356,7 +369,7 @@ namespace hagen {
         auto z = position_vector[2];
         double diff = position_vector.norm();
         if( diff <= 0.0){
-          BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+          BOOST_LOG_TRIVIAL(warning) << FYEL("Next pose of the cant be equal or less than zero...") << next_pose;
         }
         if( diff < distance){
          return end_position;
@@ -384,7 +397,7 @@ namespace hagen {
         auto z = position_vector[2];
         double diff = position_vector.norm();
         if( diff <= 0.0){
-          BOOST_LOG_TRIVIAL(info) << "Next pose of the cant be equal or less than zero..."<< next_pose;
+          BOOST_LOG_TRIVIAL(warning) << FYEL("Next pose of the cant be equal or less than zero...") << next_pose;
         }
         if(diff < distance){
             poses.push_back(end_position);

@@ -63,6 +63,7 @@ namespace hagen {
 
                void add_waypoints_on_straight_line(Eigen::VectorXd x_start, Eigen::VectorXd x_goal
                                                             , std::vector<PathNode>& smoothed_path);
+               void save_path(SearchSpace search_space, std::string file_name);
 
             private:
                std::vector<Eigen::Vector2d> lengths_of_edges;

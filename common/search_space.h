@@ -112,8 +112,7 @@ namespace hagen {
                                                     , int num_of_obs);
                 double get_free_space(Eigen::Vector3d search_rect);
                 void insert_vertex(Eigen::Vector3d index);
-                std::vector<Eigen::Vector3d> nearest_veties(Eigen::Vector3d x, int max_neighbours);
-                
+                std::vector<Eigen::Vector3d> nearest_veties(Eigen::Vector3d x, int max_neighbours);                
                 int dementions = 3;
                 Eigen::VectorXd dim_lengths;
                 // std::vector<uint64_t> res;
@@ -133,7 +132,7 @@ namespace hagen {
                     }
                 };
 
-                double *ellipsoid_grid(int n, int ng );
+                double *ellipsoid_grid(int n, int ng);
                 int ellipsoid_grid_count(int n, Eigen::Vector3d radios,
                                  Eigen::Vector3d center);
                 int i4_ceiling (double x);
@@ -141,7 +140,7 @@ namespace hagen {
                 void r8mat_write(std::string output_filename, int m, int n, double table[] );
                 double r8vec_min(int n, double r8vec[]);
                 void generate_points( int n, Eigen::Vector3d radios, Eigen::Vector3d center_pose
-                    , Eigen::Matrix3d rotation_matrix);
+                    , Eigen::Matrix3d rotation_matrix, double mix_hight, double max_hight);
                 void timestamp();
 
                 GeometryRTreeSearchCallback geometry_rtree_callback;

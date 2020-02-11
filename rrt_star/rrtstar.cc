@@ -99,6 +99,9 @@ namespace hagen {
             BOOST_LOG_TRIVIAL(error) << FRED("Goal position here is an obstacle")<< x_goal.state.head(3).transpose();
             return path;
         }
+        int trap_avoid = 0;
+        int counter_rrt = 0;
+        BOOST_LOG_TRIVIAL(error) << FRED("Path search in progress ...");
         while(true){
             for(auto const q : Q){
                 for(int i=0; i<q[1]; i++){
@@ -111,6 +114,11 @@ namespace hagen {
                    auto new_and_next = new_and_near(0, q);
                    // std::cout<< "rstar loop...." << new_and_next.size() << std::endl;
                    if(new_and_next.size()==0){
+                       trap_avoid++;
+                       if(trap_avoid>15){
+                           X.use_whole_search_sapce = true;
+                           trap_avoid = 0;
+                       }
                        continue;
                    }
                 //    std::cout<< "---------------------------3" << std::endl;
@@ -134,6 +142,8 @@ namespace hagen {
                    }
                 }
             }
+            counter_rrt++;
+            // std::cout<< "============counter_rrt=========" << counter_rrt<<  std::endl;
         }
     }    
 } 

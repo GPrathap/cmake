@@ -18,7 +18,6 @@ namespace hagen {
         uni_dis_vector.push_back(distribution_z);
         number_of_rand_points = num_of_rand_points;
         number_of_max_attempts = number_of_tries_at_time;
-        random_call = new Random_call(std::chrono::system_clock::now().time_since_epoch().count(), num_of_rand_points);
         obstacle_counter = 0;
         avoidance_width = _avoidance_width;
     }
@@ -205,11 +204,14 @@ namespace hagen {
 
     void SearchSpace::generate_search_sapce(Eigen::MatrixXd covmat, Eigen::Matrix3d rotation_mat,
             Eigen::Vector3d cent, int npts){
-        int ndims = covmat.rows();
-        number_of_points_in_random_tank = npts;
+        // int ndims = covmat.rows();
+        // number_of_points_in_random_tank = npts;
+        // // std::cout<< "======6" << std::endl;
         // *random_points_tank = Eigen::MatrixXd::Zero(npts, ndims);
-        generate_samples_from_ellipsoid(covmat, rotation_mat, cent);
-        is_random_tank_is_ready = true;
+        // // std::cout<< "======8" << std::endl;
+        // generate_samples_from_ellipsoid(covmat, rotation_mat, cent);
+        // // std::cout<< "======9" << std::endl;
+        // is_random_tank_is_ready = true;
         return;
     }
 
@@ -271,7 +273,6 @@ namespace hagen {
         // std::string file_name = "/dataset/" + std::to_string(index)+ "_random_samples.npy";
         // cnpy::npy_save(file_name, &sample_pose[0],{(unsigned int)1, (unsigned int)(*random_points_tank).rows(), (unsigned int)(*random_points_tank).cols()},"w");
     }
-
 
     bool SearchSpace::obstacle_free(Rect search_rect){
         box_t search_box(
@@ -370,8 +371,8 @@ namespace hagen {
 
         // std::cout << "sum up..." << sum << std::endl;
   
-        return sum > 0 ? false : true;
-    }
+         return sum > 0 ? false : true;
+     }
 
     Eigen::Vector3d SearchSpace::sample(){
         Eigen::Vector3d random_pose(3);
@@ -384,31 +385,43 @@ namespace hagen {
         // auto z_on = uni_dis_vector[2](generator_on_x);
         // random_pose << x_on, y_on, z_on ;
 
-        if(use_whole_search_sapce){
-            std::default_random_engine generator_on_x;
-            generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
-            auto x_on = uni_dis_vector[0](generator_on_x);
-            generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
-            auto y_on = uni_dis_vector[1](generator_on_x);
-            generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
-            auto z_on = uni_dis_vector[2](generator_on_x);
-            random_pose << x_on, y_on, z_on ;
-        }
-        else{
-            while(true){
-                int index = *(random_call);
-                // std::cout<< "index: " << index << std::endl;
-                if((index < (*random_points_tank).rows()) && (index>0)){
-                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).rows() << std::endl;
-                    // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
-                    if(is_random_tank_is_ready){
-                        random_pose = (*random_points_tank).row(index);
-                        // std::cout<< "========================1115" << std::endl;
+
+                if(!use_whole_search_sapce){
+                    int max_tries = 10;
+                    int coun = 0;
+                    while(true){
+                        int index = *(random_call);
+                        // std::cout<< "index: " << index << std::endl;
+                        if((index < number_of_points_in_random_tank) && (index>0)){
+                            // std::cout<< "========================1114"<< index << "===" << number_of_points_in_random_tank << std::endl;
+                            // std::cout<< "========================1114"<< index << "===" << (*random_points_tank).cols() << std::endl;
+                            if(is_random_tank_is_ready){
+                                random_pose = (*random_points_tank).row(index);
+                                // std::cout<< "========================1115" << std::endl;
+                                return random_pose;
+                            }
+                            break;
+                            coun+=1;
+                        }
+                        if(coun>max_tries){
+                            use_whole_search_sapce = true;
+                            break;
+                        }
                     }
-                    break;
                 }
-            }
-        }
+                if(use_whole_search_sapce)
+                {
+                    std::default_random_engine generator_on_x;
+                    generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+                    auto x_on = uni_dis_vector[0](generator_on_x);
+                    generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+                    auto y_on = uni_dis_vector[1](generator_on_x);
+                    generator_on_x.seed(std::chrono::system_clock::now().time_since_epoch().count());
+                    auto z_on = uni_dis_vector[2](generator_on_x);
+                    random_pose << x_on, y_on, z_on ;
+                //    std::cout<< "========================use_whole_search_sapce"<< std::endl;
+                }
+        // }
         return random_pose;
     }
 
@@ -454,32 +467,7 @@ namespace hagen {
         return true;
     }
 
-
-    // bool SearchSpace::collision_free(Eigen::Vector3d start, Eigen::Vector3d end, int r, double optimal_time){
-    //     auto dist = (start - end).norm();
-    //     double resolution = std::ceil(dist/r);
-    //     std::vector<double> res_on_x = linspace(start[0], end[0], resolution);
-    //     std::vector<double> res_on_y = linspace(start[1], end[1], resolution);
-    //     std::vector<double> res_on_z = linspace(start[2], end[2], resolution);
-    //     // std::cout<< "+===================:collision_free" << std::endl;
-    //     // std::cout<<  res_on_x.size() << " " << res_on_y.size() <<" "<< res_on_z.size() << std::endl;
-    //     int len = std::min({res_on_x.size(), res_on_y.size(), res_on_z.size()}
-    //     , [](const int s1, const int s2) -> bool{
-    //             return s1 < s2;
-    //     });
-    //     // std::cout<< "SearchSpace::collision_free:: len: " << len << std::endl;
-    //     for(int i=0; i<len; i++){
-    //         Eigen::Vector3d search_rect(3);
-    //         search_rect<< res_on_x[i], res_on_y[i], res_on_z[i];
-    //         // std::cout<<" collision_free  " << search_rect.transpose() << std::endl;
-    //         if(!obstacle_free(search_rect)){
-    //             return false;
-    //         }
-    //     }
-    //     return true;
-    // }
-
-        std::vector<double> SearchSpace::linspace(double start_in, double end_in, double step_size)
+    std::vector<double> SearchSpace::linspace(double start_in, double end_in, double step_size)
         {
             std::vector<double> linspaced;
             double start = start_in;
@@ -502,7 +490,7 @@ namespace hagen {
             return linspaced;
         }
 
-        double*  SearchSpace::ellipsoid_grid ( int n, int ng ){
+        double*  SearchSpace::ellipsoid_grid ( int n, int ng){
             double h;
             int ii;
             int i;
@@ -558,7 +546,7 @@ namespace hagen {
                             + pow ( ( y - c[1] ) / r[1], 2 )
                             + pow ( ( z - c[2] ) / r[2], 2 ) )
                     {
-                    break;
+                        break;
                     }
                     np = 0;
                     p[0+np*3] = x;
@@ -568,43 +556,43 @@ namespace hagen {
 
                     if ( 0 < i )
                     {
-                    for ( m = 0; m < np; m++ )
-                    {
-                        p[0+(np+m)*3] = 2.0 * c[0] - p[0+m*3];
-                        p[1+(np+m)*3] = p[1+m*3];
-                        p[2+(np+m)*3] = p[2+m*3];
-                    }
-                    np = 2 * np;
+                        for ( m = 0; m < np; m++ )
+                        {
+                            p[0+(np+m)*3] = 2.0 * c[0] - p[0+m*3];
+                            p[1+(np+m)*3] = p[1+m*3];
+                            p[2+(np+m)*3] = p[2+m*3];
+                        }
+                        np = 2 * np;
                     }
 
                     if ( 0 < j )
                     {
-                    for ( m = 0; m < np; m++ )
-                    {
-                        p[0+(np+m)*3] = p[0+m*3];
-                        p[1+(np+m)*3] = 2.0 * c[1] - p[1+m*3];
-                        p[2+(np+m)*3] = p[2+m*3];
-                    }
-                    np = 2 * np;
+                        for ( m = 0; m < np; m++ )
+                        {
+                            p[0+(np+m)*3] = p[0+m*3];
+                            p[1+(np+m)*3] = 2.0 * c[1] - p[1+m*3];
+                            p[2+(np+m)*3] = p[2+m*3];
+                        }
+                        np = 2 * np;
                     }
 
                     if ( 0 < k )
                     {
-                    for ( m = 0; m < np; m++ )
-                    {
-                        p[0+(np+m)*3] = p[0+m*3];
-                        p[1+(np+m)*3] = p[1+m*3];
-                        p[2+(np+m)*3] = 2.0 * c[2] - p[2+m*3];
-                    }
-                    np = 2 * np;
+                        for ( m = 0; m < np; m++ )
+                        {
+                            p[0+(np+m)*3] = p[0+m*3];
+                            p[1+(np+m)*3] = p[1+m*3];
+                            p[2+(np+m)*3] = 2.0 * c[2] - p[2+m*3];
+                        }
+                        np = 2 * np;
                     }
 
                     for ( m = 0; m < np; m++ )
                     {
-                    for ( ii = 0; ii < 3; ii++ )
-                    {
-                        xyz[ii+(ng2+m)*3] = p[ii+m*3];
-                    }
+                        for ( ii = 0; ii < 3; ii++ )
+                        {
+                            xyz[ii+(ng2+m)*3] = p[ii+m*3];
+                        }
                     }
                     ng2 = ng2 + np;
                 }
@@ -740,7 +728,7 @@ namespace hagen {
     }
 
     void SearchSpace::generate_points( int n, Eigen::Vector3d radios, Eigen::Vector3d center_pose
-            , Eigen::Matrix3d rotation_matrix)
+            , Eigen::Matrix3d rotation_matrix, double mix_hight, double max_hight)
     {
         Eigen::Vector3d c(0,0,0);
         int ng = ellipsoid_grid_count(n, radios, c);
@@ -756,15 +744,21 @@ namespace hagen {
         }
 
         int count = 0;
+        int real_points = 0;
         for ( i = 0; i < ng - 2; i++ )
         {
             Eigen::Vector3d point;
             point<< a[0+i*3], a[1+i*3], a[2+i*3];
             Eigen::Vector3d ff = point.transpose()*rotation_matrix;
             ff = ff + center_pose;
-            (*random_points_tank).row(i) = ff;
+            if(ff[2]>mix_hight && ff[2]< max_hight){
+                (*random_points_tank).row(real_points) = ff;
+                real_points +=1;
+            }
             count +=1;
         }
+        number_of_points_in_random_tank = real_points;
+        random_call = new Random_call(std::chrono::system_clock::now().time_since_epoch().count(), number_of_points_in_random_tank);
         is_random_tank_is_ready = true;
         return;
     }
