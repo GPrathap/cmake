@@ -78,7 +78,7 @@ namespace hagen {
                 };
 
                 void init_search_space(Eigen::VectorXd dimension_lengths
-                        , int number_of_rand_points, double avoidance_width
+                        , int order_of_search_space, double avoidance_width
                         , int number_of_tries_at_time);
                 void generate_random_objects(int num_of_objects);
                 void insert_obstacles(std::vector<Rect> obstacles);
@@ -117,7 +117,6 @@ namespace hagen {
                 Eigen::VectorXd dim_lengths;
                 // std::vector<uint64_t> res;
                 std::shared_ptr<Eigen::MatrixXd> random_points_tank;
-                int number_of_rand_points;
                 Random_call* random_call;
                 bool use_whole_search_sapce = false;
                 double voxel_side_length = 0.1f;
@@ -154,6 +153,7 @@ namespace hagen {
                 bool is_random_tank_is_ready = false;
                 int obstacle_counter = 0;
                 double avoidance_width = 0.5;
+                int order_of_search_space = 3;
             private:
                 double r[3];
                 double c[3];

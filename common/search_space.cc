@@ -7,7 +7,7 @@ namespace hagen {
     }
 
     void SearchSpace::init_search_space(Eigen::VectorXd dimension_lengths
-                , int num_of_rand_points, double _avoidance_width
+                , int _order_of_search_space, double _avoidance_width
                 , int number_of_tries_at_time){
         dim_lengths = dimension_lengths;
         std::uniform_real_distribution<> distribution_x(dimension_lengths[0], dimension_lengths[1]);
@@ -16,7 +16,7 @@ namespace hagen {
         uni_dis_vector.push_back(distribution_x);
         uni_dis_vector.push_back(distribution_y);
         uni_dis_vector.push_back(distribution_z);
-        number_of_rand_points = num_of_rand_points;
+        order_of_search_space = _order_of_search_space;
         number_of_max_attempts = number_of_tries_at_time;
         obstacle_counter = 0;
         avoidance_width = _avoidance_width;
@@ -758,6 +758,7 @@ namespace hagen {
             count +=1;
         }
         number_of_points_in_random_tank = real_points;
+        std::cout<< "=======================>>>>" << number_of_points_in_random_tank << std::endl;
         random_call = new Random_call(std::chrono::system_clock::now().time_since_epoch().count(), number_of_points_in_random_tank);
         is_random_tank_is_ready = true;
         return;

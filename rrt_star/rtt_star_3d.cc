@@ -298,7 +298,7 @@ namespace hagen {
 
     void RRTStar3D::save_path(std::vector<PathNode> path, std::string file_name){
        std::vector<double> projected_path;
-        BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
+       BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save_path trajectory size: ") << path.size();
        for(auto const& way_point : path){
            projected_path.push_back(way_point.state[0]);
            projected_path.push_back(way_point.state[1]);
@@ -308,15 +308,14 @@ namespace hagen {
     }
 
     void RRTStar3D::save_path(SearchSpace search_space, std::string file_name){
-
        std::vector<double> projected_path;
-       BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save search space trajectory size: ") << search_space.number_of_rand_points;
-        for(int i=0; i<search_space.number_of_rand_points; i++){
+       BOOST_LOG_TRIVIAL(info) << FCYN("RRTStar3D::save search space trajectory size: ") << search_space.number_of_points_in_random_tank;
+       for(int i=0; i<search_space.number_of_points_in_random_tank; i++){
            projected_path.push_back((*search_space.random_points_tank).row(i)[0]);
            projected_path.push_back((*search_space.random_points_tank).row(i)[1]);
            projected_path.push_back((*search_space.random_points_tank).row(i)[2]);
        }
-       cnpy::npy_save(file_name, &projected_path[0], {search_space.number_of_rand_points, 3}, "w");
+       cnpy::npy_save(file_name, &projected_path[0], {search_space.number_of_points_in_random_tank, 3}, "w");
     }
 
     void RRTStar3D::save_long_path(std::vector<PathNode> path, std::string file_name){

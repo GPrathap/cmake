@@ -63,7 +63,7 @@
 # include <cstring>
 
 #include "./rrt_star/ellipsoid_grid.h"
-
+#include "./rrt_star/kinodynamic_rrt_star.h"
 using namespace std;
 //  #include <iostream>
 //     #include <unistd.h>
@@ -90,6 +90,7 @@ using kamaz::hagen::PCLPoint;
 using kamaz::hagen::PointCloud;
 using kamaz::hagen::PointCloudPtr;
 using kamaz::hagen::Dynamics;
+using kamaz::hagen::KinodynamicRRTstar;
 
 // int main(){
 //   std::vector<Eigen::VectorXd> path;
@@ -792,123 +793,161 @@ typedef Eigen::Spline<double, 3> Spline3d;
 int main()
 {
   
+KinodynamicRRTstar kinorrt;
+
+kinorrt.max_tau_ = 0.8;
+kinorrt.init_max_tau_ = -1.0;
+kinorrt.max_vel_ = 0.9;
+kinorrt.max_acc_ = 0.3;
+kinorrt.w_time_ = -1.0;
+kinorrt.horizon_ = 15.0;
+kinorrt.resolution_ = 0.3;
+kinorrt.time_resolution_= 4.0;
+kinorrt.margin_=0.6;
+kinorrt.allocate_num_=40;
+kinorrt.check_num_=20;
+kinorrt.number_of_paths=4;
+kinorrt.rrt_avoidance_dist = kinorrt.margin_;
+kinorrt.lqr_feasibility_max_vel=0.5;
+kinorrt.lqr_min_dis=0.5;
+kinorrt.lqr_min_dt=0.1;
+kinorrt.lqr_num_of_iteration=30;
+kinorrt.rrt_star_steer_min=3;
+kinorrt.order_of_search_space=3;
+  
+kinorrt.space_min_z= 0;
+kinorrt.rrt_star_steer_max= 4;
+kinorrt.obstacle_radios= 0.3;
+kinorrt.consider_obs=true;
+kinorrt.number_of_closest_obs=10;
+
+
+Eigen::Vector3d start_pt(-9, -9, 1);
+Eigen::Vector3d end_pt(9, 9, 9);
+Eigen::Vector3d start_v(0,0,0);
+Eigen::Vector3d end_v(0,0,0);
+Eigen::Vector3d start_a(0,0,0);
+std::vector<Eigen::Vector3d> curr_range;
+Eigen::Vector3d map_ori(-10, -10, 0);
+Eigen::Vector3d map_end(10, 10, 10);
+
+int number_of_obs = 100;
+
+curr_range.push_back(map_ori);
+curr_range.push_back(map_end);
+
+kinorrt.init();
+kinorrt.search(start_pt, start_v, start_a, end_pt, end_v, number_of_obs, true, curr_range, true, 0.0, 0, 34);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Eigen::VectorXd x_dimentions(6);
+  // x_dimentions << -10, 10, -10, 10, 0, 10;
+  // kamaz::hagen::PathNode start_pt_;
+  // start_pt_.state.head(3) << -9, -9, 1;
+  // kamaz::hagen::PathNode end_pt_;
+  // end_pt_.state.head(3) << 9, 9, 9;
+  // int number_of_obs = 100;
+
   // kamaz::hagen::CommonUtils common_utils;
-  // kamaz::hagen::SearchSpace search_space;
-  // Eigen::MatrixXd covmat(3,3);
+  // kamaz::hagen::SearchSpace X;
+  // kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
+  // kino_ops.max_vel = 2;
+  // kino_ops.max_fes_vel = 1;
+  // kino_ops.dt = 0.2;
+  // kino_ops.max_itter = 30;
+  // kino_ops.ell = 30;
+  // kino_ops.initdt = 0.05;
+  // kino_ops.min_dis = 3.0;
+  // kino_ops.obstacle_radios = 0.3;
+  // kino_ops.consider_obs = true;
+  // kino_ops.number_of_closest_obs = 10;
+  // std::vector<Eigen::Vector2d> Q;
+  // Eigen::Vector2d dim_in;
+  // dim_in << 3, 4;
+  // Q.push_back(dim_in);
+  // kamaz::hagen::RRTPlannerOptions rrt_planner_options;
+  // rrt_planner_options.x_init = start_pt_;
+  // rrt_planner_options.x_goal = end_pt_;
+  // rrt_planner_options.start_position = start_pt_;
+  // rrt_planner_options.init_search = true;
+  // rrt_planner_options.dynamic = true;
+  // rrt_planner_options.kino_options = kino_ops;
+  // rrt_planner_options.lengths_of_edges = Q;
+  // rrt_planner_options.max_samples = 200;
+  // rrt_planner_options.resolution = 1; 
+  // rrt_planner_options.pro = 0.1;
+  // rrt_planner_options.horizon = 20;
+  // std::cout<< "Dimention of map "<< x_dimentions << std::endl;
+  // Eigen::MatrixXd covmat;
   // Eigen::Vector3d center;
-  // center << 5,0,0;
-  // covmat(0,0) = 8;
-  // covmat(1,1) = 4;
-  // covmat(2,2) = 4;
-
-  // Eigen::Vector3d a(1,0,0);
-  // Eigen::Vector3d b(0,0,1);
-  // Eigen::VectorXd fg(6);
-  // search_space.init(fg);
-  // Random_call random_call(std::chrono::system_clock::now().time_since_epoch().count(), 100);
-  // int num = random_call;
-  // std::cout<<  num << std::endl;
-  // int f = *(search_space.random_call);
-  // std::cout<<  f << std::endl;
   // Eigen::Matrix3d rotation_matrix;
-  // common_utils.get_roration_matrix(a, b, rotation_matrix);
-  // std::cout<< rotation_matrix << std::endl;
-   
-
-  // int n;
-  // int ng;
-  // n = 4;
-  // Eigen::Vector3d r(8,4,4);
-  // Eigen::Vector3d c(0,0,0);
-  
-  // std::shared_ptr<Eigen::MatrixXd> random_points_tank;
-  // random_points_tank = std::make_shared<Eigen::MatrixXd>();
-  // kamaz::hagen::Ellipsoid ellipsoid;
-  // ellipsoid.generate_points(n, r, center, rotation_matrix, random_points_tank);
-  // std::cout<< *random_points_tank << std::endl;
-
-  Eigen::VectorXd x_dimentions(6);
-  x_dimentions << -10, 10, -10, 10, 0, 10;
-  kamaz::hagen::PathNode start_pt_;
-  start_pt_.state.head(3) << -9, -9, 1;
-  kamaz::hagen::PathNode end_pt_;
-  end_pt_.state.head(3) << 9, 9, 9;
-  int number_of_obs = 100;
-
-  kamaz::hagen::CommonUtils common_utils;
-  kamaz::hagen::SearchSpace X;
-  kamaz::hagen::RRTKinoDynamicsOptions kino_ops;
-  kino_ops.max_vel = 2;
-  kino_ops.max_fes_vel = 1;
-  kino_ops.dt = 0.2;
-  kino_ops.max_itter = 30;
-  kino_ops.ell = 30;
-  kino_ops.initdt = 0.05;
-  kino_ops.min_dis = 3.0;
-  kino_ops.obstacle_radios = 0.3;
-  kino_ops.consider_obs = true;
-  kino_ops.number_of_closest_obs = 10;
-  std::vector<Eigen::Vector2d> Q;
-  Eigen::Vector2d dim_in;
-  dim_in << 3, 4;
-  Q.push_back(dim_in);
-
-  
-  kamaz::hagen::RRTPlannerOptions rrt_planner_options;
-  rrt_planner_options.x_init = start_pt_;
-  rrt_planner_options.x_goal = end_pt_;
-  rrt_planner_options.start_position = start_pt_;
-  rrt_planner_options.init_search = true;
-  rrt_planner_options.dynamic = true;
-  rrt_planner_options.kino_options = kino_ops;
-  rrt_planner_options.lengths_of_edges = Q;
-  rrt_planner_options.max_samples = 200;
-  rrt_planner_options.resolution = 1; 
-  rrt_planner_options.pro = 0.1;
-  rrt_planner_options.horizon = 20;
-  // rrt_planner_options.origin_ = origin_;
-  // rrt_planner_options.map_size_3d_ = map_size_3d_;
-
-  std::cout<< "Dimention of map "<< x_dimentions << std::endl;
-  Eigen::MatrixXd covmat;
-  Eigen::Vector3d center;
-  Eigen::Matrix3d rotation_matrix;
-  Eigen::Vector3d radious;
-  Eigen::Quaternion<double> q;
-  bool is_using_whole_space = false;
-  int number_of_random_points_in_search_space = 1000;
-  double rrt_avoidance_dist_mod = 0.5;
-
-  
-  X.init_search_space(x_dimentions, number_of_random_points_in_search_space
-                        , rrt_avoidance_dist_mod, 10);
-  auto obstacles = X.get_random_obstacles(number_of_obs, x_dimentions);
-  X.use_whole_search_sapce = is_using_whole_space;
-  X.update_obstacles_map(obstacles);
-  if(!X.use_whole_search_sapce){
-        center = (end_pt_.state.head(3) - start_pt_.state.head(3));
-        // Eigen::Vector3d new_center_point(4);
-        // std::cout<< "======2" << std::endl;
-        // covmat = Eigen::MatrixXd::Zero(3,3);
-        radious[0] = (std::abs(center[0]) < 4.0) ? 4.0 : std::abs(center[0]);
-        radious[1] = (std::abs(center[1]) < 4.0) ? 4.0 : std::abs(center[1]);
-        radious[2] = (std::abs(center[2]) < 4.0) ? 4.0 : std::abs(center[2]);
-        // std::cout<< "======3" << std::endl;
-        center = (end_pt_.state.head(3) + start_pt_.state.head(3))/2.0;
-        // Eigen::Vector3d a(1,0,0);
-        Eigen::Vector3d b = end_pt_.state.head(3) - start_pt_.state.head(3);
-        // rotation_matrix = Eigen::MatrixXd::Identity(3,3);
-        common_utils.get_roration_matrix(start_pt_.state.head(3), end_pt_.state.head(3), rotation_matrix);
-        // // int max_tries = 3;
-        // // int try_index = 0;
-        X.generate_points(4, radious, center, rotation_matrix, x_dimentions[4], x_dimentions[5]);
-        // X.generate_search_sapce(covmat, rotation_matrix, center, number_of_random_points_in_search_space);
-  }
-  kamaz::hagen::RRTStar3D* rrtstart3d;
-  rrt_planner_options.search_space = X;
-  rrtstart3d = new kamaz::hagen::RRTStar3D();
-  rrtstart3d->rrt_init(32, rrt_planner_options, common_utils, 45);
-  rrtstart3d->rrt_planner_and_save();
+  // Eigen::Vector3d radious;
+  // Eigen::Quaternion<double> q;
+  // bool is_using_whole_space = false;
+  // int number_of_random_points_in_search_space = 1000;
+  // double rrt_avoidance_dist_mod = 0.5;
+  // X.init_search_space(x_dimentions, number_of_random_points_in_search_space
+  //                       , rrt_avoidance_dist_mod, 10);
+  // auto obstacles = X.get_random_obstacles(number_of_obs, x_dimentions);
+  // X.use_whole_search_sapce = is_using_whole_space;
+  // X.update_obstacles_map(obstacles);
+  // if(!X.use_whole_search_sapce){
+  //       center = (end_pt_.state.head(3) - start_pt_.state.head(3));
+  //       radious[0] = (std::abs(center[0]) < 4.0) ? 4.0 : std::abs(center[0]);
+  //       radious[1] = (std::abs(center[1]) < 4.0) ? 4.0 : std::abs(center[1]);
+  //       radious[2] = (std::abs(center[2]) < 4.0) ? 4.0 : std::abs(center[2]);
+  //       center = (end_pt_.state.head(3) + start_pt_.state.head(3))/2.0;
+  //       Eigen::Vector3d b = end_pt_.state.head(3) - start_pt_.state.head(3);
+  //       common_utils.get_roration_matrix(start_pt_.state.head(3), end_pt_.state.head(3), rotation_matrix);
+  //       X.generate_points(4, radious, center, rotation_matrix, x_dimentions[4], x_dimentions[5]);
+  // }
+  // kamaz::hagen::RRTStar3D* rrtstart3d;
+  // rrt_planner_options.search_space = X;
+  // rrtstart3d = new kamaz::hagen::RRTStar3D();
+  // rrtstart3d->rrt_init(32, rrt_planner_options, common_utils, 45);
+  // rrtstart3d->rrt_planner_and_save();
   
   // ellipsoid.r83vec_print_part(ng, xyz, center, rotation_matrix, "/dataset/rrt_old/0__search_space.npy");
   // cout << "\n";
